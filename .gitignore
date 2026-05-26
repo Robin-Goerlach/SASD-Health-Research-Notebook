@@ -1,0 +1,17 @@
+# Build output
+bin/
+obj/
+.vs/
+
+# User/local IDE files
+*.user
+*.suo
+*.rsuser
+
+# Local runtime data and logs
+*.log
+*.tmp
+
+# OS files
+.DS_Store
+Thumbs.db

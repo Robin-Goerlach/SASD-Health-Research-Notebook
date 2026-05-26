@@ -1,0 +1,45 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.Domain", "src\Sasd.HealthNotebook.Domain\Sasd.HealthNotebook.Domain.csproj", "{B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.Application", "src\Sasd.HealthNotebook.Application\Sasd.HealthNotebook.Application.csproj", "{CC36E4C1-8E43-4E0C-B218-2B35803DB7F3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.Infrastructure", "src\Sasd.HealthNotebook.Infrastructure\Sasd.HealthNotebook.Infrastructure.csproj", "{99A0C10A-E28B-4238-B65B-B5B6E105817D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.Wpf", "src\Sasd.HealthNotebook.Wpf\Sasd.HealthNotebook.Wpf.csproj", "{A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.SmokeTests", "tests\Sasd.HealthNotebook.SmokeTests\Sasd.HealthNotebook.SmokeTests.csproj", "{57EF9827-2176-4E04-8D26-919DC8213151}"
+EndProject
+Global
+    GlobalSection(SolutionConfigurationPlatforms) = preSolution
+        Debug|Any CPU = Debug|Any CPU
+        Release|Any CPU = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Release|Any CPU.Build.0 = Release|Any CPU
+        {CC36E4C1-8E43-4E0C-B218-2B35803DB7F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {CC36E4C1-8E43-4E0C-B218-2B35803DB7F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {CC36E4C1-8E43-4E0C-B218-2B35803DB7F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {CC36E4C1-8E43-4E0C-B218-2B35803DB7F3}.Release|Any CPU.Build.0 = Release|Any CPU
+        {99A0C10A-E28B-4238-B65B-B5B6E105817D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {99A0C10A-E28B-4238-B65B-B5B6E105817D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {99A0C10A-E28B-4238-B65B-B5B6E105817D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {99A0C10A-E28B-4238-B65B-B5B6E105817D}.Release|Any CPU.Build.0 = Release|Any CPU
+        {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Release|Any CPU.Build.0 = Release|Any CPU
+        {57EF9827-2176-4E04-8D26-919DC8213151}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {57EF9827-2176-4E04-8D26-919DC8213151}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {57EF9827-2176-4E04-8D26-919DC8213151}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {57EF9827-2176-4E04-8D26-919DC8213151}.Release|Any CPU.Build.0 = Release|Any CPU
+    EndGlobalSection
+    GlobalSection(SolutionProperties) = preSolution
+        HideSolutionNode = FALSE
+    EndGlobalSection
+EndGlobal

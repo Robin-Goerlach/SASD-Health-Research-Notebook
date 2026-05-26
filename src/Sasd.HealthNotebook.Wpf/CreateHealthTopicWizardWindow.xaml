@@ -1,0 +1,142 @@
+<Window x:Class="Sasd.HealthNotebook.Wpf.CreateHealthTopicWizardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Create health topic"
+        Width="820"
+        Height="560"
+        MinWidth="760"
+        MinHeight="520"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource SasdLightBackgroundBrush}">
+    <Grid Margin="18">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Grid.Column="0"
+                Background="{StaticResource SasdNavyBrush}"
+                CornerRadius="12"
+                Padding="16"
+                Margin="0,0,16,0">
+            <StackPanel>
+                <TextBlock Text="Topic Wizard"
+                           Foreground="White"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <ListBox x:Name="StepsListBox"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="White"
+                         IsHitTestVisible="False" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="0"
+                Grid.Column="1"
+                Background="White"
+                BorderBrush="#D9E2EC"
+                BorderThickness="1"
+                CornerRadius="12"
+                Padding="22">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                    <TextBlock x:Name="StepTitleTextBlock"
+                               FontSize="24"
+                               FontWeight="SemiBold"
+                               Foreground="#102A43" />
+                    <TextBlock x:Name="StepDescriptionTextBlock"
+                               Foreground="#52616B"
+                               TextWrapping="Wrap"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+
+                <Grid Grid.Row="1">
+                    <StackPanel x:Name="BasicDataPanel">
+                        <TextBlock Text="Title"
+                                   FontWeight="SemiBold"
+                                   Foreground="#102A43" />
+                        <TextBox x:Name="TitleTextBox"
+                                 Margin="0,4,0,12"
+                                 MaxLength="160" />
+
+                        <TextBlock Text="Documentation status"
+                                   FontWeight="SemiBold"
+                                   Foreground="#102A43" />
+                        <ComboBox x:Name="StatusComboBox"
+                                  Margin="0,4,0,12" />
+
+                        <TextBlock Text="Personal organization priority"
+                                   FontWeight="SemiBold"
+                                   Foreground="#102A43" />
+                        <ComboBox x:Name="PriorityComboBox"
+                                  Margin="0,4,0,12" />
+
+                        <TextBlock Text="Short description"
+                                   FontWeight="SemiBold"
+                                   Foreground="#102A43" />
+                        <TextBox x:Name="ShortDescriptionTextBox"
+                                 Margin="0,4,0,12"
+                                 MaxLength="500"
+                                 AcceptsReturn="True"
+                                 Height="70"
+                                 TextWrapping="Wrap" />
+
+                        <TextBlock Text="Notes"
+                                   FontWeight="SemiBold"
+                                   Foreground="#102A43" />
+                        <TextBox x:Name="NotesTextBox"
+                                 Margin="0,4,0,0"
+                                 MaxLength="4000"
+                                 AcceptsReturn="True"
+                                 Height="110"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto" />
+                    </StackPanel>
+
+                    <Border x:Name="PlaceholderPanel"
+                            Visibility="Collapsed"
+                            Background="#F5F7FA"
+                            BorderBrush="#D9E2EC"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="18">
+                        <StackPanel>
+                            <TextBlock Text="Prepared for later expansion"
+                                       FontSize="18"
+                                       FontWeight="SemiBold"
+                                       Foreground="#102A43" />
+                            <TextBlock Text="This wizard step is already part of the navigation structure, but Milestone 1 only stores the basic topic data. Later phases can add fields here without changing the overall workflow."
+                                       Foreground="#52616B"
+                                       TextWrapping="Wrap"
+                                       Margin="0,8,0,0" />
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <DockPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,16,0,0">
+            <TextBlock DockPanel.Dock="Left"
+                       VerticalAlignment="Center"
+                       Foreground="#52616B"
+                       Text="No diagnosis · no therapy recommendation · local documentation only" />
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel" Click="CancelButton_Click" />
+                <Button x:Name="BackButton" Content="Back" Click="BackButton_Click" />
+                <Button x:Name="NextButton" Content="Next" Style="{StaticResource PrimaryButtonStyle}" Click="NextButton_Click" />
+            </StackPanel>
+        </DockPanel>
+    </Grid>
+</Window>

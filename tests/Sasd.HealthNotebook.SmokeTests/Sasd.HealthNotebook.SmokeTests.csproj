@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Sasd.HealthNotebook.Application\Sasd.HealthNotebook.Application.csproj" />
+    <ProjectReference Include="..\..\src\Sasd.HealthNotebook.Domain\Sasd.HealthNotebook.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Sasd.HealthNotebook.Infrastructure\Sasd.HealthNotebook.Infrastructure.csproj" />
+  </ItemGroup>
+</Project>

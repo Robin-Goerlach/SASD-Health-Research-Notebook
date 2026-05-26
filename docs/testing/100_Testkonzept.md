@@ -1,0 +1,205 @@
+# 100 - Testkonzept
+
+Projekt: SASD Health Research Notebook  
+Stand: 2026-05-25  
+Dokumenttyp: Testkonzept  
+Status: Entwurf  
+
+## 1. Ziel
+
+Das Testkonzept beschreibt, wie die Qualität der Anwendung sichergestellt wird. Bei dieser Anwendung sind nicht nur fachliche Korrektheit und UI-Stabilität wichtig, sondern auch Datenschutz, Datenintegrität, Backup/Restore, Dokumentimport und Nicht-Verlust von Entwürfen.
+
+## 2. Testgrundsätze
+
+1. Keine echten Gesundheitsdaten in Tests.
+2. Testdaten müssen künstlich und unverfänglich sein.
+3. Fachlogik wird ohne UI getestet.
+4. Datenbankmigrationen werden getestet.
+5. Backup und Restore werden regelmäßig getestet.
+6. Logs werden auf sensible Inhalte geprüft.
+7. Fehlerfälle sind genauso wichtig wie Erfolgsfälle.
+
+## 3. Testebenen
+
+| Ebene | Zweck | Beispiele |
+|---|---|---|
+| Unit Tests | einzelne Klassen/Regeln | Validierung, Services, Value Objects |
+| Integration Tests | Zusammenspiel mit SQLite/Dateien | Repositories, Dokumentimport |
+| UI Tests | Bedienfluss | Wizard, Dashboard, Suchmaske |
+| End-to-End Tests | vollständige Workflows | Thema anlegen, Dokument importieren, exportieren |
+| Security Tests | Datenschutzregeln | Logs, Exportwarnungen, Pfade |
+| Migration Tests | Schemaänderungen | v0.1 -> v0.2 |
+| Backup/Restore Tests | Datenintegrität | Backup erzeugen und wiederherstellen |
+| Manual Tests | visuelle/UX-Prüfung | Dashboard, Wizard, Fehlertexte |
+
+## 4. Testdaten
+
+Beispielthemen ohne reale Daten:
+
+- Beispiel: Chronische Sinusitis
+- Beispiel: Vitamin-D-Mangel
+- Beispiel: Blutdruckbeobachtung
+- Beispiel: Verdacht Histaminintoleranz
+
+Diese Beispiele dürfen keine echten Personendaten enthalten.
+
+## 5. Unit-Testbereiche
+
+| Bereich | Tests |
+|---|---|
+| Condition | Pflichtfelder, Status, Archivierung |
+| Wizard | Entwurf, Schrittwechsel, Abschluss |
+| Symptoms | Schweregradvalidierung, Datum |
+| Documents | Hash, Dateityp, Dublette |
+| Sources | Quellenbewertung, URL optional |
+| Questions | Statuswechsel, Terminbezug |
+| Search | Synonyme, Tags, Archivfilter |
+| Export | Inhaltsauswahl, Datenschutzwarnung |
+| Audit | richtige Ereignisse, keine sensiblen Details |
+
+## 6. Integrationstests
+
+Wichtige Tests:
+
+- SQLite-Datenbank anlegen
+- Migration anwenden
+- Condition speichern/laden
+- Wizard-Draft speichern/fortsetzen
+- Dokumentdatei importieren
+- Datei-Hash berechnen
+- Dublette erkennen
+- Suchindex aktualisieren
+- Exportdatei erzeugen
+- Backup erzeugen
+- Restore in neue Datenbank
+
+## 7. Wizard-Testfälle
+
+| Testfall | Erwartung |
+|---|---|
+| Wizard ohne Titel abschließen | Validierungsfehler |
+| Wizard mit Titel und ohne optionale Angaben | Thema wird angelegt |
+| Wizard mit Dokument | Dokument wird importiert und zugeordnet |
+| Wizard abbrechen | Entwurf bleibt erhalten oder wird nach Bestätigung verworfen |
+| App während Wizard schließen | Entwurf kann fortgesetzt werden |
+| ähnlicher Titel | Dublettenwarnung |
+| Schritt zurück/vor | Daten bleiben erhalten |
+| Abschlussfehler beim Dokument | kein halb gespeicherter Zustand |
+
+## 8. Dokumentimport-Testfälle
+
+- kleine PDF-Datei importieren
+- Bild importieren
+- nicht existierende Datei
+- gesperrte Datei
+- Datei ohne Leserechte
+- gleiche Datei zweimal importieren
+- Datei mit sehr langem Namen
+- Datei mit Umlauten/Sonderzeichen
+- Import abbrechen
+- Speicherort nicht verfügbar
+
+## 9. Export-Testfälle
+
+- Arztfragenliste als Markdown
+- Arztmappe mit einem Thema
+- Arztmappe mit mehreren Dokumenten
+- Export ohne Dokumente
+- Export mit sensiblen Dokumenten
+- Export abbrechen
+- Zielordner nicht verfügbar
+- temporäre Dateien werden entfernt
+- Exportprotokoll enthält keine sensiblen Inhalte
+
+## 10. Backup/Restore-Testfälle
+
+- Backup einer leeren Datenbank
+- Backup mit Dokumenten
+- Backup nach Dokumentimport
+- Restore in leeres Profil
+- Restore mit fehlender Datei im Backup
+- Restore mit falscher Prüfsumme
+- Restore einer alten Schema-Version
+- Restore-Abbruch vor Überschreiben
+
+## 11. Sicherheits- und Datenschutztests
+
+| Test | Erwartung |
+|---|---|
+| Log nach Thema anlegen | kein Gesundheitsthema im Log |
+| Log nach Suche | Suchbegriff nicht im Log |
+| Log nach Dokumentimport | kein sensibler Originaldateiname im Log |
+| Exportwarnung | Warnung erscheint vor Export |
+| Cloud-Ordner-Erkennung | Hinweis erscheint, falls erkennbar |
+| Testdatenprüfung | keine echten Personendaten im Repository |
+
+## 12. UI-/UX-Tests
+
+Manuelle Checkliste:
+
+- Wizard verständlich?
+- Pflichtfelder klar?
+- Abbrechen ohne Panik?
+- Entwurf wieder auffindbar?
+- Dashboard nicht überladen?
+- Suche gut erreichbar?
+- Dokumente leicht zuordbar?
+- Arztmappe logisch?
+- Warnungen verständlich, nicht alarmistisch?
+- Schriftgröße angenehm?
+
+## 13. Akzeptanzkriterien für Phase 1 Anwendungsschale
+
+- App startet.
+- Hauptfenster öffnet.
+- Logging funktioniert ohne sensible Daten.
+- Konfiguration wird geladen.
+- Datenordner wird angelegt.
+- Fehlerdialog zeigt verständliche Meldung.
+- Testprojekt läuft.
+
+## 14. Akzeptanzkriterien für Phase 2 Condition-Verwaltung
+
+- Thema anlegen, bearbeiten, archivieren, wiederherstellen.
+- Liste zeigt aktive Themen.
+- Detailansicht öffnet.
+- Daten bleiben nach Neustart erhalten.
+- Tests decken Kernfälle ab.
+
+## 15. Akzeptanzkriterien für Phase 3 Wizard
+
+- Wizard mit allen Schritten vorhanden.
+- Entwürfe speichern.
+- Fortsetzen möglich.
+- Thema wird korrekt angelegt.
+- Dokumente/Quellen/Fragen werden zugeordnet.
+- Abbruch führt nicht zu Datenverlust.
+
+## 16. CI-Empfehlung
+
+Für GitHub Actions später:
+
+```yaml
+- dotnet restore
+- dotnet build --configuration Release
+- dotnet test --configuration Release
+```
+
+Später ergänzen:
+
+- Markdown-Linkprüfung
+- Formatprüfung
+- Dependency-Check
+- Tests mit mehreren .NET-Versionen
+
+## 17. Definition of Done
+
+Eine Phase gilt erst als abgeschlossen, wenn:
+
+- Code gebaut wird
+- Tests erfolgreich sind
+- manuelle Kurzprüfung durchgeführt wurde
+- Dokumentation aktualisiert wurde
+- relevante ADRs ergänzt wurden
+- README/Roadmap bei Bedarf angepasst wurden
+- Commit-Message sauber formuliert ist
