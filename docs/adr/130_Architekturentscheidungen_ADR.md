@@ -5,6 +5,29 @@ Stand: 2026-05-25
 Dokumenttyp: Architecture Decision Records  
 Status: Entwurf  
 
+## ADR-0021 - Explizite Entwicklungs- und Testdatenumleitung
+
+Status: Akzeptiert
+Datum: 2026-09-30
+
+### Entscheidung
+
+Infrastructure löst `SASD_HEALTHNOTEBOOK_DATA_PATH` als vollständig qualifizierten
+Datenordner auf. Ohne Variable bleibt der vorhandene Produktpfad unverändert.
+Ein ungültiger gesetzter Wert erzeugt einen Fehler, keinen Rückfall auf persönliche
+Daten. Der Repository-Konstruktor erfasst den aufgelösten Dateipfad bei Erstellung;
+beide unveränderten Frontend-Bootstrapper nutzen diesen gemeinsamen Mechanismus.
+
+### Konsequenzen
+
+Keine Formatänderung, Migration, Löschung oder neue Abhängigkeit. Der allgemeine
+Override ist keine Sandbox; Entwickler wählen den Pfad ausdrücklich. Der sichere
+Repository-Launcher verwendet ausschließlich `.codex/`, prüft Reparse Points und
+setzt nur Prozessvariablen, einschließlich lokaler Tool-Caches und Tempordner.
+Smoke-Tests prüfen den Produktpfad ohne Dateioperationen und schreiben anschließend
+nur synthetische Daten in neue Repository-Unterordner. Sie lehnen externe Ziele
+und Reparse-Point-Vorfahren ab und bereinigen keine bestehenden Daten.
+
 ## ADR-0001 - Lokal-first statt Cloud-first
 
 Status: Vorgeschlagen / empfohlen

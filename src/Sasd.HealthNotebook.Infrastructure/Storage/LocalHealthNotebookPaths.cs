@@ -9,6 +9,11 @@ namespace Sasd.HealthNotebook.Infrastructure.Storage;
 public static class LocalHealthNotebookPaths
 {
     /// <summary>
+    /// Process configuration for an explicit data directory (not a JSON file).
+    /// </summary>
+    public const string DataPathEnvironmentVariable = "SASD_HEALTHNOTEBOOK_DATA_PATH";
+
+    /// <summary>
     /// Gets the application data directory under the user's local profile.
     /// </summary>
     public static string ApplicationDataDirectory
@@ -21,12 +26,85 @@ public static class LocalHealthNotebookPaths
     }
 
     /// <summary>
-    /// Gets the default data directory used by the JSON repository.
+    /// Gets the configured data directory, or the unchanged product default.
+    /// A configured value must be fully qualified; invalid values never fall back
+    /// to personal data. Resolution itself does not create or migrate files.
     /// </summary>
-    public static string DataDirectory => Path.Combine(ApplicationDataDirectory, "data");
+    public static string DataDirectory
+    {
+        get
+        {
+            string? configuredPath = Environment.GetEnvironmentVariable(DataPathEnvironmentVariable);
+            if (configuredPath is null)
+            {
+                return Path.Combine(ApplicationDataDirectory, "data");
+            }
+
+            if (string.IsNullOrWhiteSpace(configuredPath) || !Path.IsPathFullyQualified(configuredPath))
+            {
+                throw new InvalidOperationException(
+                    $"{DataPathEnvironmentVariable} must specify a fully qualified data directory.");
+            }
+
+            // Ordinary drive and UNC directories are supported. Device namespaces,
+            // alternate streams and Win32-normalized aliases are not data folders.
+            configuredPath = configuredPath.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+            if (configuredPath.StartsWith(@"\\?\", StringComparison.Ordinal)
+                || configuredPath.StartsWith(@"\\.\", StringComparison.Ordinal))
+            {
+                throw InvalidDataPath();
+            }
+
+            string normalizedPath;
+            try { normalizedPath = Path.GetFullPath(configuredPath); }
+            catch (ArgumentException) { throw InvalidDataPath(); }
+            catch (NotSupportedException) { throw InvalidDataPath(); }
+
+            string root = Path.GetPathRoot(configuredPath)!;
+            if (root.StartsWith(@"\\", StringComparison.Ordinal))
+            {
+                string[] shareParts = root.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+                if (shareParts.Length != 2 || shareParts.Any(part => part.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0))
+                {
+                    throw InvalidDataPath();
+                }
+            }
+            foreach (string component in configuredPath[root.Length..].Split(
+                new[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (component is "." or "..") { continue; }
+                string stem = component.Split('.')[0].TrimEnd(' ');
+                if (component.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0
+                    || component.EndsWith(' ') || component.EndsWith('.')
+                    || IsReservedWindowsName(stem))
+                {
+                    throw InvalidDataPath();
+                }
+            }
+            if (File.Exists(normalizedPath))
+            {
+                throw InvalidDataPath();
+            }
+            return normalizedPath;
+        }
+    }
+
+    private static InvalidOperationException InvalidDataPath() => new(
+        $"{DataPathEnvironmentVariable} must specify a valid fully qualified data directory, not a file or device path.");
+
+    private static bool IsReservedWindowsName(string name) =>
+        name.Equals("CON", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("PRN", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("AUX", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("NUL", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("CONIN$", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("CONOUT$", StringComparison.OrdinalIgnoreCase)
+        || (name.Length == 4
+            && (name.StartsWith("COM", StringComparison.OrdinalIgnoreCase) || name.StartsWith("LPT", StringComparison.OrdinalIgnoreCase))
+            && "123456789¹²³".Contains(name[3]));
 
     /// <summary>
-    /// Gets the default JSON file path for health topics.
+    /// Gets the JSON file path under the resolved data directory.
     /// </summary>
     public static string HealthTopicsFilePath => Path.Combine(DataDirectory, "health-topics.json");
 }

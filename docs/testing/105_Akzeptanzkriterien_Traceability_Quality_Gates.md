@@ -80,6 +80,7 @@ Empfohlenes Tabellenformat:
 | Requirement | Akzeptanz | Test-ID(s) | Automatisiert | Status | Bemerkung |
 |---|---|---|---:|---|---|
 | PF-... | kurz zusammengefasst | UT-/IT-/E2E-... | ja/nein | offen/teilweise/erfüllt | Hinweise |
+| FR-DEV-001 | Ohne Override unveränderter Produktpfad (nur auflösen); mit absolutem Override isoliertes JSON inklusive Backup; ungültige Overrides abweisen. Smoke-Test-Ziel außerhalb Repository abweisen. | SEC-PATH-001, IT-PATH-001, ST-JSON-001 | ja | erfüllt | Tests der gemeinsamen Application-/Infrastructure-Verträge mit normalen ProjectReferences. Beide Bootstrapper im Review auf parameterlosen gemeinsamen Repository-Konstruktor geprüft; manuelle Nutzerakzeptanz nach PowerShell-5.1-Reparatur in Dokument 146 festgehalten. |
 
 Die Matrix muss nicht für alle zukünftigen KANN-/SPÄTER-Anforderungen vorab ausgefüllt werden. Sie wächst mit den implementierten vertikalen Slices.
 

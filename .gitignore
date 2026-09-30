@@ -9,6 +9,7 @@ obj/
 *.rsuser
 
 # Local runtime data and logs
+.codex/
 *.log
 *.tmp
 
