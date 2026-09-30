@@ -32,8 +32,8 @@ public sealed class JsonHealthTopicRepository : IHealthTopicRepository
     /// Initializes a new instance of the <see cref="JsonHealthTopicRepository" /> class.
     /// </summary>
     /// <param name="filePath">
-    /// Optional JSON file path. When omitted, a local application data path is used.
-    /// Tests can pass a temporary file path to avoid touching real user data.
+    /// Optional JSON file path. When omitted, the shared configured data path is used.
+    /// Tests can pass an isolated file path to avoid touching real user data.
     /// </param>
     public JsonHealthTopicRepository(string? filePath = null)
     {

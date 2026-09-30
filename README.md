@@ -135,6 +135,44 @@ dotnet run --project src/Sasd.HealthNotebook.WinForms
 
 A GitHub Actions workflow validates restore, build and smoke tests on Windows.
 
+## Safe development and test data
+
+Use the repository-local launcher for development (synthetic data only):
+
+Details and verification: [Safe development data](docs/development/146_Sichere_Entwicklungsdaten.md).
+
+```powershell
+./scripts/Invoke-SafeDevelopment.ps1                     # restore, Release build, smoke tests
+./scripts/Invoke-SafeDevelopment.ps1 -Action WinForms    # run previously built WinForms
+./scripts/Invoke-SafeDevelopment.ps1 -Action Wpf         # run previously built WPF
+```
+
+Run the launcher from the repository working directory. It sets
+`SASD_HEALTHNOTEBOOK_DATA_PATH` to `.codex/synthetic-development-data`
+and redirects .NET/NuGet caches and temporary files into `.codex/`, which Git ignores.
+Environment changes apply only to the process and are restored afterwards. No cleanup occurs.
+
+For an existing developer shell, an explicit override is also supported:
+
+```powershell
+$env:SASD_HEALTHNOTEBOOK_DATA_PATH = Join-Path (Get-Location).Path '.codex/synthetic-development-data'
+```
+
+The override specifies the **data directory**; `health-topics.json` and its backup
+are stored directly there. It must be a fully qualified ordinary drive or UNC path;
+Windows device/extended-length namespaces are rejected. Invalid configured values
+fail instead of falling back to personal data. Both frontends use the shared
+Infrastructure resolver. A repository-local path must be verified before agent runs;
+the general product override is not a filesystem sandbox.
+
+Without the variable, the product path remains
+`LocalApplicationData/SASD-GmbH/HealthResearchNotebook/data`. Nothing is migrated.
+Smoke tests never access that path: they only assert its resolved value, then use
+a fresh GUID subdirectory under the configured repository-local root, or under
+`.codex/smoke-tests` when no override is set. Run them from within the repository.
+They reject outside paths and junction/symlink ancestors, restore the incoming
+environment value, and retain synthetic artifacts for inspection.
+
 ## Frontend status
 
 - **WinForms** is the current primary development frontend. It provides the functional baseline: dashboard, navigation, topic list, refresh, status line, health-topic wizard and German/English localization.
