@@ -51,24 +51,156 @@ Use these sources as the main map:
 
 If documents conflict, prefer the current branch, explicit Baseline 2.1 revisions and newer accepted ADRs over older planning text. Do not silently resolve a material contradiction; document the chosen interpretation.
 
-## Codex model / reasoning guidance
+## Codex model and reasoning policy
 
-This section is **advisory for the human/operator**. `AGENTS.md` can guide how Codex works, but it cannot itself switch the selected model or reasoning effort.
+This section is advisory for the human/operator. `AGENTS.md` cannot itself select or switch the Codex model or reasoning level.
 
-Use the following default:
+Model selection and reasoning effort are separate decisions. Do not treat a higher reasoning level as the only escalation mechanism.
 
-- **Medium**: normal implementation work, feature slices, refactoring with clear scope, test creation, bug fixes and most repository work.
-- **Instant**: low-risk mechanical work such as spelling/docs cleanup, straightforward XML comments, localized strings, simple renames, repetitive boilerplate or an already-specified change with strong tests.
-- **High**: architecture decisions, cross-cutting refactors, persistence/schema migrations, security/privacy work, possible data-loss paths, difficult debugging, concurrency, release-candidate review and requirement-completeness audits.
+The task-role names below are intentionally stable. The concrete model mapping may be updated as Codex model availability changes.
 
-Escalation rules:
+### Current role-to-model mapping
 
-1. If an Instant task needs more than one substantive correction loop, continue the work in Medium.
-2. If a change crosses architectural boundaries, changes persisted data, affects privacy/security or can cause silent data loss, use High for planning/review even if implementation is performed in Medium.
-3. If Medium repeatedly fails to explain or fix the root cause, escalate the investigation to High.
-4. Before a release candidate, perform a High-effort review against the Pflichtenheft, Baseline 2.1 requirements, traceability matrix, security rules and release quality gates.
+Use this mapping when the listed models are available in the operator's Codex environment:
 
-Do not use High merely for volume. Large but mechanical edits are usually better handled in Medium or Instant with verification.
+| Role | Preferred model | Reasoning | Purpose |
+|---|---|---|---|
+| **EFFICIENCY** | GPT-6 Luna | Low | mechanical, low-risk, high-volume work |
+| **DEFAULT** | GPT-6.1 Sol | Medium | normal product development and most feature work |
+| **DEEP** | GPT-6.1 Sol | High | technically difficult implementation/debugging |
+| **CRITICAL** | GPT-6 Astra | Medium or High | expensive-to-reverse architecture/safety decisions and independent reviews |
+
+Model availability depends on plan, workspace settings and Codex version. If a preferred model is unavailable, use the closest available model with the same task-role intent instead of weakening verification.
+
+Do not use xHigh/Max by default. Reserve it for exceptional tasks where High has proved insufficient or repository-specific evaluation demonstrates a clear benefit.
+
+### EFFICIENCY
+
+Use for mechanical, low-risk and highly constrained work.
+
+Typical tasks:
+
+- spelling and Markdown cleanup;
+- straightforward XML documentation;
+- localized string additions or repetitive localization changes;
+- simple renames;
+- repetitive boilerplate;
+- narrowly specified edits with strong existing tests.
+
+EFFICIENCY is not appropriate merely because a task is small if that task changes persisted data, security/privacy boundaries, public interfaces or medical-safety behavior.
+
+### DEFAULT
+
+Use for normal product development.
+
+This is the default role for the SASD Health Research Notebook.
+
+Typical tasks:
+
+- normal feature implementation;
+- vertical slices across Domain, Application, Infrastructure and WinForms;
+- unit and integration tests;
+- routine bug fixing;
+- normal refactoring;
+- UI development with clear requirements.
+
+Prefer DEFAULT over EFFICIENCY whenever the task contains meaningful design choices.
+
+### DEEP
+
+Use when the task is technically difficult but does not automatically require the strongest model.
+
+Typical tasks:
+
+- difficult debugging;
+- complex failure paths;
+- cross-cutting refactoring;
+- concurrency or async problems;
+- repeated failure to identify a root cause at DEFAULT;
+- subtle test failures involving several layers.
+
+### CRITICAL
+
+Use for tasks where a wrong architectural, privacy, security or data-integrity decision would be expensive to reverse.
+
+Typical tasks:
+
+- architecture decisions;
+- persistence-format changes;
+- database schema and migrations;
+- backup and restore design;
+- encryption;
+- privacy and security review;
+- possible silent data-loss paths;
+- public/plugin interfaces;
+- medical-safety boundaries;
+- release-candidate review.
+
+For high-risk changes, CRITICAL is often best used for planning and independent review while bounded implementation is performed with DEFAULT or DEEP.
+
+### Escalation rules
+
+Do not increase model capability or reasoning merely because a result is wrong.
+
+First determine whether the problem is caused by:
+
+- unclear requirements;
+- missing repository context;
+- insufficient acceptance criteria;
+- incorrect or incomplete tests;
+- or genuinely difficult reasoning.
+
+Improve requirements, context or tests before increasing reasoning when those are the root cause.
+
+Escalate as follows:
+
+1. **EFFICIENCY -> DEFAULT** when more than one substantive correction is required, the task stops being mechanical, or meaningful design choices appear.
+2. **DEFAULT -> DEEP** when difficult reasoning is required or the root cause remains unresolved after a reasonable correction cycle.
+3. **DEFAULT/DEEP -> CRITICAL immediately** when persisted data, migrations, security, privacy, encryption, public interfaces, medical-safety boundaries or possible silent data loss are involved.
+4. Before a release candidate, perform a **CRITICAL read-only review** against the Pflichtenheft, Baseline 2.1 requirements, traceability matrix, architecture, security/privacy rules and release quality gates.
+
+Do not use CRITICAL merely for volume. Large but mechanical work may still belong in EFFICIENCY or DEFAULT if verification is strong.
+
+### Implementation versus review
+
+A CRITICAL task does not imply that the strongest model must write all production code.
+
+Preferred pattern for high-risk changes:
+
+1. CRITICAL model plans and reviews the architecture and failure modes.
+2. DEFAULT or DEEP model performs the bounded implementation.
+3. Automated tests and acceptance criteria verify observable behavior.
+4. CRITICAL model performs an independent review.
+
+For release candidates:
+
+1. run a read-only CRITICAL review against requirements, traceability, architecture, security/privacy and release gates;
+2. remediate findings in bounded tasks;
+3. perform a final CRITICAL verification.
+
+### Verification over model confidence
+
+A higher-capability model or higher reasoning level is not evidence that a requirement is implemented correctly.
+
+Requirement IDs, acceptance criteria, automated tests, migration tests, security/privacy tests and documented manual UI checks remain authoritative.
+
+A green build alone is not sufficient.
+
+### Optimize for cost per successful task
+
+Do not optimize for the cheapest individual Codex run.
+
+Consider:
+
+- number of correction loops;
+- repository context that must be reread;
+- build/test iterations;
+- review effort;
+- risk of rework;
+- latency;
+- total usage.
+
+The preferred configuration is the lowest-cost model/reasoning combination that repeatedly completes the task to the required quality level.
 
 ## Requirement and acceptance discipline
 
