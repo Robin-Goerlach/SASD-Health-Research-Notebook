@@ -38,6 +38,56 @@ Before changing code, read:
 
 The repository and the current branch are authoritative over older chat history.
 
+
+## Repository guidance and source hierarchy
+
+Do not read every planning document for every small edit. Read only the documents relevant to the task.
+
+Use these sources as the main map:
+
+- product scope and current status: `README.md`
+- current documentation baseline and precedence: `docs/changes/160_Dokumentationsrevision_2_1.md`
+- original detailed requirements and acceptance criteria: `docs/SASD_Health_Research_Notebook_Pflichtenheft.md`
+- newer stable requirement IDs: `docs/requirements/155_Fachmodule_Baseline_2_1.md`
+- architecture changes: `docs/architecture/030_Architekturkonzept.md` and `docs/adr/130_Architekturentscheidungen_ADR.md`
+- persistence/schema changes: `docs/database/040_Datenmodell_Datenbankdesign.md`
+- UI work: `docs/ui-ux/050_UI_UX_Konzept.md` and `docs/ui-ux/055_UI_Zielbild_und_Screenshot_Plan.md`
+- testing, acceptance and traceability: `docs/testing/100_Testkonzept.md` and `docs/testing/105_Akzeptanzkriterien_Traceability_Quality_Gates.md`
+- current implementation sequence: `docs/development/145_Codex_Arbeitsauftrag.md`
+
+If documents conflict, prefer the current branch, explicit Baseline 2.1 revisions and newer accepted ADRs over older planning text. Do not silently resolve a material contradiction; document the chosen interpretation.
+
+## Codex model / reasoning guidance
+
+This section is **advisory for the human/operator**. `AGENTS.md` can guide how Codex works, but it cannot itself switch the selected model or reasoning effort.
+
+Use the following default:
+
+- **Medium**: normal implementation work, feature slices, refactoring with clear scope, test creation, bug fixes and most repository work.
+- **Instant**: low-risk mechanical work such as spelling/docs cleanup, straightforward XML comments, localized strings, simple renames, repetitive boilerplate or an already-specified change with strong tests.
+- **High**: architecture decisions, cross-cutting refactors, persistence/schema migrations, security/privacy work, possible data-loss paths, difficult debugging, concurrency, release-candidate review and requirement-completeness audits.
+
+Escalation rules:
+
+1. If an Instant task needs more than one substantive correction loop, continue the work in Medium.
+2. If a change crosses architectural boundaries, changes persisted data, affects privacy/security or can cause silent data loss, use High for planning/review even if implementation is performed in Medium.
+3. If Medium repeatedly fails to explain or fix the root cause, escalate the investigation to High.
+4. Before a release candidate, perform a High-effort review against the Pflichtenheft, Baseline 2.1 requirements, traceability matrix, security rules and release quality gates.
+
+Do not use High merely for volume. Large but mechanical edits are usually better handled in Medium or Instant with verification.
+
+## Requirement and acceptance discipline
+
+For every new or changed user-visible behavior:
+
+- identify the relevant `PF-*` or `FR-*` requirement ID, or add one before implementation if none exists;
+- preserve a concrete acceptance criterion;
+- add or update an automated test when the behavior is reasonably automatable;
+- record unavoidable manual UI checks explicitly;
+- update the traceability document when a MUSS requirement or release-critical behavior changes.
+
+A green build is not evidence that all requirements are implemented.
+
 ## Frontend strategy
 
 Do not develop the same new feature independently in WPF and WinForms.
@@ -217,6 +267,20 @@ A WinForms UI task is complete only when:
 - the PR explains the visual/functional changes and remaining gaps.
 
 For visual comparison, prioritize hierarchy, spacing, density and visual language before pixel-level perfection.
+
+## Definition of Done
+
+A change is complete only when, as applicable:
+
+- the solution builds in Release;
+- all existing automated tests/smoke tests pass;
+- new or changed behavior has appropriate tests;
+- no sensitive health data are added to logs or fixtures;
+- persistence changes include migration/backward-compatibility handling;
+- relevant requirement IDs and acceptance criteria remain satisfied;
+- documentation/ADRs are updated when behavior or architecture changes;
+- manual UI checks are recorded for behavior that cannot yet be automated;
+- the PR explains remaining known gaps instead of hiding them.
 
 ## Git workflow
 
