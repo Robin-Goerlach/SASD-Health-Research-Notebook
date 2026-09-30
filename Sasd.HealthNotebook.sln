@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.Infrast
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.Wpf", "src\Sasd.HealthNotebook.Wpf\Sasd.HealthNotebook.Wpf.csproj", "{A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.WinForms", "src\Sasd.HealthNotebook.WinForms\Sasd.HealthNotebook.WinForms.csproj", "{8E8311D0-8904-4496-A04B-6735B70E1A51}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.SmokeTests", "tests\Sasd.HealthNotebook.SmokeTests\Sasd.HealthNotebook.SmokeTests.csproj", "{57EF9827-2176-4E04-8D26-919DC8213151}"
 EndProject
 Global
@@ -34,6 +36,10 @@ Global
         {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {A1538E7B-5A42-4E86-B9B3-1685A9E5C7D0}.Release|Any CPU.Build.0 = Release|Any CPU
+        {8E8311D0-8904-4496-A04B-6735B70E1A51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {8E8311D0-8904-4496-A04B-6735B70E1A51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {8E8311D0-8904-4496-A04B-6735B70E1A51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {8E8311D0-8904-4496-A04B-6735B70E1A51}.Release|Any CPU.Build.0 = Release|Any CPU
         {57EF9827-2176-4E04-8D26-919DC8213151}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {57EF9827-2176-4E04-8D26-919DC8213151}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {57EF9827-2176-4E04-8D26-919DC8213151}.Release|Any CPU.ActiveCfg = Release|Any CPU

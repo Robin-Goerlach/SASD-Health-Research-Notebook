@@ -302,3 +302,27 @@ Nicht in V1:
 - Medikationsplan mit Erinnerungen
 - automatische medizinische Bewertung
 - komplexe Diagramme
+
+
+---
+
+## 21. Revision 2.1 - konkretisierte Fachmodule (2026-09-30)
+
+Die vollständigen Muss-/Soll-Anforderungen mit stabilen IDs stehen in `155_Fachmodule_Baseline_2_1.md`.
+
+Neu bzw. fachlich präzisiert wurden:
+
+- Ernährungstagebuch als eigenes Modul;
+- Messwerte/Vitalwerte einschließlich strukturiertem Blutdruck;
+- optionale unveränderliche Wetter-Snapshots zu Messwerten/Beobachtungen;
+- HealthActions mit Herkunft und Trennung von wiederkehrenden Routinen;
+- Fortschrittsmodelle (Boolean, Zähler, Menge, Dauer, Mess-/Dokumentationsaufgabe);
+- lokaler Notification Service mit Ruhezeiten und diskretem Modus;
+- SourceLocation/EvidenceNote mit URL, PDF/Buch, Seite, Absatz/Abschnitt, Exzerpt und Vertrauensbegründung;
+- MediaResource für Bilder, Übungen und weitere Anhänge;
+- allgemeines Session-Modell für Arztbesuche, Kontrolluntersuchungen, Coaching, Physiotherapie und Beratung;
+- strukturierte Vor- und Nachbereitung von Sessions;
+- ContactReference mit späterer Anbindung an eine allgemeine SASD-Kontakteverwaltung;
+- dokumentative Wechselwirkungs-/Klärungsnotizen ohne automatische Interaktionsentscheidung.
+
+Prioritätsänderung: Die WPF-Oberfläche soll kurzfristig vor zusätzlichen Fachmodulen sichtbar an die Konzept-Screenshots herangeführt werden. Die Fachmodule folgen als kleine vertikale Slices.

@@ -320,3 +320,23 @@ docs: add initial project documentation and planning baseline
 - Datenmodell vorhanden.
 - Sicherheitsgrenzen dokumentiert.
 - Roadmap Phase 1 festgelegt.
+
+
+---
+
+## 22. Revision 2.1 - aktuelle Ausführungsreihenfolge (2026-09-30)
+
+Die ursprüngliche Phasenübersicht dokumentiert die erste Planung vom Mai 2026. Die aktuelle Ausführungsreihenfolge wird durch den detaillierten Milestone-Plan und das UI-Zielbild präzisiert.
+
+Kurzfristig gilt:
+
+1. UI Foundation und Design Tokens;
+2. Application Shell an das Dashboard-Konzeptbild annähern;
+3. Dashboard visuell und funktional polieren;
+4. Wizard auf dieselbe Designsprache bringen;
+5. Navigation Host vorbereiten;
+6. danach Fachmodule als kleine vertikale Slices entwickeln.
+
+SQLite bleibt die geplante relationale Zielpersistenz, wird aber nicht vorgezogen, nur um die alte Phasenreihenfolge einzuhalten. Die aktuelle JSON-Persistenz bleibt bestehen, bis ein getesteter Migrationspfad und ein ausreichend stabiles Fachmodell vorliegen.
+
+Die fachlichen Erweiterungen der Baseline 2.1 sind in `docs/requirements/155_Fachmodule_Baseline_2_1.md` beschrieben. Die konkrete Codex-Reihenfolge steht in `docs/development/145_Codex_Arbeitsauftrag.md`.

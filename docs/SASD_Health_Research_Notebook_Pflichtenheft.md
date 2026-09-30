@@ -1,5 +1,7 @@
 # SASD Health Research Notebook – Pflichtenheft
 
+> **Revision 2.1 (2026-09-30):** Dieses Dokument bleibt als ursprüngliche ausführliche Spezifikation erhalten. Für seit Mai 2026 konkretisierte Anforderungen zu Ernährung, Messwert-/Wetterkontext, Sessions/Arztbesuchen/Coaching, HealthActions, Routinen, Benachrichtigungen, Quellenfundstellen, Medien und Kontaktreferenzen gelten ergänzend und bei Widerspruch vorrangig [160_Dokumentationsrevision_2_1.md](changes/160_Dokumentationsrevision_2_1.md) und [155_Fachmodule_Baseline_2_1.md](requirements/155_Fachmodule_Baseline_2_1.md). Die Anwendung bleibt ein Dokumentations- und Organisationswerkzeug und erzeugt keine Diagnose- oder Therapieanweisungen.
+
 **Dokumenttyp:** Pflichtenheft / technische Produktspezifikation  
 **Projekt:** SASD Health Research Notebook  
 **Arbeitstitel:** `SASD Health Research Notebook`  

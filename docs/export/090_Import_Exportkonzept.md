@@ -239,3 +239,22 @@ Nicht protokollieren:
 - Nutzer wird vor sensiblen Exporten gewarnt.
 - Backup kann erstellt werden.
 - Backup kann testweise wiederhergestellt werden.
+
+
+---
+
+## 16. Exportergänzung Baseline 2.1 (2026-09-30)
+
+Zusätzliche auswählbare Exportbereiche:
+
+- Session-Vorbereitung und -Nachbereitung;
+- offene Fragen und Folgemaßnahmen;
+- ausgewählte HealthActions/Routinen;
+- Messwerttabellen;
+- Ernährungstagebuch-Ausschnitte;
+- Quellen mit genauen Fundstellen;
+- ausgewählte Medien/Übungsanleitungen.
+
+Exporte müssen Herkunft und Status erkennbar lassen. Eine eigene Gesprächsnotiz darf nicht so formatiert werden, als sei sie ein offizieller Arztbrief.
+
+Notification-Historie und interne technische Daten werden standardmäßig nicht in fachliche Exporte aufgenommen.

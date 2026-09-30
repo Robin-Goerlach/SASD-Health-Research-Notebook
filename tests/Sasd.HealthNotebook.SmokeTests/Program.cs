@@ -9,7 +9,8 @@ namespace Sasd.HealthNotebook.SmokeTests;
 /// Very small smoke-test runner without external NuGet dependencies.
 ///
 /// This is not meant to replace xUnit/NUnit later. It only proves that the core
-/// JSON workflow works in a clean environment while keeping Milestone 1 dependency-free.
+/// JSON workflow works in a clean environment while keeping the early milestone
+/// dependency-free.
 /// </summary>
 internal static class Program
 {
@@ -17,7 +18,7 @@ internal static class Program
     {
         try
         {
-            await RunJsonRoundTripSmokeTestAsync();
+            await RunSharedJsonPersistenceSmokeTestAsync();
             Console.WriteLine("Smoke tests passed.");
             return 0;
         }
@@ -29,33 +30,36 @@ internal static class Program
         }
     }
 
-    private static async Task RunJsonRoundTripSmokeTestAsync()
+    private static async Task RunSharedJsonPersistenceSmokeTestAsync()
     {
         string testDirectory = Path.Combine(Path.GetTempPath(), "SASD-HealthNotebook-SmokeTests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(testDirectory);
 
         string jsonFilePath = Path.Combine(testDirectory, "health-topics.json");
 
-        var repository = new JsonHealthTopicRepository(jsonFilePath);
-        var service = new HealthTopicService(repository);
+        // The WinForms and WPF frontends both use the same HealthTopicService and
+        // JsonHealthTopicRepository composition. This smoke test verifies the
+        // shared persistence contract below the UI layer without opening windows.
+        var firstRepository = new JsonHealthTopicRepository(jsonFilePath);
+        var firstFrontendService = new HealthTopicService(firstRepository);
 
-        await service.CreateTopicAsync(new CreateHealthTopicRequest
+        await firstFrontendService.CreateTopicAsync(new CreateHealthTopicRequest
         {
-            Title = "Smoke test topic",
+            Title = "Synthetic smoke-test topic",
             Status = HealthTopicStatus.Observation,
             Priority = HealthTopicPriority.PrepareForDoctor,
             ShortDescription = "Only a technical smoke-test entry.",
-            Notes = "This is not real health data."
+            Notes = "This is synthetic data and not a real health record."
         });
 
-        var reloadedRepository = new JsonHealthTopicRepository(jsonFilePath);
-        var reloadedService = new HealthTopicService(reloadedRepository);
+        var secondRepository = new JsonHealthTopicRepository(jsonFilePath);
+        var secondFrontendService = new HealthTopicService(secondRepository);
 
-        var topics = await reloadedService.GetTopicSummariesAsync();
-        var overview = await reloadedService.GetDashboardOverviewAsync();
+        var topics = await secondFrontendService.GetTopicSummariesAsync();
+        var overview = await secondFrontendService.GetDashboardOverviewAsync();
 
         Assert(topics.Count == 1, "Expected exactly one topic after reload.");
-        Assert(topics[0].Title == "Smoke test topic", "Expected the topic title to survive reload.");
+        Assert(topics[0].Title == "Synthetic smoke-test topic", "Expected the topic title to survive reload.");
         Assert(overview.TotalTopics == 1, "Expected dashboard total to be 1.");
         Assert(overview.PrepareForDoctorCount == 1, "Expected prepare-for-doctor count to be 1.");
     }

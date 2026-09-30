@@ -226,3 +226,39 @@ Für V1 genügt eine einfache Quellenverwaltung.
 - Nutzer sieht Dublettenhinweis bei gleicher Datei.
 - Nutzer kann Dokument in Arztmappe aufnehmen oder ausschließen.
 - Importfehler führen nicht zu Datenverlust.
+
+
+---
+
+## 17. Quellen- und Medienergänzung Baseline 2.1 (2026-09-30)
+
+### 17.1 SourceLocation
+
+Eine Quelle kann mehrere konkrete Fundstellen besitzen.
+
+Beispiele:
+
+- Webseite + URL/Fragment;
+- PDF + Seite/Abschnitt;
+- Buch + Ausgabe + Seite + Absatz;
+- Gespräch + Session + Zeitpunkt/Notiz;
+- Dokument + Seite/Abschnitt.
+
+### 17.2 EvidenceNote
+
+Eine EvidenceNote hält getrennt fest:
+
+1. welche Aussage der Nutzer dokumentiert;
+2. aus welcher Quelle sie stammt;
+3. wo genau sie gefunden wurde;
+4. ob Text zitiert oder paraphrasiert wurde;
+5. wie der Nutzer die Quelle aktuell einordnet;
+6. ob die Aussage mit Arzt/Apotheke/Coach besprochen wurde.
+
+Eine Sterneanzeige kann UI-seitig verwendet werden, benötigt aber eine dokumentierte Bedeutung. Sie ist keine medizinische Validierung.
+
+### 17.3 MediaResource
+
+Bilder, insbesondere bebilderte Übungen, werden als Medienressourcen mit Titel, Beschreibung, Herkunft/Urheberhinweis, Datum, Tags und Beziehungen verwaltet.
+
+Ein MediaResource kann mehreren Objekten zugeordnet werden, ohne die Originaldatei zu duplizieren.

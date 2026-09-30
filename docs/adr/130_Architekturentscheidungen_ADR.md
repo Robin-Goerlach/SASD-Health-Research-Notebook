@@ -265,3 +265,106 @@ Datum: YYYY-MM-DD
 
 ...
 ```
+
+
+---
+
+## ADR-0013 - Konzept-Screenshots als kurzfristiges UI-Ziel
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Die vorhandenen Dashboard- und Wizard-Konzeptbilder definieren die kurzfristige visuelle Richtung. Die laufende WPF-App wird inkrementell dorthin entwickelt; statische Mock-ups gelten nicht als Umsetzung.
+
+### Konsequenzen
+
+- UI-Qualität wird vor zusätzlichen breiten Fachmodulen priorisiert.
+- Bestehende HealthTopic-Funktion bleibt erhalten.
+- Styles/Design Tokens werden wiederverwendbar aufgebaut.
+
+## ADR-0014 - HealthAction und Routine werden getrennt
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Eine `HealthAction` beschreibt eine konkrete Handlung inklusive Herkunft. Eine `Routine` beschreibt die wiederkehrende Durchführung einer vom Nutzer gewählten Aktion.
+
+### Konsequenzen
+
+- Die Anwendung kann ärztlich/therapeutisch/coach-seitig besprochene Handlungen dokumentieren, ohne selbst medizinische Handlungen zu erzeugen.
+- Reminder hängen an Nutzerkonfiguration bzw. Routine, nicht automatisch an einer Erkrankung.
+
+## ADR-0015 - Allgemeines Session-Modell statt separater Arzt-/Coach-Silos
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Arztbesuche, Kontrollen, Coaching, Physiotherapie und Beratung verwenden ein gemeinsames Session-Grundmodell mit Vorbereitung, Protokoll und Nachbereitung.
+
+### Konsequenzen
+
+- Gemeinsame Fragen-, Dokument-, Quellen- und Follow-up-Mechanismen.
+- TK-Coach-spezifische Workflows können später auf dem allgemeinen Modell aufsetzen.
+
+## ADR-0016 - Kontakte als Referenz, kein eingebautes CRM
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Das Health Notebook speichert nur die notwendigen Ansprechpartnerdaten und eine optionale externe Kontakt-ID.
+
+### Konsequenzen
+
+- Kein paralleles vollständiges CRM.
+- Spätere Integration einer allgemeinen SASD-Kontakteverwaltung bleibt möglich.
+
+## ADR-0017 - Wetter als optionaler unveränderlicher Kontext-Snapshot
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Wetterdaten können opt-in zu Messungen/Beobachtungen gespeichert werden. Der gespeicherte Snapshot repräsentiert den Kontext zum fachlichen Zeitpunkt und wird nicht automatisch überschrieben.
+
+### Konsequenzen
+
+- Wetterdienst-Ausfall darf lokale Erfassung nie blockieren.
+- Wetterdaten begründen keine medizinische Kausalität.
+- Standortdaten werden datensparsam behandelt.
+
+## ADR-0018 - Quellen benötigen konkrete Fundstellen
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Neben `Source` wird ein Konzept für konkrete Fundstellen (`SourceLocation`) und Aussagen (`EvidenceNote`) vorgesehen.
+
+### Konsequenzen
+
+- Seite, Absatz, Kapitel, URL/Anker und Exzerpt können nachvollziehbar gespeichert werden.
+- Vertrauensbewertung bleibt subjektive Recherchemetadaten.
+
+## ADR-0019 - Medienressourcen im Dateisystem, Metadaten in Persistenz
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Entscheidung
+
+Bilder und weitere Medien werden wie Dokumente im verwalteten lokalen Dateispeicher gehalten. Fachliche Metadaten, Herkunft, Tags und Beziehungen werden strukturiert gespeichert.
+
+### Konsequenzen
+
+- Geeignet für Übungsbilder und spätere Vorschauen.
+- Keine unnötige BLOB-Aufblähung der SQLite-Datenbank.

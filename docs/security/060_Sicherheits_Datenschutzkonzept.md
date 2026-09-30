@@ -268,3 +268,28 @@ Erlaubt sind:
 - Soll die Anwendung beim Start automatisch sperren?
 - Wie lange bleiben Wizard-Entwürfe erhalten?
 - Wie wird ein vollständiger sicherer Export wieder gelöscht?
+
+
+---
+
+## 18. Sicherheitsergänzung Baseline 2.1 (2026-09-30)
+
+### Notifications
+
+Gesundheitsbezogene Benachrichtigungen können auf Sperrbildschirm oder gemeinsam sichtbaren Displays erscheinen. Deshalb wird ein diskreter Modus vorgesehen. Der Notification Service soll nach Möglichkeit Referenzen/technische IDs verarbeiten und sensible Texte erst unmittelbar für die UI auflösen.
+
+### Wetter- und Kontextdienste
+
+Optionale Wetteranreicherung ist opt-in. Ein externer Wetterdienst soll nur die für den Abruf erforderlichen Orts-/Zeitdaten erhalten, nicht Diagnose, Messwert oder Gesundheitsthema. Exakte GPS-Koordinaten sind für den Kernfall nicht erforderlich.
+
+### Kontakte
+
+Kontaktinformationen von Ärzten/Therapeuten sind personenbezogene Daten und werden wie andere lokale Anwendungsdaten geschützt. Eine spätere zentrale Kontakteintegration muss Berechtigungen und Datenfluss gesondert dokumentieren.
+
+### Bilder und Medien
+
+Vorschaudateien, Thumbnails und temporäre Exporte sind ebenfalls sensible Daten. Temporäre Dateien müssen kontrolliert erzeugt und bereinigt werden. EXIF-/Metadaten können unerwünschte Standortinformationen enthalten und sollen bei späteren Import-/Exportfunktionen bewusst behandelt werden.
+
+### Sessions
+
+Gesprächsnotizen können besonders sensible Inhalte enthalten. Technische Logs dürfen weder Session-Titel noch Inhalte, Fragen, Antworten oder professionelle Aussagen enthalten.

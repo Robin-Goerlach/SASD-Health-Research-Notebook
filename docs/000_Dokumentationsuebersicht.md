@@ -1,118 +1,97 @@
 # 000 - Dokumentationsübersicht
 
 Projekt: SASD Health Research Notebook  
-Stand: 2026-05-25  
+Stand: 2026-09-30  
 Dokumenttyp: Projekt- und Dokumentationslandkarte  
-Status: Entwurf  
+Status: Baseline 2.1
 
-## 1. Zweck dieses Dokuments
+## 1. Zweck
 
-Dieses Dokument beschreibt, welche Planungs-, Architektur- und Entwicklungsdokumente für das Projekt **SASD Health Research Notebook** geführt werden sollen. Es dient als Einstiegspunkt für Entwickler, spätere Mitwirkende und für die interne SASD-Dokumentation.
+Diese Seite ist der Einstiegspunkt für die verbindliche Projektdokumentation.
 
-Das Projekt verarbeitet potenziell hochsensible Gesundheitsinformationen. Deshalb soll vor der Implementierung nicht nur ein grobes Feature-Set existieren, sondern eine nachvollziehbare Dokumentationsbasis mit klaren Grenzen, Sicherheitsannahmen und technischen Entscheidungen.
+Das Projekt verarbeitet potenziell hochsensible Gesundheitsinformationen. Dokumentation, Sicherheitsgrenzen, Fachmodell und technische Umsetzung müssen deshalb gemeinsam weiterentwickelt werden.
 
-## 2. Projekteinordnung
+## 2. Aktueller Projektstand
 
-Das SASD Health Research Notebook ist als lokal-first Desktop-Anwendung gedacht. Ziel ist es, persönliche Gesundheitsinformationen strukturiert zu sammeln, zu dokumentieren, zu verschlagworten und für Gespräche mit Ärzten oder eigene Recherchen vorzubereiten.
+Das Repository befindet sich nicht mehr nur in der Konzeptphase. Eine startbare WPF-Anwendung mit HealthTopic-Modell, Application Service, lokaler JSON-Persistenz, Dashboard, Wizard und Smoke Tests ist vorhanden.
 
-Es handelt sich ausdrücklich **nicht** um ein Diagnosesystem, keine Therapie-Software, keinen Ersatz für ärztliche Beratung und keinen automatisierten medizinischen Entscheidungsassistenten.
+Kurzfristiger technischer Fokus:
 
-## 3. Dokumentenlandkarte
+1. Konzept-Screenshot als funktionierendes WPF-Zielbild umsetzen;
+2. bestehende HealthTopic-Funktion stabil halten;
+3. UI-Struktur für spätere Fachmodule vorbereiten;
+4. anschließend vertikale Fach-Slices entwickeln.
 
-| Dokument | Kernfrage |
+## 3. Medizinische Produktgrenze
+
+Das Health Research Notebook dokumentiert und organisiert. Es diagnostiziert nicht und gibt keine Therapie-, Dosis- oder Medikamentenentscheidungen aus.
+
+Vom Nutzer eingetragene Ziele/Routinen sowie dokumentierte professionelle Anweisungen müssen in Datenmodell und UI von automatisch erzeugten Empfehlungen klar unterscheidbar bleiben. Automatische medizinische Empfehlungen sind nicht Teil der Baseline.
+
+## 4. Dokumentenlandkarte
+
+| Dokument | Zweck |
 |---|---|
-| Lastenheft | Was wird aus Anwender-/Auftraggebersicht benötigt? |
-| Pflichtenheft | Wie soll das System die Anforderungen erfüllen? |
-| Architekturkonzept | Wie wird das System grundsätzlich aufgebaut? |
-| Datenmodell | Welche Datenobjekte gibt es und wie hängen sie zusammen? |
-| UI-/UX-Konzept | Wie wird das System bedient? |
-| Sicherheitskonzept | Wie werden Gesundheitsdaten geschützt? |
-| Dokumenten-/Quellenkonzept | Wie werden Dateien, Quellen und Informationen verwaltet? |
-| Such-/Wissenskonzept | Wie werden Informationen gefunden und verknüpft? |
-| Import-/Exportkonzept | Wie kommen Daten hinein und wieder heraus? |
-| Testkonzept | Wie wird Qualität nachgewiesen? |
-| Roadmap | In welchen Phasen wird entwickelt? |
-| Risikoanalyse | Was kann schiefgehen und wie wird gegengesteuert? |
-| ADRs | Welche Architekturentscheidungen wurden warum getroffen? |
+| `README.md` | öffentliche Projektübersicht und Build-Einstieg |
+| `AGENTS.md` | verbindliche Repository-Anweisungen für Codex/Agenten |
+| `docs/SASD_Health_Research_Notebook_Lastenheft.md` | fachliche Ausgangsanforderungen |
+| `docs/SASD_Health_Research_Notebook_Pflichtenheft.md` | technische Ausgangsspezifikation |
+| `docs/changes/160_Dokumentationsrevision_2_1.md` | konsolidierte Änderung Baseline 2.1 |
+| `docs/requirements/150_Feature_Backlog_und_Anforderungskatalog.md` | breiter Feature-Backlog |
+| `docs/requirements/155_Fachmodule_Baseline_2_1.md` | verbindliche IDs für neue Fachmodule |
+| `docs/architecture/030_Architekturkonzept.md` | Schichten und Systemarchitektur |
+| `docs/database/040_Datenmodell_Datenbankdesign.md` | Datenmodell und Persistenzplanung |
+| `docs/ui-ux/050_UI_UX_Konzept.md` | übergreifendes UI-/UX-Konzept |
+| `docs/ui-ux/055_UI_Zielbild_und_Screenshot_Plan.md` | konkreter Weg zum Screenshot-Ziel |
+| `docs/security/060_Sicherheits_Datenschutzkonzept.md` | Datenschutz- und Sicherheitsmodell |
+| `docs/knowledge/070_Dokumenten_Quellenkonzept.md` | Dateien, Quellen, Fundstellen |
+| `docs/knowledge/080_Such_Wissenskonzept.md` | Suche, Beziehungen, Timeline |
+| `docs/export/090_Import_Exportkonzept.md` | Import, Export und Arztmappe |
+| `docs/testing/100_Testkonzept.md` | Teststrategie |
+| `docs/roadmap/110_Roadmap.md` | Phasenübersicht |
+| `docs/roadmap/115_Milestone_und_Release_Plan.md` | detaillierte Meilensteine |
+| `docs/adr/130_Architekturentscheidungen_ADR.md` | Architekturentscheidungen |
+| `docs/development/140_Repository_Struktur_Entwicklungsleitlinien.md` | allgemeine Entwicklungsregeln |
+| `docs/development/145_Codex_Arbeitsauftrag.md` | konkrete Codex-Arbeitsweise |
 
-## 4. Dokumentationsprinzipien
+## 5. Fachliches Zielbild Baseline 2.1
 
-1. **Nachvollziehbarkeit vor Geschwindigkeit**  
-   Wichtige Entscheidungen werden schriftlich begründet.
+Das Zielbild umfasst langfristig:
 
-2. **Datenschutz von Anfang an**  
-   Gesundheitsdaten dürfen nicht erst nachträglich geschützt werden.
+- HealthTopic;
+- Observation / SymptomObservation;
+- Measurement;
+- NutritionEntry;
+- ContextSnapshot / WeatherSnapshot;
+- Session für Arzt, Coaching, Therapie/Beratung;
+- Question;
+- HealthAction;
+- Routine / RoutineProgress;
+- Reminder;
+- Source / SourceLocation / EvidenceNote;
+- Document / MediaResource;
+- ContactReference.
 
-3. **MVP klein, Architektur erweiterbar**  
-   V1 soll nutzbar, aber nicht überladen sein.
+Diese Liste ist ein Zielmodell. Nicht alle Objekte werden sofort implementiert.
 
-4. **Keine medizinische Übergriffigkeit**  
-   Das System dokumentiert und strukturiert, es diagnostiziert nicht.
+## 6. Dokumentationsprinzipien
 
-5. **Keine stillen Datenverluste**  
-   Löschen, Archivieren, Exportieren und Wiederherstellen müssen nachvollziehbar sein.
+1. Repository-Stand vor Chat-Erinnerung.
+2. Kleine, nachvollziehbare Änderungen.
+3. Sicherheitsentscheidungen schriftlich festhalten.
+4. Lasten-/Pflichtenheft nicht bei jeder Idee vollständig umschreiben; Revisionen versionieren.
+5. Quellen, Aussagen, eigene Interpretation und professionelle Dokumente unterscheiden.
+6. Lokal-first und keine Gesundheitsdaten in Logs.
+7. Archivieren statt still löschen.
+8. Neue Fachmodule als vertikale Slices.
+9. UI-Zielbilder dürfen keine statischen Mock-ups anstelle funktionierender Software erzeugen.
+10. Codex/Agenten müssen `AGENTS.md` beachten.
 
-6. **Quellenbewusstsein**  
-   Medizinische Informationen müssen mit Quelle, Datum, Qualität und Unsicherheit dokumentiert werden.
+## 7. Nächste Arbeit
 
-7. **Offline-Fähigkeit**  
-   Die Anwendung soll ohne Cloud-Zwang nutzbar sein.
-
-8. **Späterer Ausbau möglich**  
-   OCR, KI, FHIR, Geräteimport und mobile Begleit-Apps sollen später denkbar bleiben, aber V1 nicht verkomplizieren.
-
-## 5. Empfohlene Repository-Dokumentstruktur
-
-```text
-/docs
-  /requirements
-  /architecture
-  /database
-  /ui-ux
-  /security
-  /knowledge
-  /export
-  /testing
-  /roadmap
-  /risks
-  /adr
-  /development
-  /screenshots
-/db
-/src
-/tests
-```
-
-## 6. Begriffe
-
-| Begriff | Bedeutung im Projekt |
-|---|---|
-| Gesundheitsthema | Oberbegriff für Krankheit, Verdacht, Symptomkomplex, Risikothema oder Recherchethema |
-| Condition | Technischer Begriff für ein Gesundheitsthema |
-| Eintrag | Freie oder strukturierte Notiz mit Datum, Typ, Quelle und Zuordnung |
-| Dokument | Datei wie PDF, Bild, Arztbrief, Laborbericht, Scan, Screenshot |
-| Quelle | Ursprung einer Information: Arzt, Studie, Webseite, Buch, Gespräch, eigene Beobachtung |
-| Beobachtung | Subjektiver oder gemessener Verlaufseintrag |
-| Messwert | Strukturierter Wert mit Einheit, Datum und optionalem Referenzbereich |
-| Arztmappe | Export-Paket für Arzttermine mit Zusammenfassung, Verlauf, Fragen und ausgewählten Dokumenten |
-| Audit Trail | Änderungsprotokoll, das wichtige Änderungen nachvollziehbar macht |
-
-## 7. Empfohlene Priorität der nächsten Arbeit
-
-1. Repository anlegen und Starterpaket einspielen.
-2. Dokumentationspaket einchecken.
-3. Architekturentscheidungen prüfen und ggf. ADRs anpassen.
-4. Datenmodell in ein erstes Domain-Modell überführen.
-5. Anwendungsschale entwickeln.
-6. Condition-Verwaltung entwickeln.
-7. Wizard entwickeln.
-8. Dokumentenablage und Suche ergänzen.
-
-## 8. Offene Leitfragen
-
-- Soll V1 mit WPF oder WinForms starten?
-- Wird Verschlüsselung direkt in V1 umgesetzt oder als V1.1-Sicherheitsausbau?
-- Soll ein Master-Passwort zwingend sein oder optional?
-- Wird die erste Version ausschließlich lokal ohne Cloud entwickelt?
-- Wie streng soll der Audit-Trail in V1 sein?
-- Werden Laborwerte in V1 bereits strukturiert oder zunächst als einfache Messwerte erfasst?
+1. Baseline-2.1-Dokumentation mergen.
+2. Ersten Codex-UI-Sprint nach `145_Codex_Arbeitsauftrag.md` starten.
+3. Dashboard visuell an Konzeptbild angleichen.
+4. Wizard visuell vereinheitlichen.
+5. Navigation Host vorbereiten.
+6. Danach erster Fach-Slice: HealthEntry/Timeline oder Sources/SourceLocation.
