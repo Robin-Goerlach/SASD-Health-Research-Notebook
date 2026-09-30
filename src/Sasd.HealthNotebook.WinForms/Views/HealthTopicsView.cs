@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Presentation;
 using Sasd.HealthNotebook.WinForms.Styling;
 
@@ -13,6 +14,11 @@ namespace Sasd.HealthNotebook.WinForms.Views;
 public sealed class HealthTopicsView : UserControl
 {
     private readonly DataGridView _grid;
+    private readonly DataGridViewTextBoxColumn _titleColumn;
+    private readonly DataGridViewTextBoxColumn _statusColumn;
+    private readonly DataGridViewTextBoxColumn _priorityColumn;
+    private readonly DataGridViewTextBoxColumn _createdColumn;
+    private readonly DataGridViewTextBoxColumn _shortDescriptionColumn;
     private readonly Label _emptyStateLabel;
     private readonly Label _titleLabel;
 
@@ -29,8 +35,7 @@ public sealed class HealthTopicsView : UserControl
             Dock = DockStyle.Top,
             Height = 32,
             Font = UiFonts.CardTitle,
-            ForeColor = UiColors.PrimaryText,
-            Text = "Gesundheitsthemen"
+            ForeColor = UiColors.PrimaryText
         };
 
         _emptyStateLabel = new Label
@@ -39,7 +44,6 @@ public sealed class HealthTopicsView : UserControl
             Height = 44,
             Font = UiFonts.Body,
             ForeColor = UiColors.SecondaryText,
-            Text = "Noch keine Gesundheitsthemen vorhanden. Lege über „New Health Topic“ das erste Thema an.",
             TextAlign = ContentAlignment.MiddleLeft,
             Visible = false
         };
@@ -59,7 +63,8 @@ public sealed class HealthTopicsView : UserControl
             RowHeadersVisible = false,
             GridColor = UiColors.BorderColor,
             Font = UiFonts.Body,
-            EnableHeadersVisualStyles = false
+            EnableHeadersVisualStyles = false,
+            AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None
         };
 
         _grid.ColumnHeadersDefaultCellStyle.BackColor = UiColors.CardBackground;
@@ -67,15 +72,24 @@ public sealed class HealthTopicsView : UserControl
         _grid.ColumnHeadersDefaultCellStyle.Font = UiFonts.CardTitle;
         _grid.RowTemplate.Height = 34;
 
-        AddColumn("Title", "Title", 190);
-        AddColumn("Status", "Status", 130);
-        AddColumn("Priority", "Priority", 160);
-        AddColumn("CreatedAt", "Created", 140);
-        AddColumn("ShortDescription", "Short description", 360, DataGridViewAutoSizeColumnMode.Fill);
+        _titleColumn = CreateColumn("Title", 190);
+        _statusColumn = CreateColumn("Status", 140);
+        _priorityColumn = CreateColumn("Priority", 190);
+        _createdColumn = CreateColumn("CreatedAt", 150);
+        _shortDescriptionColumn = CreateColumn("ShortDescription", 360, DataGridViewAutoSizeColumnMode.Fill);
+
+        _grid.Columns.AddRange(
+            _titleColumn,
+            _statusColumn,
+            _priorityColumn,
+            _createdColumn,
+            _shortDescriptionColumn);
 
         Controls.Add(_grid);
         Controls.Add(_emptyStateLabel);
         Controls.Add(_titleLabel);
+
+        ApplyTexts();
     }
 
     /// <summary>
@@ -84,6 +98,19 @@ public sealed class HealthTopicsView : UserControl
     public void SetTitle(string title)
     {
         _titleLabel.Text = title;
+    }
+
+    /// <summary>
+    /// Applies localized labels and grid headers.
+    /// </summary>
+    public void ApplyTexts()
+    {
+        _emptyStateLabel.Text = AppStrings.EmptyHealthTopics;
+        _titleColumn.HeaderText = AppStrings.ColumnTitle;
+        _statusColumn.HeaderText = AppStrings.ColumnStatus;
+        _priorityColumn.HeaderText = AppStrings.ColumnPriority;
+        _createdColumn.HeaderText = AppStrings.ColumnCreated;
+        _shortDescriptionColumn.HeaderText = AppStrings.ColumnShortDescription;
     }
 
     /// <summary>
@@ -101,18 +128,16 @@ public sealed class HealthTopicsView : UserControl
         _emptyStateLabel.Visible = rows.Count == 0;
     }
 
-    private void AddColumn(
+    private static DataGridViewTextBoxColumn CreateColumn(
         string dataPropertyName,
-        string headerText,
         int width,
         DataGridViewAutoSizeColumnMode autoSizeMode = DataGridViewAutoSizeColumnMode.None)
     {
-        _grid.Columns.Add(new DataGridViewTextBoxColumn
+        return new DataGridViewTextBoxColumn
         {
             DataPropertyName = dataPropertyName,
-            HeaderText = headerText,
             Width = width,
             AutoSizeMode = autoSizeMode
-        });
+        };
     }
 }
