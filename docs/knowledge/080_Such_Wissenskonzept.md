@@ -238,3 +238,26 @@ Nicht erlaubt ohne tiefere Prüfung:
 - Nutzer kann Ergebnisse filtern.
 - Suchbegriffe werden nicht im Log gespeichert.
 - Archivierte Inhalte sind standardmäßig ausgeblendet, aber auffindbar, wenn Filter aktiv ist.
+
+
+---
+
+## 16. Sucherweiterung Baseline 2.1 (2026-09-30)
+
+Spätere globale Suche und Filter sollen zusätzlich berücksichtigen:
+
+- Ernährungseinträge;
+- ContextSnapshots/Wetterkontext;
+- Sessions und Folgemaßnahmen;
+- HealthActions und Routinen;
+- SourceLocations/EvidenceNotes;
+- Medienmetadaten;
+- Kontaktreferenzen.
+
+Sensible Suchbegriffe bleiben weiterhin aus technischen Logs ausgeschlossen.
+
+Für Beziehungen gilt besonders:
+
+- "zeitlich zusammen beobachtet mit" ist nicht gleich "verursacht";
+- "laut Quelle/Session" ist nicht gleich "medizinisch bestätigt";
+- professionelle und eigene Aussagen müssen in Suchergebnissen unterscheidbar sein.
