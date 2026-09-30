@@ -52,6 +52,7 @@ Vom Nutzer eingetragene Ziele/Routinen sowie dokumentierte professionelle Anweis
 | `docs/knowledge/080_Such_Wissenskonzept.md` | Suche, Beziehungen, Timeline |
 | `docs/export/090_Import_Exportkonzept.md` | Import, Export und Arztmappe |
 | `docs/testing/100_Testkonzept.md` | Teststrategie |
+| `docs/testing/105_Akzeptanzkriterien_Traceability_Quality_Gates.md` | Requirements-Traceability, Akzeptanz- und Release-Gates |
 | `docs/roadmap/110_Roadmap.md` | Phasenübersicht |
 | `docs/roadmap/115_Milestone_und_Release_Plan.md` | detaillierte Meilensteine |
 | `docs/adr/130_Architekturentscheidungen_ADR.md` | Architekturentscheidungen |
@@ -93,10 +94,10 @@ Diese Liste ist ein Zielmodell. Nicht alle Objekte werden sofort implementiert.
 
 ## 7. Nächste Arbeit
 
-1. WinForms-Primärstrategie als Dokumentationsnachtrag übernehmen.
-2. Nächsten Codex-UI-Sprint nach `145_Codex_Arbeitsauftrag.md` auf WinForms ausführen.
-3. WinForms-Dashboard visuell weiter an das Konzeptbild angleichen.
-4. WinForms-Wizard visuell vereinheitlichen.
-5. Navigation Host stabilisieren.
-6. WPF als Referenz buildbar halten.
-7. Danach erster Fach-Slice: HealthEntry/Timeline oder Sources/SourceLocation.
+1. Nächsten Codex-UI-Sprint nach `145_Codex_Arbeitsauftrag.md` auf WinForms ausführen.
+2. WinForms-Dashboard visuell weiter an das Konzeptbild angleichen.
+3. WinForms-Wizard visuell vereinheitlichen.
+4. Navigation Host stabilisieren.
+5. WPF als Referenz buildbar halten, aber keine parallele Featureentwicklung erzwingen.
+6. Echte Unit-/Integrationstestprojekte schrittweise ergänzen und mit den Requirement-IDs verknüpfen.
+7. Danach ersten fachlichen vertikalen Slice umsetzen; die konkrete Priorität wird strategisch festgelegt.

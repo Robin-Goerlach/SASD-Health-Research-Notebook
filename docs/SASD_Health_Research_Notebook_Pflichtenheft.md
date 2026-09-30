@@ -6,10 +6,12 @@
 **Projekt:** SASD Health Research Notebook  
 **Arbeitstitel:** `SASD Health Research Notebook`  
 **Alternative Projektnamen:** `SASD Health Notebook`, `SASD CareNotes`, `SASD Evidence Notebook`, `SASD Medical Research Journal`  
-**Status:** Entwurf V0.1  
-**Stand:** 2026-05-25  
+**Status:** Basisspezifikation, ergänzt durch Baseline 2.1/2.1a  
+**Stand:** 2026-05-25; Frontendentscheidung aktualisiert 2026-09-30  
 **Grundlagen:** Findings Lab Notebook, SASD Feature-Sammlung vom 2026-05-25, Produktvergleich ELN/PHR/DMS/Tracker/Wissensmanagement  
 **Ziel:** Entwicklungsfähige Spezifikation für ein lokal-first Programm zur persönlichen medizinischen Recherche-, Befund- und Verlaufsdokumentation.
+
+> **Frontend-Nachtrag 2.1a:** WinForms ist gemäß ADR-0020 das primäre Produktfrontend. WPF bleibt buildbare Referenz und Kompatibilitätscheck. Ältere Formulierungen, die WPF bevorzugen oder WinForms nur als kurzfristigen Prototyp einordnen, sind in diesem Punkt überholt.
 
 ---
 
@@ -1103,7 +1105,7 @@ Der Wizard soll besonders sorgfältig gestaltet sein:
 | Plattform | Windows Desktop zuerst |
 | Sprache | C# |
 | Runtime | .NET 8+ |
-| UI | WPF mit MVVM oder WinForms für sehr schnellen Prototyp |
+| UI | WinForms primär; WPF als buildbare Referenz |
 | Datenbank | SQLite |
 | Datenzugriff | Repository Pattern, optional Dapper oder EF Core |
 | Volltextsuche | SQLite FTS5 für Notizen/Metadaten, später OCR-Index |
@@ -1482,7 +1484,7 @@ Diese Funktionen bleiben dokumentiert, sollen aber nicht V1 belasten:
 
 | Entscheidung | Optionen | Empfehlung aktuell |
 |---|---|---|
-| UI-Technologie | WPF, WinForms, Avalonia, MAUI | WPF für gutes Desktop-UI; WinForms nur für sehr schnellen MVP. |
+| UI-Technologie | WinForms primär; WPF Referenz; weitere Frameworks nur nach neuer ADR | Aktuelle Produktentwicklung erfolgt in WinForms; gemeinsame Schichten bleiben UI-unabhängig. |
 | Datenzugriff | EF Core, Dapper, eigenes Repository | Repository Pattern, darunter Dapper oder EF Core. |
 | Verschlüsselung | SQLCipher, Dateicontainer, App-Level Crypto | früh evaluieren; Storage-Schicht abstrahieren. |
 | PDF-Export | QuestPDF, Playwright/HTML, LaTeX | Markdown zuerst, PDF später. |
@@ -1890,7 +1892,7 @@ Die folgende Sammlung ist bewusst breit. Sie ist noch keine Priorisierung für V
 |---|---|---|
 | F-256 | Desktop-App zuerst | Windows Desktop als erste Plattform, passend zu SASD-Desktopprojekten. |
 | F-257 | C#/.NET | Gute Passung zu bestehenden SASD-Projekten. |
-| F-258 | WPF oder WinForms | WPF für langfristig bessere UI; WinForms für schnellen Start. |
+| F-258 | WinForms primär; WPF Referenz | Neue Produktfeatures werden in WinForms zuerst umgesetzt; WPF bleibt buildbar und prüft gemeinsame Verträge. |
 | F-259 | SQLite | Lokale relationale Datenbank, gut für V1. |
 | F-260 | SQLite FTS5 | Volltextsuche für Notizen und Dokumenttext. |
 | F-261 | Dateisystem-Dokumentstore | Dokumente als Dateien, Metadaten in SQLite. |

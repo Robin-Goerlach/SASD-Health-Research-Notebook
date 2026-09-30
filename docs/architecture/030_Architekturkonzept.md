@@ -3,7 +3,9 @@
 Projekt: SASD Health Research Notebook  
 Stand: 2026-05-25  
 Dokumenttyp: Architekturkonzept  
-Status: Entwurf  
+Status: Baseline 2.1a  
+
+> **Aktuelle Frontendregel (2026-09-30):** WinForms ist gemäß ADR-0020 das primäre Produkt- und Entwicklungsfrontend. WPF bleibt buildbare Referenz und Kompatibilitätscheck. Ältere WPF-Präferenzen in diesem Dokument sind historischer Planungsstand und werden durch ADR-0020 ersetzt.
 
 ## 1. Ziel des Architekturkonzepts
 
@@ -48,7 +50,7 @@ Diese Punkte sollen nicht grundsätzlich ausgeschlossen werden, aber sie dürfen
 |---|---|---|
 | Sprache | C# | Passt zu bestehenden SASD-Desktopprojekten. |
 | Runtime | .NET 8 LTS oder neuer | Stabil, gut unterstützt, geeignet für Desktop und Tests. |
-| UI | WPF bevorzugt | Besser für komplexere Datenmasken, Layouts, Dashboard und MVVM. |
+| UI | WinForms primär; WPF als Referenz | WinForms ist das aktuelle Produktfrontend. WPF bleibt buildbar, ohne neue Features parallel nachzubauen. |
 | Datenbank | SQLite | Lokal, robust, gut testbar, kein Server nötig. |
 | Suche | SQLite FTS5 | Volltextsuche ohne separate Suchmaschine möglich. |
 | Verschlüsselung | SQLCipher oder appseitige Vault-Verschlüsselung | Für Gesundheitsdaten langfristig wichtig. |
@@ -66,7 +68,7 @@ Ein modularer Monolith ist für V1 sinnvoller als Microservices oder Plugin-Arch
 
 ```mermaid
 flowchart TB
-    UI[App / WPF UI]
+    UI[Desktop UI / WinForms primär]
     APP[Application Layer]
     DOMAIN[Domain Layer]
     INFRA[Infrastructure Layer]
@@ -95,7 +97,8 @@ Empfohlene Solution-Struktur:
 Sasd.HealthResearchNotebook.sln
 
 src/
-  Sasd.HealthResearchNotebook.App/              # WPF-Anwendung
+  Sasd.HealthNotebook.WinForms/                 # primäres Produktfrontend
+  Sasd.HealthNotebook.Wpf/                      # buildbare Referenzoberfläche
   Sasd.HealthResearchNotebook.Domain/           # Entitäten, Value Objects, fachliche Regeln
   Sasd.HealthResearchNotebook.Application/      # Use Cases, Services, DTOs
   Sasd.HealthResearchNotebook.Infrastructure/   # SQLite, Dateien, Repositories, Migrationen
@@ -317,7 +320,7 @@ Die Architektur soll diese Grenze technisch unterstützen:
 - Lokal-first statt Cloud-first
 - Desktop-first statt Web-first
 - SQLite statt Serverdatenbank
-- WPF statt WinForms oder Web UI
+- WinForms als primäres Produktfrontend; WPF als buildbare Referenz (ADR-0020)
 - Dokumente im Dateisystem statt BLOBs
 - Markdown-Export zuerst, PDF später
 - Keine KI in V1
@@ -378,7 +381,7 @@ Ein späteres SASD-Contacts-System wird über einen Adapter bzw. eine externe ID
 
 ### 22.5 UI-Architektur
 
-Die WPF-App wird schrittweise zu einem Navigation Host mit wiederverwendbaren Views/ViewModels entwickelt. Der erste Sprint bleibt bewusst leichtgewichtig; ein Framework-Wechsel nur für Navigation ist nicht gerechtfertigt.
+Historischer Planungsstand: Der Navigation Host war zunächst für WPF vorgesehen. Seit ADR-0020 wird der Navigation Host im primären WinForms-Frontend weiterentwickelt; WPF bleibt Referenz und Kompatibilitätscheck.
 
 
 ---

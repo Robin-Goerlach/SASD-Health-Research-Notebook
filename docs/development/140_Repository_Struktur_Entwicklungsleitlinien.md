@@ -151,7 +151,7 @@ test: add backup restore integration tests
 | Schicht | Darf kennen | Darf nicht kennen |
 |---|---|---|
 | Domain | eigene Entitäten/Value Objects | UI, SQLite, Dateisystem |
-| Application | Domain, Interfaces | WPF-Controls, konkrete DB-Details |
+| Application | Domain, Interfaces | WinForms-/WPF-Controls, konkrete DB-Details |
 | Infrastructure | SQLite, Dateien | UI |
 | App/UI | ViewModels, Application Services | SQL, Dateisystemdetails |
 | Security | Crypto/Schutzservices | UI-Layout |
@@ -203,7 +203,7 @@ Commit: <hash>
 
 ## Inhalt
 - Solution erstellt
-- WPF-App startet
+- primäres WinForms-Frontend startet
 - Logging-Grundlage
 - Testprojekte
 
