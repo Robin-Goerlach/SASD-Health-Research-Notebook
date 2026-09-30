@@ -124,19 +124,49 @@ public static class AppStrings
     public static string Create => Text("Create", "Anlegen");
 
     /// <summary>Gets the title label in the wizard.</summary>
-    public static string FieldTitle => Text("Title", "Titel");
+    public static string FieldTitle => Text("Health topic title", "Titel des Gesundheitsthemas");
 
     /// <summary>Gets the status label in the wizard.</summary>
-    public static string FieldStatus => Text("Status", "Status");
+    public static string FieldStatus => Text("Documentation status", "Dokumentationsstatus");
 
     /// <summary>Gets the priority label in the wizard.</summary>
-    public static string FieldPriority => Text("Priority", "Priorität");
+    public static string FieldPriority => Text("Personal priority", "Persönliche Priorität");
 
     /// <summary>Gets the short-description label in the wizard.</summary>
     public static string FieldShortDescription => Text("Short description", "Kurzbeschreibung");
 
     /// <summary>Gets the notes label in the wizard.</summary>
-    public static string FieldNotes => Text("Notes", "Notizen");
+    public static string FieldNotes => Text("First notes", "Erste Notizen");
+
+    /// <summary>Gets the longer explanation for the basic-data wizard step.</summary>
+    public static string BasicDataStepDescription => Text(
+        "Basic data are the small identifying details that help you find this health topic later: a clear title, documentation status, personal priority, short description and optional first notes.",
+        "Grunddaten sind die wenigen Angaben, mit denen du dieses Gesundheitsthema später eindeutig wiederfindest: klarer Titel, Dokumentationsstatus, persönliche Priorität, Kurzbeschreibung und optionale erste Notizen.");
+
+    /// <summary>Gets the tooltip for the health-topic title field.</summary>
+    public static string ToolTipHealthTopicTitle => Text(
+        "A short, recognizable name for this health topic. Example: \"Blood pressure observations\". Put sensitive details into notes rather than into the title because titles are visible in lists.",
+        "Kurzer, wiedererkennbarer Name für dieses Gesundheitsthema. Beispiel: „Blutdruck-Beobachtung“. Sensible Details gehören eher in die Notizen, weil Titel in Listen sichtbar sind.");
+
+    /// <summary>Gets the tooltip for the documentation status field.</summary>
+    public static string ToolTipStatus => Text(
+        "How you want to document the current status. The app does not confirm or create a diagnosis.",
+        "Wie du den aktuellen Stand dokumentieren möchtest. Die App bestätigt oder erstellt keine Diagnose.");
+
+    /// <summary>Gets the tooltip for the priority field.</summary>
+    public static string ToolTipPriority => Text(
+        "Personal organization priority for your notebook. This is not medical urgency and not triage.",
+        "Persönliche Organisationspriorität für dein Notizbuch. Das ist keine medizinische Dringlichkeit und keine Triage.");
+
+    /// <summary>Gets the tooltip for the short-description field.</summary>
+    public static string ToolTipShortDescription => Text(
+        "One or two neutral sentences for the overview list. Details, open questions and context can go into notes.",
+        "Ein bis zwei neutrale Sätze für die Übersichtsliste. Details, offene Fragen und Kontext können in die Notizen.");
+
+    /// <summary>Gets the tooltip for the notes field.</summary>
+    public static string ToolTipNotes => Text(
+        "Optional first notes, context or questions. These notes are saved as documentation and are not used to generate medical recommendations.",
+        "Optionale erste Notizen, Kontext oder Fragen. Diese Notizen werden nur dokumentiert und nicht für medizinische Empfehlungen verwendet.");
 
     /// <summary>Gets the placeholder text for later wizard steps.</summary>
     public static string WizardPlaceholder => Text(
@@ -251,7 +281,7 @@ public static class AppStrings
         {
             return new[]
             {
-                new WizardStepText("1. Grunddaten", "Hauptdatensatz mit Titel, Status, Priorität und ersten Notizen anlegen."),
+                new WizardStepText("1. Grunddaten", BasicDataStepDescription),
                 new WizardStepText("2. Diagnose / Status", "Später: externe Diagnoseinformationen oder offenen Status dokumentieren, ohne App-Diagnose."),
                 new WizardStepText("3. Symptome", "Später: Symptome und Beobachtungen dokumentieren."),
                 new WizardStepText("4. Dokumente", "Später: Briefe, PDFs, Laborberichte und Bilder verbinden."),
@@ -266,7 +296,7 @@ public static class AppStrings
 
         return new[]
         {
-            new WizardStepText("1. Basic data", "Create the main topic record with title, status, priority and first notes."),
+            new WizardStepText("1. Basic data", BasicDataStepDescription),
             new WizardStepText("2. Diagnosis / status", "Later: document external diagnosis information or open status without app-generated diagnosis."),
             new WizardStepText("3. Symptoms", "Later: document symptoms and observations."),
             new WizardStepText("4. Documents", "Later: connect letters, PDFs, lab reports and images."),
