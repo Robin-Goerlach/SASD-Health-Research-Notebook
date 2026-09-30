@@ -9,16 +9,20 @@ The product is **not** a diagnostic, treatment, triage or medication-dosing syst
 ## Current technical baseline
 
 - C# / .NET 8+
-- WPF desktop UI
-- Layered projects:
+- layered projects:
   - `Sasd.HealthNotebook.Domain`
   - `Sasd.HealthNotebook.Application`
   - `Sasd.HealthNotebook.Infrastructure`
   - `Sasd.HealthNotebook.Wpf`
-- current persistence: local JSON repository
-- planned persistence: SQLite with migrations
-- tests currently include a dependency-light smoke-test project
-- local-first; no cloud requirement; no telemetry
+  - `Sasd.HealthNotebook.WinForms`
+- **WinForms is the primary frontend for current feature development.**
+- **WPF remains a buildable reference frontend and compatibility check.**
+- both frontends use the same Application/Infrastructure layers and the same local JSON persistence.
+- current persistence: local JSON repository.
+- planned persistence: SQLite with migrations.
+- tests currently include a dependency-light smoke-test project.
+- local-first; no cloud requirement; no telemetry.
+- WinForms currently provides German/English UI localization.
 
 Before changing code, read:
 
@@ -34,26 +38,51 @@ Before changing code, read:
 
 The repository and the current branch are authoritative over older chat history.
 
+## Frontend strategy
+
+Do not develop the same new feature independently in WPF and WinForms.
+
+Current rule:
+
+1. WinForms receives new product features and UI improvements.
+2. WPF remains buildable and may be used to verify the shared Application/Infrastructure contracts.
+3. WPF receives only compatibility fixes or explicitly requested work while WinForms is primary.
+4. Domain, Application and Infrastructure must remain UI-independent so a future frontend decision stays possible.
+
+Do not delete or deliberately break the WPF project.
+
 ## Immediate implementation priority
 
-The first Codex implementation goal is **not** to implement every planned health feature.
-
-The priority is to make the running WPF application visibly approach the design promise shown in:
+The next UI goal is to refine the **running WinForms application** so that it increasingly fulfills the design promise shown in:
 
 - `docs/screenshots/dashboard-concept.png`
 - `docs/screenshots/condition-wizard-concept.png`
 
-The current `MainWindow.xaml` already contains the structural foundation: dark left navigation, page header, dashboard cards, health-topic list and footer. Preserve working behavior and refine this foundation incrementally.
+The WinForms baseline already contains:
+
+- dark left navigation;
+- Dashboard / Gesundheitsthemen navigation;
+- dashboard cards;
+- health-topic grid;
+- refresh and new-topic actions;
+- status strip;
+- health-topic wizard;
+- reusable navigation/card controls;
+- central styling classes;
+- presenter classes;
+- German/English localization.
+
+Preserve working behavior and improve this foundation incrementally.
 
 ### Screenshot-first implementation order
 
-1. Stabilize and centralize WPF visual resources.
-2. Match application shell proportions, spacing, typography, cards and navigation to the concept screenshot.
-3. Add selected/hover/focus states and make navigation a real reusable control/model rather than decorative TextBlocks.
-4. Keep the dashboard functional with the existing `HealthTopicService`.
-5. Refine the health-topic list and empty states.
-6. Refine the health-topic wizard to match the concept screenshot.
-7. Only then expand domain modules in small vertical slices.
+1. Polish the WinForms shell: proportions, spacing, typography and visual hierarchy.
+2. Refine navigation selected/hover/focus behavior and keyboard usability.
+3. Refine dashboard cards and the health-topic work area.
+4. Refine empty states and grid readability.
+5. Bring the WinForms wizard closer to the concept screenshot while preserving its current functional scope.
+6. Keep German and English UI texts consistent.
+7. Only then expand health-domain modules as small vertical slices.
 
 Do not replace the application with a static mock-up. Every UI increment must leave the application runnable.
 
@@ -93,7 +122,7 @@ Keep these concepts distinct:
 - `HealthAction`: an action/instruction with provenance and status.
 - `Routine`: repeatable user-configured execution of an action.
 - `Reminder`: notification schedule for a user-configured item.
-- `Source` / `EvidenceNote`: where information came from and the exact cited location.
+- `Source` / `SourceLocation` / `EvidenceNote`: where information came from and the exact cited location.
 - `MediaResource`: image/file used as documentation or instruction material.
 - `ContactReference`: healthcare contact reference, designed for future integration with a shared SASD contacts application.
 - `ContextSnapshot`: immutable contextual data captured at an event/measurement, e.g. weather.
@@ -102,14 +131,25 @@ A doctor's instruction and a routine are not the same object. A session may crea
 
 ## Architecture rules
 
-- Domain must not reference WPF, SQLite or file-system implementation details.
-- Application may depend on Domain and abstractions, not concrete WPF controls.
+- Domain must not reference WinForms, WPF, SQLite or file-system implementation details.
+- Application may depend on Domain and abstractions, not concrete UI controls.
 - Infrastructure implements persistence, files and external adapters.
-- WPF must not contain database or file-system business logic.
-- Do not move business logic into code-behind merely to make UI work faster.
+- WinForms and WPF must not contain database or file-system business logic.
+- Do not duplicate Domain/Application/Infrastructure types for a frontend.
+- Do not move business logic into Form event handlers or WPF code-behind merely to make UI work faster.
 - Prefer small classes and explicit interfaces over broad service objects.
 - Preserve backward compatibility with current local JSON data until a migration path exists.
+- Both frontends must continue to see the same local HealthTopic data while JSON is the active persistence layer.
 - Do not silently delete or overwrite user data.
+
+## WinForms presentation guidance
+
+- Prefer idiomatic WinForms controls and layout over mechanically translating WPF/XAML.
+- Keep large Forms from accumulating business logic; use Views, presenters/controllers and reusable controls where they help.
+- Reuse `Styling/UiColors.cs`, `UiFonts.cs` and `UiMetrics.cs` instead of scattering UI constants.
+- Keep localization through the existing localization layer; do not hard-code new user-facing strings in random Forms.
+- Avoid adding a UI framework/package unless there is a documented benefit.
+- The Visual Studio designer may be used where helpful, but generated designer code must not become a place for business logic.
 
 ## Coding style
 
@@ -147,23 +187,36 @@ dotnet build Sasd.HealthNotebook.sln --configuration Release
 dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release
 ```
 
-For WPF work, also start the application manually and verify the relevant screen.
+For current UI work, start WinForms manually:
 
-## UI Definition of Done for screenshot work
+```powershell
+dotnet run --project src/Sasd.HealthNotebook.WinForms
+```
 
-A UI task is complete only when:
+When shared contracts or persistence change, also start WPF and verify compatibility:
 
-- the application builds;
+```powershell
+dotnet run --project src/Sasd.HealthNotebook.Wpf
+```
+
+## UI Definition of Done
+
+A WinForms UI task is complete only when:
+
+- the full solution builds;
+- smoke tests pass;
 - existing health-topic loading still works;
-- the screenshot target is visibly closer than before;
+- the screenshot target is visibly closer than before when the task is visual;
 - controls remain keyboard usable;
-- layout remains usable at the current minimum window size;
+- the layout remains usable at the documented minimum window size;
+- German and English text still render sensibly;
 - no health data are added to logs;
 - no static mock replaces working behavior;
-- changed public code is documented;
-- the PR explains the visual changes and remaining gaps.
+- WPF is not broken by shared-layer changes;
+- changed public/complex code is documented;
+- the PR explains the visual/functional changes and remaining gaps.
 
-For visual comparison, use the concept screenshot at the repository's intended dashboard size as the reference. Aim for hierarchy, spacing, density and visual language before pixel-level perfection.
+For visual comparison, prioritize hierarchy, spacing, density and visual language before pixel-level perfection.
 
 ## Git workflow
 
@@ -171,12 +224,12 @@ Prefer a focused branch and PR per coherent change.
 
 Suggested prefixes:
 
-- `feat/ui-`
+- `feat/winforms-`
 - `feat/domain-`
 - `fix/`
 - `docs/`
 - `refactor/`
 
-Commit messages should follow the existing convention, e.g. `feat: refine dashboard shell`.
+Commit messages should describe the product change, e.g. `feat: refine WinForms dashboard shell`.
 
 Do not force-push shared branches unless explicitly requested.
