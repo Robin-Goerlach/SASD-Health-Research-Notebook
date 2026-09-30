@@ -1,6 +1,6 @@
 # SASD Health Research Notebook
 
-> Local-first WPF desktop application for documenting personal health topics, observations, sources, measurements, sessions, documents and user-defined routines — designed for personal organization and research, not diagnosis or therapy.
+> Local-first Windows desktop application for documenting personal health topics, observations, sources, measurements, sessions, documents and user-defined routines — designed for personal organization and research, not diagnosis or therapy.
 
 ![Dashboard concept screenshot](docs/screenshots/dashboard-concept.png)
 
@@ -8,16 +8,17 @@
 
 The repository is in the **early implementation phase**.
 
-A working .NET/WPF application shell already exists with:
+A working .NET desktop application baseline already exists with:
 
-- layered Domain / Application / Infrastructure / WPF projects;
+- layered Domain / Application / Infrastructure projects;
 - a local JSON-backed HealthTopic repository;
-- a functional dashboard shell;
+- a functional WPF application shell;
+- a first WinForms frontend baseline using the same application services and JSON persistence;
 - a first "new health topic" wizard;
 - smoke tests;
 - concept screenshots that define the intended visual direction.
 
-The current implementation is not yet feature-complete. The immediate development goal is to make the running application visually approach the concept screenshots while preserving working behavior.
+The current implementation is not yet feature-complete. The immediate development goal is to keep the application small, runnable and close to the concept screenshots while preserving working behavior and data safety.
 
 ## Purpose
 
@@ -114,12 +115,12 @@ These are a roadmap, not a promise that every module is already implemented.
 
 - **Language:** C#
 - **Runtime:** .NET 8+
-- **Desktop UI:** WPF
+- **Desktop UI:** WPF reference frontend and WinForms baseline frontend
 - **Current persistence:** local JSON
 - **Planned persistence:** SQLite with migrations
 - **Search:** SQLite FTS5 planned
 - **Documents/media:** managed local file store with metadata
-- **Architecture:** Domain / Application / Infrastructure / WPF
+- **Architecture:** Domain / Application / Infrastructure / WPF / WinForms
 - **Testing:** current smoke-test runner, later broader unit/integration tests
 
 ## Build and run
@@ -129,9 +130,16 @@ dotnet restore
 dotnet build Sasd.HealthNotebook.sln --configuration Release
 dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release
 dotnet run --project src/Sasd.HealthNotebook.Wpf
+dotnet run --project src/Sasd.HealthNotebook.WinForms
 ```
 
 A GitHub Actions workflow validates restore, build and smoke tests on Windows.
+
+## Frontend status
+
+- **WPF** remains buildable and acts as the current reference frontend.
+- **WinForms** reproduces the first functional baseline: dashboard, navigation, topic list, refresh, status line and health-topic wizard.
+- Both frontends use the same `HealthTopicService`, `JsonHealthTopicRepository` and local JSON file, so they do not create separate data worlds.
 
 ## Codex
 
