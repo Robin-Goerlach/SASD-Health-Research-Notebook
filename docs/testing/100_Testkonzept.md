@@ -203,3 +203,30 @@ Eine Phase gilt erst als abgeschlossen, wenn:
 - relevante ADRs ergänzt wurden
 - README/Roadmap bei Bedarf angepasst wurden
 - Commit-Message sauber formuliert ist
+
+
+---
+
+## 18. CI-Status Baseline 2.1 (2026-09-30)
+
+GitHub Actions ist nicht mehr nur eine Empfehlung, sondern im Repository unter `.github/workflows/dotnet.yml` eingerichtet.
+
+Die Windows-CI führt aus:
+
+1. Checkout;
+2. .NET-8-Setup;
+3. `dotnet restore Sasd.HealthNotebook.sln`;
+4. Release-Build der Solution;
+5. Ausführung des Smoke-Test-Projekts.
+
+Die erste Aktivierung der CI hat einen vorhandenen WPF-Buildfehler sichtbar gemacht: Der Typname `Application` kollidierte mit dem Namespace `Sasd.HealthNotebook.Application`. Der WPF-Basistyp wurde daraufhin explizit als `System.Windows.Application` qualifiziert. Der anschließende CI-Lauf war erfolgreich.
+
+Für UI-Änderungen bleibt zusätzlich eine manuelle Sichtprüfung notwendig. Ein grüner Build ersetzt nicht den Vergleich der laufenden Anwendung mit den Konzept-Screenshots.
+
+Später zu ergänzen:
+
+- echte Unit-Testprojekte;
+- Integrationstests für SQLite/Migrationen;
+- Backup-/Restore-Tests;
+- optional UI-Automatisierung;
+- Markdown-/Linkprüfung.
