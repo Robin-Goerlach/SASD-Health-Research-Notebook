@@ -239,3 +239,23 @@ Empfohlene Reihenfolge:
 8. Datenordner-Service
 9. erste Domain-Entität `Condition`
 10. erster Unit-Test
+
+
+---
+
+## 16. Codex-/Agenten-Workflow Baseline 2.1 (2026-09-30)
+
+Für Codex und andere Coding-Agenten ist `/AGENTS.md` verbindlicher Einstieg.
+
+Zusätzlich gilt:
+
+- zuerst tatsächlichen Repository-Stand prüfen;
+- keine älteren Chatannahmen gegen neueren Code durchsetzen;
+- einen klaren Scope pro PR;
+- UI-Sprints dürfen keine versteckten Domain-/Persistenzumbauten enthalten;
+- neue Fachmodule als vertikale Slices;
+- Build und Smoke Tests vor Abschluss;
+- bei UI-Arbeit Konzept-Screenshots als Referenz verwenden;
+- keine realen Gesundheitsdaten als Beispiel/Testdata übernehmen.
+
+Konkreter Ablauf: `docs/development/145_Codex_Arbeitsauftrag.md`.
