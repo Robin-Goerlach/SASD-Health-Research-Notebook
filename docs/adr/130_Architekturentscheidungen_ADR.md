@@ -68,7 +68,7 @@ Das Projekt startet als Windows-Desktop-App mit C#/.NET.
 - gute lokale Dateiverarbeitung
 - später ggf. Portierung/Erweiterung nötig
 
-## ADR-0004 - WPF bevorzugt gegenüber WinForms
+## ADR-0004 - WPF bevorzugt gegenüber WinForms (ersetzt durch ADR-0020)
 
 Status: Vorgeschlagen
 
@@ -78,7 +78,7 @@ Das Projekt benötigt komplexere Layouts, Dashboard, Wizard, Detailansichten und
 
 ### Entscheidung
 
-WPF wird als bevorzugte UI-Technologie empfohlen.
+Historische Entscheidung: WPF wurde zunächst als bevorzugte UI-Technologie empfohlen. Diese aktive Präferenz ist seit 2026-09-30 durch ADR-0020 ersetzt; WinForms ist das primäre Entwicklungsfrontend, WPF bleibt Referenz.
 
 ### Konsequenzen
 
@@ -276,7 +276,7 @@ Datum: 2026-09-30
 
 ### Entscheidung
 
-Die vorhandenen Dashboard- und Wizard-Konzeptbilder definieren die kurzfristige visuelle Richtung. Die laufende WPF-App wird inkrementell dorthin entwickelt; statische Mock-ups gelten nicht als Umsetzung.
+Die vorhandenen Dashboard- und Wizard-Konzeptbilder definieren die kurzfristige visuelle Richtung. Die laufende primäre Desktop-App (derzeit WinForms) wird inkrementell dorthin entwickelt; statische Mock-ups gelten nicht als Umsetzung.
 
 ### Konsequenzen
 
