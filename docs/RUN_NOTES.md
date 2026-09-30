@@ -24,6 +24,15 @@ WPF and WinForms both use the same `HealthTopicService`, `JsonHealthTopicReposit
 
 For later milestones, the storage layer can be replaced or complemented by SQLite without changing the UI dramatically, because the UI talks to the application service and not directly to JSON.
 
+## UI language
+
+The WinForms baseline supports German and English UI texts.
+
+- On German Windows installations, the first start should use German.
+- On other Windows installations, the first start should use English.
+- The main form contains a language selector for switching between Deutsch and English during the session.
+- Later milestones can persist the selected language in an application settings module.
+
 ## Start the applications
 
 Run the WPF reference frontend:
@@ -41,16 +50,18 @@ dotnet run --project .\src\Sasd.HealthNotebook.WinForms\Sasd.HealthNotebook.WinF
 ## Manual smoke test
 
 1. Start the WinForms application.
-2. Verify that the dashboard opens.
-3. Verify that the navigation contains **Dashboard** and **Gesundheitsthemen**.
-4. Click **New Health Topic**.
-5. Enter a synthetic title, status, priority and a short note.
-6. Click through the wizard until the topic is created.
-7. Verify that the topic appears in the list.
-8. Restart the WinForms application.
-9. Verify that the topic is loaded from JSON.
-10. Start the WPF application.
-11. Verify that the same synthetic topic is visible there too.
+2. Verify that the dashboard opens without clipped dashboard cards or unnecessary card scrollbars.
+3. Verify that the navigation contains **Dashboard** and **Gesundheitsthemen** when German is active.
+4. Switch the language to **English** and verify that main-window labels, buttons, grid headers and status texts change.
+5. Switch the language back to **Deutsch**.
+6. Click **Neues Gesundheitsthema**.
+7. Enter a synthetic title, status, priority and a short note.
+8. Click through the wizard until the topic is created.
+9. Verify that the topic appears in the list.
+10. Restart the WinForms application.
+11. Verify that the topic is loaded from JSON.
+12. Start the WPF application.
+13. Verify that the same synthetic topic is visible there too.
 
 Do not use real health data in screenshots, issues or pull-request descriptions.
 
