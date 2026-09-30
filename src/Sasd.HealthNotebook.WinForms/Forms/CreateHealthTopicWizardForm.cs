@@ -19,6 +19,7 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 public sealed class CreateHealthTopicWizardForm : Form
 {
     private readonly HealthTopicService _healthTopicService;
+    private readonly ToolTip _toolTip;
     private readonly List<WizardStepText> _steps;
     private readonly ListBox _stepsListBox;
     private readonly Label _stepTitleLabel;
@@ -40,12 +41,19 @@ public sealed class CreateHealthTopicWizardForm : Form
     public CreateHealthTopicWizardForm(HealthTopicService healthTopicService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
+        _toolTip = new ToolTip
+        {
+            AutoPopDelay = 15000,
+            InitialDelay = 400,
+            ReshowDelay = 100,
+            ShowAlways = true
+        };
         _steps = AppStrings.CreateWizardSteps().ToList();
 
         Text = AppStrings.NewHealthTopic;
         StartPosition = FormStartPosition.CenterParent;
-        MinimumSize = new Size(900, 620);
-        Size = new Size(980, 680);
+        MinimumSize = new Size(960, 660);
+        Size = new Size(1040, 720);
         BackColor = UiColors.WindowBackground;
         Font = UiFonts.Body;
 
@@ -81,7 +89,7 @@ public sealed class CreateHealthTopicWizardForm : Form
             BackColor = UiColors.WindowBackground
         };
         rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 72));
-        rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 52));
+        rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 88));
         rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         _stepTitleLabel = new Label
@@ -175,7 +183,18 @@ public sealed class CreateHealthTopicWizardForm : Form
         ShowStep(0);
     }
 
-    private static Panel CreateBasicDataPanel(
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _toolTip.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+
+    private Panel CreateBasicDataPanel(
         out TextBox titleTextBox,
         out ComboBox statusComboBox,
         out ComboBox priorityComboBox,
@@ -196,12 +215,12 @@ public sealed class CreateHealthTopicWizardForm : Form
             AutoSize = true,
             BackColor = UiColors.CardBackground
         };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         titleTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 160 };
-        statusComboBox = new ComboBox { Dock = DockStyle.Left, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
-        priorityComboBox = new ComboBox { Dock = DockStyle.Left, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+        statusComboBox = new ComboBox { Dock = DockStyle.Left, Width = 300, DropDownStyle = ComboBoxStyle.DropDownList };
+        priorityComboBox = new ComboBox { Dock = DockStyle.Left, Width = 300, DropDownStyle = ComboBoxStyle.DropDownList };
         shortDescriptionTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 500 };
         notesTextBox = new TextBox
         {
@@ -212,11 +231,11 @@ public sealed class CreateHealthTopicWizardForm : Form
             MaxLength = 4000
         };
 
-        AddRow(layout, 0, AppStrings.FieldTitle, titleTextBox);
-        AddRow(layout, 1, AppStrings.FieldStatus, statusComboBox);
-        AddRow(layout, 2, AppStrings.FieldPriority, priorityComboBox);
-        AddRow(layout, 3, AppStrings.FieldShortDescription, shortDescriptionTextBox);
-        AddRow(layout, 4, AppStrings.FieldNotes, notesTextBox);
+        AddRow(layout, 0, AppStrings.FieldTitle, titleTextBox, AppStrings.ToolTipHealthTopicTitle);
+        AddRow(layout, 1, AppStrings.FieldStatus, statusComboBox, AppStrings.ToolTipStatus);
+        AddRow(layout, 2, AppStrings.FieldPriority, priorityComboBox, AppStrings.ToolTipPriority);
+        AddRow(layout, 3, AppStrings.FieldShortDescription, shortDescriptionTextBox, AppStrings.ToolTipShortDescription);
+        AddRow(layout, 4, AppStrings.FieldNotes, notesTextBox, AppStrings.ToolTipNotes);
 
         panel.Controls.Add(layout);
         return panel;
@@ -243,7 +262,7 @@ public sealed class CreateHealthTopicWizardForm : Form
         return panel;
     }
 
-    private static void AddRow(TableLayoutPanel layout, int rowIndex, string labelText, Control editor)
+    private void AddRow(TableLayoutPanel layout, int rowIndex, string labelText, Control editor, string helpText)
     {
         layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
@@ -258,6 +277,9 @@ public sealed class CreateHealthTopicWizardForm : Form
         };
 
         editor.Margin = new Padding(0, 4, 0, 8);
+
+        _toolTip.SetToolTip(label, helpText);
+        _toolTip.SetToolTip(editor, helpText);
 
         layout.Controls.Add(label, 0, rowIndex);
         layout.Controls.Add(editor, 1, rowIndex);
