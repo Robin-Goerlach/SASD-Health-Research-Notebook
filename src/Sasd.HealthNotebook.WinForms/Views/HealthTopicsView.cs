@@ -29,6 +29,7 @@ public sealed class HealthTopicsView : UserControl
     {
         BackColor = UiColors.WindowBackground;
         Dock = DockStyle.Fill;
+        Margin = Padding.Empty;
 
         _titleLabel = new Label
         {
@@ -40,11 +41,12 @@ public sealed class HealthTopicsView : UserControl
 
         _emptyStateLabel = new Label
         {
-            Dock = DockStyle.Bottom,
-            Height = 44,
+            Dock = DockStyle.Fill,
+            Padding = new Padding(UiMetrics.LargeSpacing),
+            BackColor = UiColors.CardBackground,
             Font = UiFonts.Body,
             ForeColor = UiColors.SecondaryText,
-            TextAlign = ContentAlignment.MiddleLeft,
+            TextAlign = ContentAlignment.MiddleCenter,
             Visible = false
         };
 
@@ -59,24 +61,36 @@ public sealed class HealthTopicsView : UserControl
             ReadOnly = true,
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             BackgroundColor = UiColors.CardBackground,
-            BorderStyle = BorderStyle.FixedSingle,
+            BorderStyle = BorderStyle.None,
             RowHeadersVisible = false,
             GridColor = UiColors.BorderColor,
             Font = UiFonts.Body,
             EnableHeadersVisualStyles = false,
-            AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None
+            AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize,
+            CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal
         };
 
-        _grid.ColumnHeadersDefaultCellStyle.BackColor = UiColors.CardBackground;
+        _grid.ColumnHeadersDefaultCellStyle.BackColor = UiColors.WindowBackground;
         _grid.ColumnHeadersDefaultCellStyle.ForeColor = UiColors.PrimaryText;
+        _grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = UiColors.WindowBackground;
+        _grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = UiColors.PrimaryText;
         _grid.ColumnHeadersDefaultCellStyle.Font = UiFonts.CardTitle;
-        _grid.RowTemplate.Height = 34;
+        _grid.ColumnHeadersDefaultCellStyle.Padding = new Padding(8);
+        _grid.DefaultCellStyle.Padding = new Padding(8, 6, 8, 6);
+        _grid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+        _grid.DefaultCellStyle.ForeColor = UiColors.PrimaryText;
+        _grid.DefaultCellStyle.SelectionBackColor = UiColors.ListSelectionBackground;
+        _grid.DefaultCellStyle.SelectionForeColor = UiColors.PrimaryText;
+        _grid.AlternatingRowsDefaultCellStyle.BackColor = UiColors.AlternateRowBackground;
+        _grid.RowTemplate.MinimumHeight = 40;
 
-        _titleColumn = CreateColumn("Title", 190);
-        _statusColumn = CreateColumn("Status", 140);
-        _priorityColumn = CreateColumn("Priority", 190);
-        _createdColumn = CreateColumn("CreatedAt", 150);
-        _shortDescriptionColumn = CreateColumn("ShortDescription", 360, DataGridViewAutoSizeColumnMode.Fill);
+        _titleColumn = CreateColumn("Title", 170, 25);
+        _statusColumn = CreateColumn("Status", 110, 15);
+        _priorityColumn = CreateColumn("Priority", 150, 21);
+        _createdColumn = CreateColumn("CreatedAt", 125, 16);
+        _shortDescriptionColumn = CreateColumn("ShortDescription", 160, 23);
 
         _grid.Columns.AddRange(
             _titleColumn,
@@ -119,6 +133,7 @@ public sealed class HealthTopicsView : UserControl
     public void SetTopics(IReadOnlyList<HealthTopicSummary> summaries)
     {
         ArgumentNullException.ThrowIfNull(summaries);
+        Guid? selectedId = (_grid.CurrentRow?.DataBoundItem as HealthTopicGridRow)?.Id;
 
         var rows = summaries
             .Select(HealthTopicGridRow.FromSummary)
@@ -126,18 +141,33 @@ public sealed class HealthTopicsView : UserControl
 
         _grid.DataSource = new BindingList<HealthTopicGridRow>(rows);
         _emptyStateLabel.Visible = rows.Count == 0;
+        _grid.Visible = rows.Count != 0;
+        _grid.TabStop = rows.Count != 0;
+        if (_emptyStateLabel.Visible) { _emptyStateLabel.BringToFront(); }
+        if (selectedId.HasValue)
+        {
+            foreach (DataGridViewRow row in _grid.Rows)
+            {
+                if (row.DataBoundItem is HealthTopicGridRow topic && topic.Id == selectedId.Value)
+                {
+                    _grid.CurrentCell = row.Cells[0];
+                    break;
+                }
+            }
+        }
     }
 
     private static DataGridViewTextBoxColumn CreateColumn(
         string dataPropertyName,
-        int width,
-        DataGridViewAutoSizeColumnMode autoSizeMode = DataGridViewAutoSizeColumnMode.None)
+        int minimumWidth,
+        float fillWeight)
     {
         return new DataGridViewTextBoxColumn
         {
             DataPropertyName = dataPropertyName,
-            Width = width,
-            AutoSizeMode = autoSizeMode
+            MinimumWidth = minimumWidth,
+            FillWeight = fillWeight,
+            AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
         };
     }
 }

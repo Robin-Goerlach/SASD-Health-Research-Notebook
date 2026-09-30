@@ -25,6 +25,7 @@ public sealed class DashboardView : UserControl
     {
         BackColor = UiColors.WindowBackground;
         Dock = DockStyle.Fill;
+        Margin = Padding.Empty;
         Padding = new Padding(0, 0, 0, UiMetrics.StandardSpacing);
 
         _descriptionLabel = new Label
@@ -33,26 +34,30 @@ public sealed class DashboardView : UserControl
             Height = 36,
             Font = UiFonts.Body,
             ForeColor = UiColors.SecondaryText,
-            AutoEllipsis = true
+            AutoEllipsis = false
         };
 
-        var cardsPanel = new FlowLayoutPanel
+        var cardsPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = false,
-            AutoScroll = false,
+            ColumnCount = 3,
+            RowCount = 1,
+            Margin = Padding.Empty,
             BackColor = UiColors.WindowBackground,
             Padding = new Padding(0, UiMetrics.StandardSpacing, 0, 0)
         };
+        for (int column = 0; column < 3; column++)
+        {
+            cardsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100F / 3));
+        }
 
-        _topicsCard = new DashboardCardControl();
-        _prepareCard = new DashboardCardControl();
-        _archivedCard = new DashboardCardControl();
+        _topicsCard = new DashboardCardControl { Dock = DockStyle.Fill };
+        _prepareCard = new DashboardCardControl { Dock = DockStyle.Fill };
+        _archivedCard = new DashboardCardControl { Dock = DockStyle.Fill, Margin = Padding.Empty };
 
-        cardsPanel.Controls.Add(_topicsCard);
-        cardsPanel.Controls.Add(_prepareCard);
-        cardsPanel.Controls.Add(_archivedCard);
+        cardsPanel.Controls.Add(_topicsCard, 0, 0);
+        cardsPanel.Controls.Add(_prepareCard, 1, 0);
+        cardsPanel.Controls.Add(_archivedCard, 2, 0);
 
         Controls.Add(cardsPanel);
         Controls.Add(_descriptionLabel);

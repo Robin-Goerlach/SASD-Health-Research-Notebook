@@ -45,11 +45,13 @@ public sealed class NavigationControl : UserControl
             TextAlign = ContentAlignment.TopLeft
         };
 
-        _healthTopicsButton = new NavigationButton();
+        _healthTopicsButton = new NavigationButton { TabIndex = 1 };
         _healthTopicsButton.Click += (_, _) => RequestPage(NavigationPage.HealthTopics);
 
-        _dashboardButton = new NavigationButton();
+        _dashboardButton = new NavigationButton { TabIndex = 0 };
         _dashboardButton.Click += (_, _) => RequestPage(NavigationPage.Dashboard);
+        _dashboardButton.KeyDown += Navigation_KeyDown;
+        _healthTopicsButton.KeyDown += Navigation_KeyDown;
 
         Controls.Add(_footerLabel);
         Controls.Add(_healthTopicsButton);
@@ -88,6 +90,19 @@ public sealed class NavigationControl : UserControl
     {
         SelectPage(page);
         PageRequested?.Invoke(this, new NavigationPageChangedEventArgs(page));
+    }
+
+    private void Navigation_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode is Keys.Up or Keys.Down or Keys.Home or Keys.End)
+        {
+            // Move focus without loading a page until the user presses Enter/Space.
+            (e.KeyCode == Keys.Home ? _dashboardButton
+                : e.KeyCode == Keys.End ? _healthTopicsButton
+                : ReferenceEquals(sender, _dashboardButton) ? _healthTopicsButton : _dashboardButton).Focus();
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+        }
     }
 }
 

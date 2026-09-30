@@ -8,6 +8,9 @@ namespace Sasd.HealthNotebook.WinForms.Presentation;
 /// </summary>
 public sealed class HealthTopicGridRow
 {
+    /// <summary>Gets or sets the stable identifier used to preserve selection after reload.</summary>
+    public Guid Id { get; set; }
+
     /// <summary>Gets or sets the topic title.</summary>
     public string Title { get; set; } = string.Empty;
 
@@ -32,6 +35,7 @@ public sealed class HealthTopicGridRow
 
         return new HealthTopicGridRow
         {
+            Id = summary.Id,
             Title = summary.Title,
             Status = AppStrings.HealthTopicStatusText(summary.Status),
             Priority = AppStrings.HealthTopicPriorityText(summary.Priority),

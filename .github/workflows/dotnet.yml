@@ -28,3 +28,9 @@ jobs:
 
       - name: Run smoke tests
         run: dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release --no-build
+
+      - name: Run WinForms smoke tests with isolated synthetic data
+        shell: pwsh
+        run: |
+          $env:SASD_HEALTHNOTEBOOK_DATA_PATH = Join-Path $env:GITHUB_WORKSPACE '.codex/synthetic-development-data'
+          dotnet run --project tests/Sasd.HealthNotebook.WinForms.SmokeTests --configuration Release --no-build

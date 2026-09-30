@@ -50,6 +50,8 @@ public sealed class CreateHealthTopicWizardForm : Form
         };
         _steps = AppStrings.CreateWizardSteps().ToList();
 
+        AutoScaleDimensions = new SizeF(96, 96);
+        AutoScaleMode = AutoScaleMode.Dpi;
         Text = AppStrings.NewHealthTopic;
         StartPosition = FormStartPosition.CenterParent;
         MinimumSize = new Size(960, 660);
@@ -68,15 +70,19 @@ public sealed class CreateHealthTopicWizardForm : Form
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
+        root.RowStyles.Add(new RowStyle(SizeType.Absolute, 68));
 
         _stepsListBox = new ListBox
         {
             Dock = DockStyle.Fill,
             BorderStyle = BorderStyle.FixedSingle,
             IntegralHeight = false,
-            Font = UiFonts.Body
+            Font = UiFonts.Body,
+            DrawMode = DrawMode.OwnerDrawFixed,
+            ItemHeight = UiMetrics.NavigationButtonHeight,
+            TabIndex = 0
         };
+        _stepsListBox.DrawItem += DrawStep;
         _stepsListBox.Items.AddRange(_steps.Select(step => step.Title).Cast<object>().ToArray());
         _stepsListBox.SelectedIndexChanged += StepsListBox_SelectedIndexChanged;
 
@@ -86,10 +92,11 @@ public sealed class CreateHealthTopicWizardForm : Form
             ColumnCount = 1,
             RowCount = 3,
             Padding = new Padding(UiMetrics.LargeSpacing, 0, 0, 0),
+            TabIndex = 1,
             BackColor = UiColors.WindowBackground
         };
-        rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 72));
-        rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 88));
+        rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 56));
+        rightPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 76));
         rightPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         _stepTitleLabel = new Label
@@ -136,14 +143,18 @@ public sealed class CreateHealthTopicWizardForm : Form
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.RightToLeft,
             BackColor = UiColors.WindowBackground,
-            Padding = new Padding(0, UiMetrics.StandardSpacing, 0, 0)
+            Padding = new Padding(0, UiMetrics.StandardSpacing, 0, 0),
+            WrapContents = false,
+            TabIndex = 2
         };
 
         var cancelButton = new Button
         {
             Text = AppStrings.Cancel,
             Width = 110,
-            Height = 34
+            Height = UiMetrics.ActionHeight,
+            DialogResult = DialogResult.Cancel,
+            TabIndex = 2
         };
         cancelButton.Click += (_, _) =>
         {
@@ -154,7 +165,11 @@ public sealed class CreateHealthTopicWizardForm : Form
         _nextButton = new Button
         {
             Width = 120,
-            Height = 34
+            Height = UiMetrics.ActionHeight,
+            BackColor = UiColors.PrimaryAccent,
+            ForeColor = UiColors.CardBackground,
+            FlatStyle = FlatStyle.Flat,
+            TabIndex = 1
         };
         _nextButton.Click += NextButton_Click;
 
@@ -162,13 +177,17 @@ public sealed class CreateHealthTopicWizardForm : Form
         {
             Text = AppStrings.Back,
             Width = 110,
-            Height = 34
+            Height = UiMetrics.ActionHeight,
+            TabIndex = 0
         };
         _backButton.Click += (_, _) => ShowStep(_currentStepIndex - 1);
 
-        buttonPanel.Controls.Add(cancelButton);
         buttonPanel.Controls.Add(_nextButton);
         buttonPanel.Controls.Add(_backButton);
+        buttonPanel.Controls.Add(cancelButton);
+        _nextButton.FlatAppearance.BorderSize = 0;
+        AcceptButton = _nextButton;
+        CancelButton = cancelButton;
 
         root.Controls.Add(_stepsListBox, 0, 0);
         root.SetRowSpan(_stepsListBox, 2);
@@ -181,6 +200,7 @@ public sealed class CreateHealthTopicWizardForm : Form
         FillPriorityComboBox();
 
         ShowStep(0);
+        Shown += (_, _) => _titleTextBox.Focus();
     }
 
     /// <inheritdoc />
@@ -204,7 +224,8 @@ public sealed class CreateHealthTopicWizardForm : Form
         var panel = new Panel
         {
             Dock = DockStyle.Fill,
-            BackColor = UiColors.CardBackground
+            BackColor = UiColors.CardBackground,
+            AutoScroll = true
         };
 
         var layout = new TableLayoutPanel
@@ -215,20 +236,22 @@ public sealed class CreateHealthTopicWizardForm : Form
             AutoSize = true,
             BackColor = UiColors.CardBackground
         };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 210));
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 64));
 
-        titleTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 160 };
-        statusComboBox = new ComboBox { Dock = DockStyle.Left, Width = 300, DropDownStyle = ComboBoxStyle.DropDownList };
-        priorityComboBox = new ComboBox { Dock = DockStyle.Left, Width = 300, DropDownStyle = ComboBoxStyle.DropDownList };
-        shortDescriptionTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 500 };
+        titleTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 160, TabIndex = 0 };
+        statusComboBox = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList, TabIndex = 1 };
+        priorityComboBox = new ComboBox { Dock = DockStyle.Fill, DropDownStyle = ComboBoxStyle.DropDownList, TabIndex = 2 };
+        shortDescriptionTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 500, TabIndex = 3 };
         notesTextBox = new TextBox
         {
             Dock = DockStyle.Fill,
             Multiline = true,
             Height = 150,
             ScrollBars = ScrollBars.Vertical,
-            MaxLength = 4000
+            MaxLength = 4000,
+            TabIndex = 4,
+            AcceptsReturn = true
         };
 
         AddRow(layout, 0, AppStrings.FieldTitle, titleTextBox, AppStrings.ToolTipHealthTopicTitle);
@@ -270,19 +293,37 @@ public sealed class CreateHealthTopicWizardForm : Form
         {
             Text = labelText,
             Dock = DockStyle.Fill,
-            Height = rowIndex == 4 ? 160 : 34,
-            TextAlign = ContentAlignment.MiddleLeft,
+            AutoSize = true,
+            MinimumSize = new Size(0, 34),
+            TextAlign = ContentAlignment.TopLeft,
+            Padding = new Padding(0, 6, UiMetrics.StandardSpacing, 0),
+            TabStop = false,
             ForeColor = UiColors.PrimaryText,
             Font = UiFonts.Body
         };
 
         editor.Margin = new Padding(0, 4, 0, 8);
+        editor.AccessibleName = labelText;
+        editor.AccessibleDescription = helpText;
 
         _toolTip.SetToolTip(label, helpText);
         _toolTip.SetToolTip(editor, helpText);
 
         layout.Controls.Add(label, 0, rowIndex);
         layout.Controls.Add(editor, 1, rowIndex);
+    }
+
+    private void DrawStep(object? sender, DrawItemEventArgs e)
+    {
+        if (e.Index < 0) { return; }
+        bool selected = (e.State & DrawItemState.Selected) != 0;
+        using var background = new SolidBrush(selected ? UiColors.ListSelectionBackground : UiColors.CardBackground);
+        e.Graphics.FillRectangle(background, e.Bounds);
+        Rectangle textBounds = Rectangle.Inflate(e.Bounds, -UiMetrics.StandardSpacing, -3);
+        TextRenderer.DrawText(e.Graphics, _steps[e.Index].Title, _stepsListBox.Font,
+            textBounds, selected ? UiColors.PrimaryAccent : UiColors.PrimaryText,
+            TextFormatFlags.WordBreak | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+        e.DrawFocusRectangle();
     }
 
     private void FillStatusComboBox()

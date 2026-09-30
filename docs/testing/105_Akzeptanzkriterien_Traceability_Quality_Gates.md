@@ -82,6 +82,8 @@ Empfohlenes Tabellenformat:
 | PF-... | kurz zusammengefasst | UT-/IT-/E2E-... | ja/nein | offen/teilweise/erfüllt | Hinweise |
 | FR-DEV-001 | Ohne Override unveränderter Produktpfad (nur auflösen); mit absolutem Override isoliertes JSON inklusive Backup; ungültige Overrides abweisen. Smoke-Test-Ziel außerhalb Repository abweisen. | SEC-PATH-001, IT-PATH-001, ST-JSON-001 | ja | erfüllt | Tests der gemeinsamen Application-/Infrastructure-Verträge mit normalen ProjectReferences. Beide Bootstrapper im Review auf parameterlosen gemeinsamen Repository-Konstruktor geprüft; manuelle Nutzerakzeptanz nach PowerShell-5.1-Reparatur in Dokument 146 festgehalten. |
 
+| FR-UI-001 | Deutsche/englische Aktionen und Grunddaten bei Mindestgröße ohne Clipping; Navigation mit Fokus; leere Liste und stabile Refresh-Auswahl; synthetisches Anlegen/Wiederladen. | UI-LAYOUT-001, UI-WIZARD-001 | teilweise | teilweise | Echte WinForms-Controls mit normaler ProjectReference automatisiert geprüft; Rendervergleich erfolgt. Manuelle Desktop-/DPI-/Tooltip-Prüfung noch offen, siehe Dokument 147. |
+
 Die Matrix muss nicht für alle zukünftigen KANN-/SPÄTER-Anforderungen vorab ausgefüllt werden. Sie wächst mit den implementierten vertikalen Slices.
 
 ## 6. Aktuelle Test-Baseline

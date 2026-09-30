@@ -179,6 +179,7 @@ environment value, and retain synthetic artifacts for inspection.
 - **WPF** remains buildable as a reference frontend and compatibility check for the shared Application/Infrastructure layers.
 - Both frontends use the same `HealthTopicService`, `JsonHealthTopicRepository` and local JSON file, so they do not create separate data worlds.
 - The WinForms baseline contains a small localization foundation for German and English. It starts in German on German Windows installations, otherwise in English, and offers a language selector in the main window.
+- [WinForms UI Baseline 2](docs/development/147_WinForms_UI_Baseline_2.md) documents the shell, navigation, grid and wizard polish, automated control checks and remaining manual desktop checks. The safe launcher runs both shared and WinForms smoke tests.
 
 ## Codex
 

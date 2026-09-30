@@ -90,6 +90,8 @@ try {
             if ($LASTEXITCODE -ne 0) { throw 'Release build failed.' }
             & dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release --no-build
             if ($LASTEXITCODE -ne 0) { throw 'Smoke tests failed.' }
+            & dotnet run --project tests/Sasd.HealthNotebook.WinForms.SmokeTests --configuration Release --no-build
+            if ($LASTEXITCODE -ne 0) { throw 'WinForms smoke tests failed.' }
         } else {
             & dotnet run --project "src/Sasd.HealthNotebook.$Action" --configuration Release --no-build
             if ($LASTEXITCODE -ne 0) { throw 'Desktop application failed.' }
