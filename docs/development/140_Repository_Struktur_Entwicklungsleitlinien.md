@@ -259,3 +259,22 @@ Zusätzlich gilt:
 - keine realen Gesundheitsdaten als Beispiel/Testdata übernehmen.
 
 Konkreter Ablauf: `docs/development/145_Codex_Arbeitsauftrag.md`.
+
+
+---
+
+## 17. Frontend-Entwicklungsregel 2.1a (2026-09-30)
+
+Die Solution enthält aktuell WPF und WinForms.
+
+Für neue Arbeiten gilt:
+
+- WinForms ist das primäre Frontend;
+- WPF bleibt buildbar und wird nicht gelöscht;
+- Domain/Application/Infrastructure dürfen keine UI-Abhängigkeiten erhalten;
+- neue Fachfeatures werden nicht standardmäßig in beiden UIs doppelt implementiert;
+- WinForms nutzt die vorhandenen Presenter/Views/Controls sowie zentrale Styling- und Localization-Klassen;
+- bei Änderungen an gemeinsamen Verträgen muss geprüft werden, ob WPF weiterhin baut;
+- beide Frontends müssen während der JSON-Phase denselben lokalen Datenbestand lesen können.
+
+Der konkrete Agent-/Codex-Workflow steht in `AGENTS.md` und `145_Codex_Arbeitsauftrag.md`.

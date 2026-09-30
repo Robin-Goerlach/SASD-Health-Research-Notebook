@@ -590,3 +590,36 @@ OCR, FHIR, externe KI, Geräteimport, zentrale Kontakteintegration und komplexe 
 ### 29.4 Codex
 
 Codex arbeitet nach `AGENTS.md` und `docs/development/145_Codex_Arbeitsauftrag.md`. Jeder PR soll klein genug sein, dass Build, Smoke Tests und der visuelle Fortschritt eindeutig geprüft werden können.
+
+
+---
+
+## 30. Frontendnachtrag 2.1a - WinForms-Baseline erreicht
+
+Stand: 2026-09-30
+
+Die ursprünglich geplante UI-Baseline wurde inzwischen um ein zweites Frontend erweitert.
+
+Erreicht:
+
+- WPF-Referenzfrontend bleibt buildbar;
+- WinForms-Projekt ist Teil der Solution;
+- Dashboard, Navigation, HealthTopic-Grid, Statusbereich und Wizard sind in WinForms vorhanden;
+- WinForms verwendet dieselben Application-/Infrastructure-Schichten und dieselbe JSON-Persistenz;
+- Deutsch/Englisch-Lokalisierung ist als Basis vorhanden;
+- Windows-CI baut die Solution und führt Smoke Tests aus.
+
+### 30.1 Nächste UI-Meilensteine
+
+- **WF-UI-01:** Shell-/Dashboard-Politur gegen Konzept-Screenshot;
+- **WF-UI-02:** Wizard-Politur und konsistente Hilfetexte;
+- **WF-UI-03:** Navigation Host / Views stabilisieren;
+- **WF-UI-04:** erster produktiver Fach-Slice.
+
+### 30.2 Frontendregel
+
+Neue Fachfeatures werden im aktuellen Entwicklungszyklus in WinForms zuerst umgesetzt. WPF bleibt Referenz und Kompatibilitätsprüfung; parallele UI-Featureentwicklung findet nur nach bewusster Entscheidung statt.
+
+### 30.3 V1-Ziel
+
+Die Definition einer gut nutzbaren internen V1 ändert sich dadurch nicht. Entscheidend bleiben Datenintegrität, Quellen-/Verlaufsnachvollziehbarkeit, Arzt-/Session-Vorbereitung, Export, Backup und die klare medizinische Abgrenzung.

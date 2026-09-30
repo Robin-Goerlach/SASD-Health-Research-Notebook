@@ -3,120 +3,126 @@
 Projekt: SASD Health Research Notebook  
 Stand: 2026-09-30  
 Dokumenttyp: UI-Zielbild / Umsetzungsplan  
-Status: Baseline 2.1
+Status: Baseline 2.1 – WinForms primär
 
 ## 1. Ziel
 
-Die beiden Konzeptbilder im Repository sind keine bloße Dekoration. Sie definieren die visuelle Richtung der Anwendung:
+Die Konzeptbilder im Repository definieren die visuelle Richtung:
 
 - `docs/screenshots/dashboard-concept.png`
 - `docs/screenshots/condition-wizard-concept.png`
 
-Das kurzfristige Ziel lautet: **Die tatsächlich startende WPF-Anwendung soll sichtbar das Versprechen des Dashboard-Screenshots einlösen, ohne ihre bestehende Funktionalität durch eine statische Demo zu ersetzen.**
+Das kurzfristige Ziel lautet:
+
+> **Die tatsächlich startende WinForms-Anwendung soll das visuelle und funktionale Versprechen dieser Konzeptbilder zunehmend einlösen, ohne ihre bestehende Funktionalität durch eine statische Demo zu ersetzen.**
+
+WPF bleibt eine buildbare Referenzoberfläche, ist derzeit aber nicht das primäre Ziel für UI-Politur oder neue Fachfeatures.
 
 ## 2. Kritische Bestandsaufnahme
 
-Der aktuelle Code ist näher am Zielbild, als der alte README-Status "concept and planning phase" vermuten lässt.
+Der aktuelle WinForms-Stand ist bereits eine echte funktionale Oberfläche und kein leeres Parallelprojekt.
 
-`MainWindow.xaml` enthält bereits:
+Vorhanden sind unter anderem:
 
-- ein zweispaltiges Desktop-Layout;
-- eine dunkle linke Navigation;
-- SASD/Health-Branding;
-- Dashboard-Überschrift und Untertext;
-- einen primären "New health topic"-Button;
-- drei Dashboard-Karten;
-- eine HealthTopic-Liste;
-- eine Statusleiste.
+- `MainForm` als Application Shell;
+- dunkle linke Navigation;
+- Dashboard und Gesundheitsthemen als echte Navigation;
+- Dashboardkarten;
+- HealthTopic-Liste über `DataGridView`;
+- Refresh und "Neues Gesundheitsthema";
+- StatusStrip;
+- Create-HealthTopic-Wizard;
+- `DashboardCardControl`;
+- `NavigationControl` und `NavigationButton`;
+- Presenter für Dashboard/HealthTopics;
+- zentrale `UiColors`, `UiFonts`, `UiMetrics`;
+- Deutsch/Englisch-Lokalisierung;
+- gemeinsame JSON-Persistenz mit WPF.
 
-`CreateHealthTopicWizardWindow.xaml` enthält bereits:
+Damit lautet die Aufgabe nicht mehr "WinForms aufbauen", sondern **den vorhandenen WinForms-Stand gezielt zum Produkt-UI entwickeln**.
 
-- Wizard-Seitenleiste;
-- Schrittüberschrift und Beschreibung;
-- Formularbereich;
-- Navigation durch Schritte;
-- Speicherung eines Health Topics.
+## 3. Frontendstrategie
 
-Das bedeutet: Für einen sichtbaren Qualitätssprung ist kein UI-Neustart erforderlich.
+### WinForms
 
-## 3. Aktuelle Hauptlücken
+- primäres Entwicklungsfrontend;
+- neue UI-Funktionen und Fachfeatures werden hier zuerst integriert;
+- Konzept-Screenshots dienen als visuelles Ziel.
 
-### 3.1 Navigation
+### WPF
 
-Aktuell sind mehrere Navigationseinträge reine `TextBlock`-Platzhalter.
+- bleibt buildbar;
+- dient als Referenz und als Test, dass Application/Infrastructure UI-unabhängig bleiben;
+- wird nicht automatisch mit jedem neuen WinForms-Feature erweitert.
+
+Doppelentwicklung derselben Fachfunktion in beiden Oberflächen wird vermieden.
+
+## 4. Aktuelle Hauptlücken
+
+### 4.1 Application Shell
+
+Zu prüfen und schrittweise zu verbessern:
+
+- Sidebar-Breite und Abstände;
+- Headerhöhe;
+- klare Hierarchie von Seitentitel, Beschreibung und Hauptaktion;
+- Verhalten bei Mindestgröße;
+- sinnvolle DPI-/Font-Skalierung;
+- ruhige Statusleiste.
+
+### 4.2 Navigation
+
+Bereits als echte WinForms-Komponente vorhanden.
 
 Ziel:
 
-- echte Navigationsitems;
-- ausgewählter Zustand;
+- klarer Selected State;
 - Hover/Focus;
-- Icon-Platzhalter ohne externe Icon-Abhängigkeit;
-- Tastaturbedienung;
-- spätere Erweiterbarkeit für Dashboard, Topics, Tagebuch, Messwerte, Sessions, Routinen, Quellen und Dokumente.
+- vollständige Tastaturbedienung;
+- konsistente Lokalisierung;
+- später ohne MainForm-Umbau erweiterbar.
 
-### 3.2 Design Tokens
+### 4.3 Dashboardkarten
 
-Farben existieren bereits als Application Resources, aber das visuelle System soll zentraler werden.
+Die Karten müssen:
 
-Benötigt werden Tokens/Styles für:
+- vollständig sichtbar sein;
+- gleiche Höhe/Abstände besitzen;
+- Zahlen, Titel und Beschreibung klar hierarchisieren;
+- keine Fake-Daten benötigen;
+- aus echten Application-Service-Daten gespeist bleiben.
 
-- Hintergrund;
-- Sidebar;
-- Primary/Accent;
-- Card;
-- Border;
-- Headline/Body/Muted Text;
-- Spacing;
-- CornerRadius;
-- Button Primary/Secondary/Ghost;
-- NavigationItem;
-- Card;
-- DataGrid/ListView;
-- TextBox/ComboBox;
-- Focus states.
+### 4.4 HealthTopic-Grid
 
-Keine externen Theme-Pakete einführen, solange WPF-Bordmittel genügen.
+Weiterentwickeln zu einer ruhigen Produktansicht:
 
-### 3.3 Dashboard-Hierarchie
+- passende Zeilenhöhe;
+- gute Spaltenbreiten;
+- klare Typografie;
+- Empty State;
+- Auswahl/Fokus;
+- später Doppelklick/Öffnen;
+- keine medizinisch alarmistischen Farben.
 
-Das Dashboard soll den Konzeptcharakter behalten:
+Priorität ist organisatorische Nutzerpriorität, keine medizinische Dringlichkeit.
 
-1. klare Seitentitel-Zone;
-2. sichtbare Hauptaktion;
-3. kompakte Statuskarten;
-4. zentraler Arbeitsbereich;
-5. ruhige Statusleiste.
+### 4.5 Wizard
 
-Karten dürfen zunächst bestehende Daten anzeigen. Neue fachliche Kennzahlen werden erst eingeführt, wenn die zugrunde liegenden Module implementiert sind.
+Der WinForms-Wizard bildet den heute funktionalen WPF-Umfang ab und zeigt spätere Schritte teilweise als Roadmap.
 
-### 3.4 HealthTopic-Liste
+Ziel:
 
-Die Liste soll von einer technischen GridView-Darstellung zu einer ruhigeren Produktansicht entwickelt werden:
+- visuell mit Dashboard/Shell harmonisieren;
+- aktuellen Schritt klar zeigen;
+- Feldgruppen und Hilfetexte verbessern;
+- Navigation Zurück/Weiter/Abbrechen eindeutig machen;
+- lange Tooltips lesbar halten;
+- Deutsch/Englisch konsistent halten;
+- später fachliche Schritte als vertikale Slices implementieren.
 
-- bessere Zeilenhöhe;
-- klarere Typografie;
-- Status/Priorität als visuelle, aber nicht alarmistische Badges;
-- sinnvolle Empty State;
-- Doppelklick/Öffnen vorbereiten;
-- keine erfundenen medizinischen Warnfarben.
+Die sichtbaren zukünftigen Schritte dürfen nicht vortäuschen, bereits vollständig implementiert zu sein.
 
-### 3.5 Wizard
-
-Der Wizard soll visuell zum Dashboard passen:
-
-- gleiche Design Tokens;
-- klarer aktueller Schritt;
-- Fortschrittsanzeige;
-- bessere Feldgruppen;
-- gute Validierung;
-- sicherer Abbruch;
-- später Draft/Autosave.
-
-Die fachlichen 10 Zielschritte bleiben dokumentiert; die aktuelle Implementierung darf zunächst weniger Schritte besitzen, solange die Erweiterungsstruktur sauber bleibt.
-
-## 4. Zielnavigation für spätere Versionen
-
-Die Navigation wird früh so vorbereitet, dass folgende Bereiche später ohne UI-Umbau ergänzt werden können:
+## 5. Zielnavigation für spätere Versionen
 
 ```text
 Dashboard
@@ -135,73 +141,72 @@ Einstellungen
 Backup & Wiederherstellung
 ```
 
-Nicht implementierte Bereiche dürfen disabled/hidden sein. "Later"-Text im Produkt-UI soll schrittweise verschwinden.
+Nicht implementierte Bereiche können verborgen oder eindeutig deaktiviert bleiben.
 
-## 5. Screenshot-first Arbeitsphasen
+## 6. Screenshot-first Arbeitsphasen
 
-### UI-01 - Visual Foundation
+### WF-UI-01 - Shell Polish
 
-- Resource Dictionaries bzw. zentrale Styles ordnen.
-- Farben und Typografie vereinheitlichen.
-- Basisstyles für Buttons, Cards, Navigation und Form Controls.
-- Bestehende Funktion beibehalten.
+- Sidebar, Header, Footer/Status harmonisieren;
+- Abstände und Typografie prüfen;
+- Mindestgröße/DPI berücksichtigen;
+- bestehende Funktion beibehalten.
 
-**Done:** App baut und sieht bereits konsistenter aus.
+**Done:** Der erste Gesamteindruck entspricht klar der Designsprache des Konzeptbilds.
 
-### UI-02 - Application Shell
+### WF-UI-02 - Dashboard
 
-- Sidebar an Konzeptbild angleichen.
-- Navigation als echte Elemente.
-- Branding, Abstände, Header und Footer polieren.
-- Fenstergrößen und Minimumgrößen prüfen.
+- Card-Layout feinjustieren;
+- HealthTopic-Arbeitsbereich polieren;
+- Empty State;
+- Grid-Dichte und Auswahl;
+- Focus-/Hover-Zustände.
 
-**Done:** Der erste visuelle Eindruck entspricht klar dem Screenshot.
+**Done:** Dashboard ist ohne Fake-Daten vorzeigbar.
 
-### UI-03 - Dashboard
-
-- Kartenlayout feinjustieren.
-- HealthTopic-Arbeitsbereich polieren.
-- Empty State.
-- Status-/Prioritätsdarstellung.
-- sinnvolle Focus-/Hover-Zustände.
-
-**Done:** Dashboard ist vorzeigbar, ohne Fake-Daten zu benötigen.
-
-### UI-04 - Wizard
+### WF-UI-03 - Wizard
 
 - gleiche Designsprache;
-- Schrittanzeige;
+- Step-Navigation;
 - Formularspacing;
-- Buttons und Validierung;
-- Zusammenfassungsansicht.
+- Buttons/Validierung;
+- Hilfetexte/Tooltips;
+- spätere Zusammenfassungsansicht.
 
 **Done:** Wizard wirkt wie Bestandteil desselben Produkts.
 
-### UI-05 - Navigation Host
+### WF-UI-04 - Navigation Host Stabilisierung
 
-- technische Navigation so vorbereiten, dass kommende Seiten als Views eingebunden werden können;
-- kein Domain-Code im Navigation Host;
-- bestehendes Dashboard als erste echte Seite.
+- MainForm bleibt Shell statt Fachlogik-Sammelstelle;
+- Views/Presenter sauber trennen;
+- neue Seiten ohne grundlegenden Shell-Umbau ergänzbar machen.
 
-**Done:** Neue Fachmodule können später als Seiten ergänzt werden, ohne MainWindow erneut grundlegend umzubauen.
+**Done:** Fachmodule können als Views/Slices ergänzt werden.
 
-## 6. Akzeptanzkriterien
+### WF-UI-05 - Fach-Slices
 
-Für das erste Screenshot-Ziel:
+Danach werden die fachlichen Module in der priorisierten Reihenfolge aus `145_Codex_Arbeitsauftrag.md` umgesetzt.
 
-- WPF-App startet ohne Fehler.
-- Bestehende HealthTopics werden weiterhin geladen.
-- Neuer HealthTopic-Wizard funktioniert weiterhin.
-- Sidebar, Header, Karten und Arbeitsbereich entsprechen in Hierarchie und Stil dem Konzeptbild.
-- Keine statische Screenshot-Nachbildung.
-- Keine echten Gesundheitsdaten in Demo/Tests.
-- Mindestfenstergröße bleibt benutzbar.
-- Tastatur-Fokus ist erkennbar.
+## 7. Akzeptanzkriterien für das nächste Screenshot-Ziel
+
+- komplette Solution baut;
+- Smoke Tests laufen;
+- WinForms-App startet ohne Fehler;
+- bestehende HealthTopics werden weiterhin geladen;
+- Neuer-HealthTopic-Wizard funktioniert;
+- WPF bleibt buildbar;
+- beide Frontends verwenden denselben JSON-Datenbestand;
+- Sidebar, Header, Karten und Arbeitsbereich entsprechen in Hierarchie und Stil dem Konzeptbild;
+- keine statische Screenshot-Nachbildung;
+- keine echten Gesundheitsdaten in Demo/Tests/Screenshots;
+- Mindestfenstergröße bleibt benutzbar;
+- Tastatur-Fokus ist erkennbar;
+- Deutsch und Englisch sind funktionsfähig;
 - UI-Texte bleiben nicht-diagnostisch.
 
-## 7. Visuelle Verifikation
+## 8. Visuelle Verifikation
 
-Bei UI-PRs soll möglichst ein aktueller Screenshot der laufenden App mit dem Konzeptbild verglichen werden.
+Bei WinForms-UI-PRs soll die laufende Anwendung möglichst mit dem Konzeptbild verglichen werden.
 
 Prüfpunkte:
 
@@ -210,23 +215,24 @@ Prüfpunkte:
 - Headerhöhe;
 - Kartenabstände;
 - Typografiehierarchie;
-- Buttongewicht;
+- Hauptbutton;
 - Listendichte;
-- Border/CornerRadius;
-- ruhiges Gesamtbild.
+- Rahmen/Flächen;
+- ruhiges Gesamtbild;
+- Darstellung in Deutsch und Englisch.
 
-Pixel-Perfektion ist nicht das erste Ziel. Wichtig ist, dass Informationshierarchie und visuelle Sprache eindeutig zusammenpassen.
+Pixel-Perfektion ist nicht das erste Ziel. Informationshierarchie und visuelle Sprache sind wichtiger.
 
-## 8. Was ausdrücklich nicht Teil des ersten UI-Sprints ist
+## 9. Was nicht Teil der reinen UI-Politur ist
 
-- vollständige Datenbankmigration;
+- SQLite-Migration;
 - Ernährungstagebuch;
 - Wetter-API;
 - Notification Service;
 - OCR;
 - FHIR;
 - KI;
-- Kontaktverwaltung;
+- zentrale Kontaktverwaltung;
 - komplexe Diagramme.
 
-Diese Funktionen sind dokumentiert, sollen aber nicht den Weg zu einem vorzeigbaren, funktionierenden UI blockieren.
+Diese Funktionen bleiben in der Fachroadmap und werden später als vertikale Slices entwickelt.

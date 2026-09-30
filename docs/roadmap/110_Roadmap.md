@@ -340,3 +340,32 @@ Kurzfristig gilt:
 SQLite bleibt die geplante relationale Zielpersistenz, wird aber nicht vorgezogen, nur um die alte Phasenreihenfolge einzuhalten. Die aktuelle JSON-Persistenz bleibt bestehen, bis ein getesteter Migrationspfad und ein ausreichend stabiles Fachmodell vorliegen.
 
 Die fachlichen Erweiterungen der Baseline 2.1 sind in `docs/requirements/155_Fachmodule_Baseline_2_1.md` beschrieben. Die konkrete Codex-Reihenfolge steht in `docs/development/145_Codex_Arbeitsauftrag.md`.
+
+
+---
+
+## 23. Frontendstrategie 2.1a - aktuelle Ausführungsreihenfolge (2026-09-30)
+
+Die WinForms-Baseline ist inzwischen implementiert und in `main` integriert. Damit wird die kurzfristige Roadmap präzisiert:
+
+1. vorhandene WinForms-Shell visuell stabilisieren;
+2. WinForms-Dashboard an das Konzeptbild annähern;
+3. WinForms-Wizard polieren;
+4. WinForms-Navigation/View-Struktur als Erweiterungsbasis stabilisieren;
+5. WPF als buildbare Referenz erhalten;
+6. neue Fachmodule anschließend als vertikale Slices in WinForms zuerst umsetzen.
+
+WPF erhält nicht automatisch dieselben neuen Produktfeatures. Fachlogik bleibt in den gemeinsamen Schichten.
+
+Die bevorzugte fachliche Reihenfolge bleibt:
+
+1. HealthEntry / Timeline;
+2. Sources / SourceLocation / EvidenceNote;
+3. Measurements / Vitalwerte;
+4. Sessions / Arztbesuche / Coaching;
+5. HealthAction / Routine / Progress;
+6. Notifications;
+7. Ernährung / Kontext;
+8. Medien;
+9. ContactReference;
+10. Wetterkontext.

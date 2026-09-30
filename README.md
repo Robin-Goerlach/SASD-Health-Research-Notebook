@@ -115,7 +115,7 @@ These are a roadmap, not a promise that every module is already implemented.
 
 - **Language:** C#
 - **Runtime:** .NET 8+
-- **Desktop UI:** WPF reference frontend and WinForms baseline frontend
+- **Desktop UI:** WinForms primary frontend; WPF buildable reference frontend
 - **Current persistence:** local JSON
 - **Planned persistence:** SQLite with migrations
 - **Search:** SQLite FTS5 planned
@@ -137,8 +137,8 @@ A GitHub Actions workflow validates restore, build and smoke tests on Windows.
 
 ## Frontend status
 
-- **WPF** remains buildable and acts as the current reference frontend.
-- **WinForms** reproduces the first functional baseline: dashboard, navigation, topic list, refresh, status line and health-topic wizard.
+- **WinForms** is the current primary development frontend. It provides the functional baseline: dashboard, navigation, topic list, refresh, status line, health-topic wizard and German/English localization.
+- **WPF** remains buildable as a reference frontend and compatibility check for the shared Application/Infrastructure layers.
 - Both frontends use the same `HealthTopicService`, `JsonHealthTopicRepository` and local JSON file, so they do not create separate data worlds.
 - The WinForms baseline contains a small localization foundation for German and English. It starts in German on German Windows installations, otherwise in English, and offers a language selector in the main window.
 
@@ -148,12 +148,12 @@ Repository-level instructions for Codex are in [AGENTS.md](AGENTS.md).
 
 The preferred near-term sequence is:
 
-1. visual foundation;
-2. application shell matching the dashboard concept;
-3. dashboard polish;
-4. wizard visual pass;
-5. navigation host;
-6. then small vertical feature slices.
+1. polish the existing WinForms application shell;
+2. bring the WinForms dashboard closer to the concept screenshot;
+3. refine the WinForms wizard;
+4. stabilize the WinForms navigation host;
+5. keep WPF buildable as a reference;
+6. then implement new health features as small vertical slices in WinForms first.
 
 ## License
 

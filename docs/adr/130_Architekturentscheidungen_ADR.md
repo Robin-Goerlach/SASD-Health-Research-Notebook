@@ -368,3 +368,55 @@ Bilder und weitere Medien werden wie Dokumente im verwalteten lokalen Dateispeic
 
 - Geeignet für Übungsbilder und spätere Vorschauen.
 - Keine unnötige BLOB-Aufblähung der SQLite-Datenbank.
+
+
+---
+
+## ADR-0020 - WinForms als primäres Entwicklungsfrontend
+
+Status: Akzeptiert  
+Datum: 2026-09-30
+
+### Kontext
+
+Die WPF-Anwendung hat die frühe Architektur und den ersten funktionalen UI-Stand bewiesen. Parallel wurde ein Windows-Forms-Frontend aufgebaut, das dieselben Domain/Application/Infrastructure-Schichten und dieselbe JSON-Persistenz verwendet.
+
+Für die nächsten klassischen Desktop-Workflows des Health Research Notebook – Formulare, Wizards, Tabellen, Detailansichten und Dialoge – soll die Entwicklung möglichst schnell zu einer täglich nutzbaren Anwendung führen, ohne dieselben Features in zwei UIs doppelt zu entwickeln.
+
+### Entscheidung
+
+`Sasd.HealthNotebook.WinForms` ist bis auf Weiteres das primäre Entwicklungsfrontend.
+
+`Sasd.HealthNotebook.Wpf` bleibt buildbar und wird als Referenz-/Kompatibilitätsfrontend erhalten.
+
+Neue Fachfeatures werden standardmäßig nur in WinForms als Produkt-UI implementiert. Gemeinsame Fachlogik bleibt in Domain/Application/Infrastructure.
+
+### Konsequenzen
+
+Vorteile:
+
+- schnellere UI-Iteration für klassische Desktop-Workflows;
+- Nutzung des Visual-Studio-/WinForms-Ökosystems;
+- kein Verlust der bisherigen WPF-Arbeit;
+- zwei Frontends prüfen indirekt die UI-Unabhängigkeit der gemeinsamen Schichten;
+- keine doppelte Featureentwicklung.
+
+Nachteile:
+
+- zwei Frontend-Projekte müssen weiterhin kompilieren;
+- gemeinsame Verträge dürfen nicht unbedacht frontend-spezifisch werden;
+- WPF erhält vorerst nicht automatisch neue Produktfeatures.
+
+### Ersetzt / präzisiert
+
+- ADR-0004 ("WPF bevorzugt gegenüber WinForms") wird für die aktive Entwicklungsphase **ersetzt**.
+- ADR-0013 ("Konzept-Screenshots als kurzfristiges UI-Ziel") bleibt gültig, bezieht sich operativ aber jetzt primär auf WinForms.
+
+### Revisit-Kriterium
+
+Die Frontendentscheidung kann später neu bewertet werden, wenn:
+
+- WinForms bei notwendigen Visualisierungen oder UX-Anforderungen erheblich einschränkt;
+- WPF wieder strategisch priorisiert wird;
+- ein anderes SASD-UI-Frontend reif genug wird;
+- eine Cross-Platform-Strategie beschlossen wird.

@@ -379,3 +379,59 @@ Ein späteres SASD-Contacts-System wird über einen Adapter bzw. eine externe ID
 ### 22.5 UI-Architektur
 
 Die WPF-App wird schrittweise zu einem Navigation Host mit wiederverwendbaren Views/ViewModels entwickelt. Der erste Sprint bleibt bewusst leichtgewichtig; ein Framework-Wechsel nur für Navigation ist nicht gerechtfertigt.
+
+
+---
+
+## 23. Frontendstrategie 2.1a - WinForms primär, WPF Referenz (2026-09-30)
+
+### 23.1 Entscheidung
+
+Für die nächste Entwicklungsphase ist `Sasd.HealthNotebook.WinForms` das primäre Produktfrontend.
+
+`Sasd.HealthNotebook.Wpf` bleibt im Repository und muss buildbar bleiben. Es dient als:
+
+- Referenz für den bisherigen UI-Stand;
+- Kompatibilitätscheck für UI-unabhängige Application-/Infrastructure-Verträge;
+- mögliche spätere alternative Oberfläche.
+
+### 23.2 Keine doppelte Fachentwicklung
+
+Neue Fachmodule werden nicht gleichzeitig separat in WPF und WinForms implementiert.
+
+Regel:
+
+```text
+Domain / Application / Infrastructure
+                 ↑
+        WinForms primär
+                 +
+          WPF Referenz
+```
+
+Wenn eine neue Funktion gemeinsame Fachlogik benötigt, wird diese in den gemeinsamen Schichten implementiert. Die aktuelle Produkt-UI wird anschließend in WinForms gebaut.
+
+### 23.3 Gemeinsame Persistenz
+
+Solange JSON die aktive Persistenz ist, verwenden beide Frontends denselben Repository-Vertrag und denselben lokalen Datenpfad.
+
+Frontend-spezifische HealthTopic-Modelle, Repositories oder Datenbestände sind nicht zulässig.
+
+### 23.4 Presentation Architecture
+
+WinForms soll Forms nicht zu Fachlogik-Sammelstellen machen.
+
+Bevorzugte Verantwortungen:
+
+- Form: Shell, Ereignisse, Dialog-Lifecycle;
+- View/UserControl: Darstellung eines Arbeitsbereichs;
+- Presenter/Controller: Präsentationsablauf und Mapping;
+- Application Service: Use Cases;
+- Domain: fachliche Regeln;
+- Infrastructure: Persistenz/Dateien/externe Adapter.
+
+Die bestehende leichte Presenter-Struktur wird weiterentwickelt, ohne ein zusätzliches UI-Framework zu erzwingen.
+
+### 23.5 Konsequenz für die alte WPF-Planung
+
+Abschnitt 22.5 und ältere Formulierungen, die WPF als aktiven nächsten Navigation Host beschreiben, gelten nur noch historisch. Der Navigation Host und neue Produktseiten werden aktuell primär im WinForms-Frontend entwickelt.
