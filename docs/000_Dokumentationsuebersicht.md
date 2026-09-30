@@ -13,14 +13,18 @@ Das Projekt verarbeitet potenziell hochsensible Gesundheitsinformationen. Dokume
 
 ## 2. Aktueller Projektstand
 
-Das Repository befindet sich nicht mehr nur in der Konzeptphase. Eine startbare WPF-Anwendung mit HealthTopic-Modell, Application Service, lokaler JSON-Persistenz, Dashboard, Wizard und Smoke Tests ist vorhanden.
+Das Repository befindet sich nicht mehr nur in der Konzeptphase. Es existieren zwei startbare Desktop-Frontends über denselben Domain/Application/Infrastructure-Schichten und derselben lokalen JSON-Persistenz:
+
+- WinForms als aktuelles primäres Entwicklungsfrontend mit Dashboard, Navigation, HealthTopic-Grid, Wizard und Deutsch/Englisch-Lokalisierung;
+- WPF als buildbare Referenzoberfläche und Kompatibilitätscheck.
 
 Kurzfristiger technischer Fokus:
 
-1. Konzept-Screenshot als funktionierendes WPF-Zielbild umsetzen;
-2. bestehende HealthTopic-Funktion stabil halten;
-3. UI-Struktur für spätere Fachmodule vorbereiten;
-4. anschließend vertikale Fach-Slices entwickeln.
+1. WinForms visuell weiter an die Konzept-Screenshots annähern;
+2. bestehende HealthTopic-Funktion und gemeinsame Persistenz stabil halten;
+3. WPF buildbar halten, aber neue Features nicht doppelt entwickeln;
+4. WinForms-Navigation und Views als Basis für spätere Fachmodule stabilisieren;
+5. anschließend vertikale Fach-Slices entwickeln.
 
 ## 3. Medizinische Produktgrenze
 
@@ -89,9 +93,10 @@ Diese Liste ist ein Zielmodell. Nicht alle Objekte werden sofort implementiert.
 
 ## 7. Nächste Arbeit
 
-1. Baseline-2.1-Dokumentation mergen.
-2. Ersten Codex-UI-Sprint nach `145_Codex_Arbeitsauftrag.md` starten.
-3. Dashboard visuell an Konzeptbild angleichen.
-4. Wizard visuell vereinheitlichen.
-5. Navigation Host vorbereiten.
-6. Danach erster Fach-Slice: HealthEntry/Timeline oder Sources/SourceLocation.
+1. WinForms-Primärstrategie als Dokumentationsnachtrag übernehmen.
+2. Nächsten Codex-UI-Sprint nach `145_Codex_Arbeitsauftrag.md` auf WinForms ausführen.
+3. WinForms-Dashboard visuell weiter an das Konzeptbild angleichen.
+4. WinForms-Wizard visuell vereinheitlichen.
+5. Navigation Host stabilisieren.
+6. WPF als Referenz buildbar halten.
+7. Danach erster Fach-Slice: HealthEntry/Timeline oder Sources/SourceLocation.
