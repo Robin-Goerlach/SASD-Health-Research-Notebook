@@ -550,3 +550,43 @@ Nach V1 können folgende Erweiterungen geplant werden:
 ## 28. Zusammenfassung
 
 Für ein gut intern nutzbares Produkt werden etwa 15 Milestones benötigt. Für ein rundes, vorzeigbares SASD-Produkt sind etwa 24 Milestones realistisch. Alles darüber hinaus sollte als V2/V3 geplant werden, damit das Projekt nicht zu früh überladen wird.
+
+
+---
+
+## 29. Revision 2.1 - beschleunigter Weg zum vorzeigbaren Produkt
+
+Stand: 2026-09-30
+
+Der ursprüngliche 24-Milestone-Plan bleibt als langfristige Struktur erhalten. Für die nächste Entwicklungsphase wird die Reihenfolge jedoch bewusst angepasst.
+
+### 29.1 Sofortiger Fokus
+
+1. **UI Foundation** – zentrale Styles/Design Tokens.
+2. **Application Shell** – Sidebar, Header, Cards, Statusbereich auf Konzeptniveau.
+3. **Dashboard Pass** – funktionierendes Dashboard visuell polieren.
+4. **Wizard Pass** – Wizard auf dieselbe Designsprache bringen.
+5. **Navigation Host** – saubere Basis für kommende Seiten.
+
+Diese Arbeit soll auf dem bestehenden funktionierenden HealthTopic-Pfad aufbauen. Keine statische Demo.
+
+### 29.2 Danach bevorzugte Fach-Slices
+
+1. HealthEntry/Timeline
+2. Sources + SourceLocation + EvidenceNote
+3. Measurements
+4. Sessions/Arztbesuche/Coaching + Questions
+5. HealthAction + Routine + Progress
+6. Notification Service
+7. Nutrition + Context
+8. MediaResource
+9. ContactReference
+10. WeatherSnapshot/Weather Adapter
+
+### 29.3 Verschiebung ohne Verlust
+
+OCR, FHIR, externe KI, Geräteimport, zentrale Kontakteintegration und komplexe medizinische Datenbanken bleiben spätere Erweiterungen. Sie dürfen die frühe Nutzbarkeit und UI-Qualität nicht blockieren.
+
+### 29.4 Codex
+
+Codex arbeitet nach `AGENTS.md` und `docs/development/145_Codex_Arbeitsauftrag.md`. Jeder PR soll klein genug sein, dass Build, Smoke Tests und der visuelle Fortschritt eindeutig geprüft werden können.
