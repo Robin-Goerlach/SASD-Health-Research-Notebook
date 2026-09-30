@@ -1,0 +1,30 @@
+name: .NET build and smoke tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore Sasd.HealthNotebook.sln
+
+      - name: Build
+        run: dotnet build Sasd.HealthNotebook.sln --configuration Release --no-restore
+
+      - name: Run smoke tests
+        run: dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release --no-build
