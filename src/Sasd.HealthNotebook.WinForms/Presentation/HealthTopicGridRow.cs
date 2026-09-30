@@ -1,4 +1,5 @@
 using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.WinForms.Localization;
 
 namespace Sasd.HealthNotebook.WinForms.Presentation;
 
@@ -32,9 +33,9 @@ public sealed class HealthTopicGridRow
         return new HealthTopicGridRow
         {
             Title = summary.Title,
-            Status = summary.Status.ToString(),
-            Priority = summary.Priority.ToString(),
-            CreatedAt = summary.CreatedAt.LocalDateTime.ToString("yyyy-MM-dd HH:mm"),
+            Status = AppStrings.HealthTopicStatusText(summary.Status),
+            Priority = AppStrings.HealthTopicPriorityText(summary.Priority),
+            CreatedAt = AppStrings.FormatDateTime(summary.CreatedAt),
             ShortDescription = summary.ShortDescription
         };
     }
