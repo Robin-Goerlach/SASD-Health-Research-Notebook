@@ -320,7 +320,7 @@ Die Architektur soll diese Grenze technisch unterstützen:
 - Lokal-first statt Cloud-first
 - Desktop-first statt Web-first
 - SQLite statt Serverdatenbank
-- WPF statt WinForms oder Web UI
+- WinForms als primäres Produktfrontend; WPF als buildbare Referenz (ADR-0020)
 - Dokumente im Dateisystem statt BLOBs
 - Markdown-Export zuerst, PDF später
 - Keine KI in V1
