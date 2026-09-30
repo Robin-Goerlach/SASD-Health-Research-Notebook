@@ -2,18 +2,21 @@ using System.Drawing;
 using System.Windows.Forms;
 using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.WinForms.Controls;
+using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
 
 namespace Sasd.HealthNotebook.WinForms.Views;
 
 /// <summary>
-/// Dashboard header and overview-card area.
+/// Dashboard overview-card area.
 /// </summary>
 public sealed class DashboardView : UserControl
 {
+    private readonly Label _descriptionLabel;
     private readonly DashboardCardControl _topicsCard;
     private readonly DashboardCardControl _prepareCard;
     private readonly DashboardCardControl _archivedCard;
+    private DashboardOverview _lastOverview = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DashboardView" /> class.
@@ -24,22 +27,13 @@ public sealed class DashboardView : UserControl
         Dock = DockStyle.Fill;
         Padding = new Padding(0, 0, 0, UiMetrics.StandardSpacing);
 
-        var descriptionLabel = new Label
+        _descriptionLabel = new Label
         {
             Dock = DockStyle.Top,
-            Height = 42,
+            Height = 36,
             Font = UiFonts.Body,
             ForeColor = UiColors.SecondaryText,
-            Text = "Personal local-first documentation workspace. This is a notebook, not a diagnosis or therapy system."
-        };
-
-        var titleLabel = new Label
-        {
-            Dock = DockStyle.Top,
-            Height = 42,
-            Font = UiFonts.PageTitle,
-            ForeColor = UiColors.PrimaryText,
-            Text = "Dashboard"
+            AutoEllipsis = true
         };
 
         var cardsPanel = new FlowLayoutPanel
@@ -47,8 +41,9 @@ public sealed class DashboardView : UserControl
             Dock = DockStyle.Fill,
             FlowDirection = FlowDirection.LeftToRight,
             WrapContents = false,
-            AutoScroll = true,
-            BackColor = UiColors.WindowBackground
+            AutoScroll = false,
+            BackColor = UiColors.WindowBackground,
+            Padding = new Padding(0, UiMetrics.StandardSpacing, 0, 0)
         };
 
         _topicsCard = new DashboardCardControl();
@@ -60,10 +55,18 @@ public sealed class DashboardView : UserControl
         cardsPanel.Controls.Add(_archivedCard);
 
         Controls.Add(cardsPanel);
-        Controls.Add(descriptionLabel);
-        Controls.Add(titleLabel);
+        Controls.Add(_descriptionLabel);
 
-        SetOverview(new DashboardOverview());
+        ApplyTexts();
+    }
+
+    /// <summary>
+    /// Applies localized labels to the dashboard.
+    /// </summary>
+    public void ApplyTexts()
+    {
+        _descriptionLabel.Text = AppStrings.DashboardNotebookBoundary;
+        SetOverview(_lastOverview);
     }
 
     /// <summary>
@@ -72,20 +75,21 @@ public sealed class DashboardView : UserControl
     public void SetOverview(DashboardOverview overview)
     {
         ArgumentNullException.ThrowIfNull(overview);
+        _lastOverview = overview;
 
         _topicsCard.SetContent(
-            "Health topics",
+            AppStrings.CardHealthTopicsTitle,
             overview.TotalTopics.ToString(),
-            "Documented topics in the local notebook");
+            AppStrings.CardHealthTopicsDescription);
 
         _prepareCard.SetContent(
-            "Prepare for doctor",
+            AppStrings.CardPrepareForDoctorTitle,
             overview.PrepareForDoctorCount.ToString(),
-            "Topics marked for appointment preparation");
+            AppStrings.CardPrepareForDoctorDescription);
 
         _archivedCard.SetContent(
-            "Archived",
+            AppStrings.CardArchivedTitle,
             overview.ArchivedTopics.ToString(),
-            "Topics no longer shown as active");
+            AppStrings.CardArchivedDescription);
     }
 }
