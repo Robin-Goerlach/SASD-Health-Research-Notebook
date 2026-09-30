@@ -1,4 +1,5 @@
 using System.Windows.Forms;
+using Sasd.HealthNotebook.WinForms.Localization;
 
 namespace Sasd.HealthNotebook.WinForms;
 
@@ -16,8 +17,8 @@ public static class UiErrorHandler
     {
         MessageBox.Show(
             owner,
-            $"The application could not {safeOperationName}. Please try again. No health details were written to logs.",
-            "SASD Health Research Notebook",
+            AppStrings.FormatSafeError(safeOperationName),
+            AppStrings.AppTitle,
             MessageBoxButtons.OK,
             MessageBoxIcon.Error);
     }
