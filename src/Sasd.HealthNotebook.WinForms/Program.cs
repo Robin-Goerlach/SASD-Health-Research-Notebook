@@ -16,7 +16,10 @@ internal static class Program
         // Keep the WinForms entry point explicit because this solution also contains
         // a namespace named Sasd.HealthNotebook.Application. Using fully qualified
         // framework types avoids the same kind of name collision that affected WPF.
-        System.Windows.Forms.ApplicationConfiguration.Initialize();
+        // The classic initialization calls are used because they are available in
+        // the WinForms target profile used by the CI runner.
+        System.Windows.Forms.Application.EnableVisualStyles();
+        System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
         HealthTopicService healthTopicService = Bootstrapper.CreateHealthTopicService();
 
