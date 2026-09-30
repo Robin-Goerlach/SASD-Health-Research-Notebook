@@ -333,3 +333,49 @@ Die Architektur soll diese Grenze technisch unterstützen:
 - SQLite FTS5: https://sqlite.org/fts5.html
 - OWASP ASVS: https://owasp.org/www-project-application-security-verification-standard/
 - SQLCipher: https://www.zetetic.net/sqlcipher/
+
+
+---
+
+## 22. Architekturergänzung Baseline 2.1 (2026-09-30)
+
+### 22.1 Entwicklung in vertikalen Slices
+
+Nach der UI-Baseline werden neue Fachbereiche bevorzugt als vertikale Slices umgesetzt. Ein Slice umfasst Domain, Application, Persistenz, UI und Tests für einen klaren Anwendungsfall.
+
+Dies verhindert zwei Extreme:
+
+- eine große Datenbank voller ungenutzter Tabellen;
+- UI-Prototypen ohne belastbare Fachlogik.
+
+### 22.2 Neue fachliche Grenzen
+
+Die folgenden Konzepte werden getrennt gehalten:
+
+- Observation: dokumentiert Wahrnehmung/Messung;
+- Session: dokumentiert Termin/Gespräch/Beratung;
+- HealthAction: dokumentiert eine konkrete Handlung und deren Herkunft;
+- Routine: wiederkehrende, vom Nutzer konfigurierte Durchführung;
+- Reminder: technische Erinnerung an eine konfigurierte Aufgabe;
+- Source/EvidenceNote: dokumentiert Herkunft und genaue Belegstelle;
+- ContextSnapshot: unveränderlicher Kontext zu einem Ereignis;
+- ContactReference: schlanke Referenz statt CRM.
+
+### 22.3 Adapter für externe Kontextdienste
+
+Wetter und ähnliche optionale Kontextdienste werden über Application-Abstraktionen und Infrastructure-Adapter angebunden.
+
+Regeln:
+
+- Kernfunktion bleibt offline nutzbar.
+- Externer Fehler blockiert keine lokale Speicherung.
+- Datenquelle und Abrufzeitpunkt werden nachvollziehbar.
+- Kein externer Dienst erhält automatisch den vollständigen Gesundheitskontext.
+
+### 22.4 Kontaktintegration
+
+Ein späteres SASD-Contacts-System wird über einen Adapter bzw. eine externe ID angebunden. Die Health-Domain darf nicht von einer konkreten Contacts-Anwendung abhängig werden.
+
+### 22.5 UI-Architektur
+
+Die WPF-App wird schrittweise zu einem Navigation Host mit wiederverwendbaren Views/ViewModels entwickelt. Der erste Sprint bleibt bewusst leichtgewichtig; ein Framework-Wechsel nur für Navigation ist nicht gerechtfertigt.
