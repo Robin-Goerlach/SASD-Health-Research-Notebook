@@ -516,3 +516,19 @@ Vorbereiten -> Sitzung dokumentieren -> Nachbereiten -> Aktionen/Folgetermine
 ```
 
 Eigene Gesprächserinnerung, während des Gesprächs notierte Aussage und schriftlicher Befund müssen in der UI unterscheidbar sein.
+
+
+---
+
+## 23. Frontendnachtrag 2.1a (2026-09-30)
+
+Die allgemeinen UX-Prinzipien dieses Dokuments bleiben technologieunabhängig.
+
+Für die aktive Umsetzung gilt:
+
+- WinForms ist das primäre Produktfrontend.
+- WPF bleibt Referenz und muss buildbar bleiben.
+- Dashboard- und Wizard-Konzeptbilder werden primär im WinForms-Frontend angenähert.
+- Neue Fachseiten sollen die vorhandenen WinForms-Controls, Styling-Tokens und Lokalisierung wiederverwenden.
+- Ein Feature wird nicht allein aus Symmetriegründen zusätzlich in WPF implementiert.
+- Deutsch und Englisch müssen bei neuen WinForms-Texten konsistent gepflegt werden.
