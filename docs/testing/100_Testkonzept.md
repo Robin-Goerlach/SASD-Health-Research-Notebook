@@ -230,3 +230,19 @@ Später zu ergänzen:
 - Backup-/Restore-Tests;
 - optional UI-Automatisierung;
 - Markdown-/Linkprüfung.
+
+
+---
+
+## 19. Requirements-Traceability und Release-Gates (2026-09-30)
+
+Die verbindliche Zuordnung zwischen Anforderungs-IDs, Akzeptanzkriterien und Prüfungen ist in
+`docs/testing/105_Akzeptanzkriterien_Traceability_Quality_Gates.md` beschrieben.
+
+Wichtig für den aktuellen Stand:
+
+- der vorhandene Smoke-Test ist automatisiert und läuft in CI;
+- er ist noch kein Ersatz für systematische Unit-, Integrations- und End-to-End-Tests;
+- `dotnet test` wird erst zu einem belastbaren Quality Gate, sobald echte Testprojekte mit einem Testframework in der Solution vorhanden sind;
+- neue oder wesentlich geänderte MUSS-Funktionalität soll künftig mit Requirement-ID und Testzuordnung entwickelt werden;
+- ein grüner Build allein ist kein Nachweis der vollständigen fachlichen Umsetzung.
