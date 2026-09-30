@@ -140,6 +140,7 @@ A GitHub Actions workflow validates restore, build and smoke tests on Windows.
 - **WPF** remains buildable and acts as the current reference frontend.
 - **WinForms** reproduces the first functional baseline: dashboard, navigation, topic list, refresh, status line and health-topic wizard.
 - Both frontends use the same `HealthTopicService`, `JsonHealthTopicRepository` and local JSON file, so they do not create separate data worlds.
+- The WinForms baseline contains a small localization foundation for German and English. It starts in German on German Windows installations, otherwise in English, and offers a language selector in the main window.
 
 ## Codex
 
