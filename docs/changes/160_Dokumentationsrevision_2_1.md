@@ -324,3 +324,21 @@ Bei Widersprüchen zu älteren Entwurfsformulierungen gilt für die oben beschri
 ## 8. Nächster technischer Fokus
 
 Der unmittelbare Codex-Auftrag ist in `docs/development/145_Codex_Arbeitsauftrag.md` beschrieben. Das visuelle Ziel wird in `docs/ui-ux/055_UI_Zielbild_und_Screenshot_Plan.md` festgelegt.
+
+
+---
+
+## 9. Nachtrag 2.1a - Frontendstrategie (2026-09-30)
+
+Nach Erstellung der Baseline 2.1 wurde ein funktionsfähiges Windows-Forms-Frontend implementiert und in `main` übernommen.
+
+Damit gilt ab sofort:
+
+- **WinForms ist das primäre Frontend für neue UI- und Fachentwicklung.**
+- **WPF bleibt buildbar als Referenz- und Kompatibilitätsfrontend.**
+- Neue Fachfeatures werden nicht automatisch parallel in beiden Oberflächen implementiert.
+- Domain, Application und Infrastructure bleiben UI-unabhängig.
+- Beide Frontends verwenden solange die JSON-Persistenz aktiv ist denselben lokalen Datenbestand.
+- Die vorhandenen Konzept-Screenshots bleiben visuelles Ziel; die kurzfristige Screenshot-Arbeit bezieht sich primär auf WinForms.
+
+Dieser Nachtrag ersetzt die frühere operative Annahme, dass die WPF-Oberfläche zuerst bis zum Screenshot-Ziel ausgebaut wird. Die fachlichen Entscheidungen der Baseline 2.1 bleiben unverändert.
