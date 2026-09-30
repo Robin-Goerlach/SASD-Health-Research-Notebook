@@ -1,164 +1,151 @@
 # SASD Health Research Notebook
 
-> Local-first desktop application for documenting personal health topics, symptoms, documents, sources, measurements, lab values and questions for medical appointments.
+> Local-first WPF desktop application for documenting personal health topics, observations, sources, measurements, sessions, documents and user-defined routines — designed for personal organization and research, not diagnosis or therapy.
 
 ![Dashboard concept screenshot](docs/screenshots/dashboard-concept.png)
 
 ## Project status
 
-This repository is currently in the **concept and planning phase**.
+The repository is in the **early implementation phase**.
 
-The screenshot above is a **UI concept preview**, not a finished application. The goal of this repository is to develop the project step by step with clear documentation, a careful architecture and a strong focus on privacy, maintainability and data safety.
+A working .NET/WPF application shell already exists with:
+
+- layered Domain / Application / Infrastructure / WPF projects;
+- a local JSON-backed HealthTopic repository;
+- a functional dashboard shell;
+- a first "new health topic" wizard;
+- smoke tests;
+- concept screenshots that define the intended visual direction.
+
+The current implementation is not yet feature-complete. The immediate development goal is to make the running application visually approach the concept screenshots while preserving working behavior.
 
 ## Purpose
 
-**SASD Health Research Notebook** is intended to help users collect, structure and retrieve personal health-related information in one local system.
+SASD Health Research Notebook is a personal, local-first health documentation and research workspace.
 
-The application is meant for:
+It is intended to help users:
 
-- documenting health topics, conditions, suspected conditions and long-term observations
-- collecting symptoms, notes, documents, sources and measurements
-- preparing questions and summaries for doctor appointments
-- keeping track of documents such as medical letters, lab reports, screenshots and research notes
-- building a personal, searchable health knowledge base
+- organize health topics, conditions, suspicions and long-term observations;
+- document symptoms, measurements, nutrition/context and personal observations;
+- collect PDFs, images, screenshots and other supporting material;
+- keep research sources with exact citation locations and trust metadata;
+- prepare and follow up doctor, therapy, coaching or consultation sessions;
+- manage user-defined actions, routines, progress and reminders;
+- collect questions and unresolved points;
+- build a searchable timeline and export selected information.
 
-## Important medical disclaimer
+## Important medical boundary
 
-This project is **not** intended to diagnose, treat, prevent or cure diseases.
+This application is **not** intended to diagnose, treat, prevent or cure disease.
 
-The software is planned as a personal documentation and research notebook. It must not replace professional medical advice, diagnosis or treatment. Medical decisions must remain with qualified healthcare professionals.
+It must not:
 
-## Core idea
+- create diagnoses;
+- generate treatment recommendations;
+- decide medication doses;
+- tell users to start, stop or change medication;
+- derive health actions automatically from a disease or measurement;
+- claim that weather, nutrition or another context factor caused a symptom;
+- treat a source rating as medical validation.
 
-The project combines ideas from:
+The application may document what the user entered, what a professional reportedly said, what a source states, and what remains open for clarification.
 
-- electronic lab notebooks
-- personal health records
-- symptom trackers
-- document management systems
-- source and knowledge management tools
-- local-first privacy-oriented desktop software
+## UI target
 
-The application should work like a structured research notebook for personal health documentation, while avoiding unsafe medical recommendation or diagnosis functionality.
+The visual target is documented by the repository screenshots:
 
-## Planned core features
+- [Dashboard concept](docs/screenshots/dashboard-concept.png)
+- [Condition wizard concept](docs/screenshots/condition-wizard-concept.png)
 
-### Health topics and conditions
+The implementation plan is described in:
 
-- create health topics, conditions, suspected conditions and observation topics
-- classify topics by status, priority, category and body system
-- store synonyms and alternative names
-- connect documents, symptoms, notes, questions, sources and appointments to a topic
+- [UI target and screenshot plan](docs/ui-ux/055_UI_Zielbild_und_Screenshot_Plan.md)
+- [Codex implementation guide](docs/development/145_Codex_Arbeitsauftrag.md)
 
-### Condition wizard
+## Documentation Baseline 2.1
 
-The application should include a guided wizard for creating a new health topic.
+The September 2026 revision consolidates the requirements developed since the initial planning baseline.
 
-![Condition wizard concept screenshot](docs/screenshots/condition-wizard-concept.png)
+Start here:
 
-Planned wizard steps:
+- [Documentation map](docs/000_Dokumentationsuebersicht.md)
+- [Documentation revision 2.1](docs/changes/160_Dokumentationsrevision_2_1.md)
+- [Health modules requirements baseline 2.1](docs/requirements/155_Fachmodule_Baseline_2_1.md)
+- [Architecture](docs/architecture/030_Architekturkonzept.md)
+- [Database model](docs/database/040_Datenmodell_Datenbankdesign.md)
+- [UI/UX concept](docs/ui-ux/050_UI_UX_Konzept.md)
+- [Milestone plan](docs/roadmap/115_Milestone_und_Release_Plan.md)
+- [ADRs](docs/adr/130_Architekturentscheidungen_ADR.md)
 
-1. Basic data
-2. Diagnosis / status
-3. Symptoms
-4. Documents
-5. Sources and information
-6. Doctors and contacts
-7. Medication and measures
-8. Measurements and lab values
-9. Open questions
-10. Summary and save
+## Planned health modules
 
-The wizard should support saving drafts and continuing later.
+The target model includes, implemented incrementally:
 
-### Documents and sources
+- health topics;
+- observations and symptom/context diary;
+- measurements and lab values;
+- nutrition diary;
+- optional immutable weather snapshots linked to measurements/observations;
+- doctor visits, coaching and other sessions with preparation/follow-up;
+- questions and open points;
+- sourced HealthActions;
+- user-defined routines and progress counters;
+- local notifications/reminders;
+- documents, images and media resources;
+- research sources, exact source locations and evidence notes;
+- contact references prepared for later integration with a shared SASD contacts application.
 
-- attach PDF files, images, screenshots, scans and office documents
-- store metadata such as title, date, document type and related health topic
-- manage sources such as websites, books, studies, doctor statements and own observations
-- distinguish between verified medical documents and unverified research notes
-
-### Symptoms and timeline
-
-- record symptoms with date, intensity, duration and notes
-- display a chronological timeline
-- connect symptoms to health topics, documents, measurements and appointments
-
-### Measurements and lab values
-
-- document measurements such as blood pressure, pulse, weight or other manually entered values
-- document lab values with unit, reference range and date
-- mark values outside known reference ranges without providing medical interpretation
-
-### Questions and appointments
-
-- collect open questions for doctors and specialists
-- connect questions to health topics and documents
-- prepare appointment summaries and printable question lists
-
-### Search and tagging
-
-- full-text search across topics, notes, documents, sources and questions
-- tags and synonyms
-- filters by date, topic, document type, priority and status
-
-### Export
-
-- export selected information as Markdown
-- create appointment preparation summaries
-- create doctor-friendly reports
-- later: PDF export and selected data packages
-
-### Backup and restore
-
-- local backups
-- restore validation
-- clear backup location and backup history
-- later: encrypted backup archives
+These are a roadmap, not a promise that every module is already implemented.
 
 ## Privacy and security principles
 
-The project should follow these principles from the beginning:
+- local-first by default;
+- no mandatory cloud connection;
+- no telemetry;
+- no silent upload of health data;
+- no health contents in technical logs;
+- explicit export control;
+- archive/restore instead of silent deletion;
+- backups and migration safety;
+- later encrypted storage after explicit architecture decision;
+- discreet notification mode for health-related reminders.
 
-- local-first by default
-- no mandatory cloud connection
-- no telemetry
-- no silent upload of health data
-- careful logging without sensitive medical contents
-- clear export control
-- backup and restore before destructive operations
-- later: encrypted storage and master-password protection
-
-## Planned technical direction
-
-The initial preferred technical direction is:
+## Technical baseline
 
 - **Language:** C#
-- **Runtime:** .NET 8 or newer
-- **UI:** WPF or WinForms after final architecture decision
-- **Database:** SQLite
-- **Search:** SQLite FTS5 or later Lucene.NET
-- **Documents:** local file storage with metadata in the database
-- **Architecture:** layered architecture with UI, Application, Domain and Infrastructure
-- **Testing:** xUnit-based unit tests and integration tests
+- **Runtime:** .NET 8+
+- **Desktop UI:** WPF
+- **Current persistence:** local JSON
+- **Planned persistence:** SQLite with migrations
+- **Search:** SQLite FTS5 planned
+- **Documents/media:** managed local file store with metadata
+- **Architecture:** Domain / Application / Infrastructure / WPF
+- **Testing:** current smoke-test runner, later broader unit/integration tests
 
-The final architecture will be documented in separate architecture and database design documents.
+## Build and run
 
-## Suggested repository structure
+```powershell
+dotnet restore
+dotnet build Sasd.HealthNotebook.sln --configuration Release
+dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release
+dotnet run --project src/Sasd.HealthNotebook.Wpf
+```
 
-```text
-SASD-Health-Research-Notebook/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── docs/
-│   ├── screenshots/
-│   │   ├── dashboard-concept.png
-│   │   └── condition-wizard-concept.png
-│   ├── requirements/
-│   │   └── README.md
-│   ├── architecture/
-│   │   └── README.md
-│   └── database/
-│       └── README.md
-└── repository_description.txt
+A GitHub Actions workflow validates restore, build and smoke tests on Windows.
+
+## Codex
+
+Repository-level instructions for Codex are in [AGENTS.md](AGENTS.md).
+
+The preferred near-term sequence is:
+
+1. visual foundation;
+2. application shell matching the dashboard concept;
+3. dashboard polish;
+4. wizard visual pass;
+5. navigation host;
+6. then small vertical feature slices.
+
+## License
+
+See [LICENSE](LICENSE).
