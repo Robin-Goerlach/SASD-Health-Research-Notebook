@@ -504,3 +504,74 @@ Für V1 sollten folgende Tabellen tatsächlich implementiert werden:
 - schema_migrations
 
 Messwerte, Laborwerte, Medikamente und Termine können in V1.1 oder V1.2 folgen, sollten aber im Schemaentwurf bereits berücksichtigt werden.
+
+
+---
+
+## 16. Zielmodell-Ergänzung Baseline 2.1 (2026-09-30)
+
+Der frühe Tabellenentwurf bleibt eine Planungsgrundlage. Die folgenden fachlichen Konzepte müssen bei der späteren SQLite-Migration berücksichtigt werden; sie werden **nicht** alle sofort als Tabellen implementiert.
+
+### 16.1 Neue bzw. präzisierte Entitäten
+
+| Entität | Zweck |
+|---|---|
+| NutritionEntry | Mahlzeit/Getränk und Ernährungskontext |
+| ContextSnapshot | unveränderlicher Kontext zu einem Ereignis |
+| WeatherSnapshot | optionale Wetterdaten zu Messung/Beobachtung |
+| Session | Arztbesuch, Coaching, Physiotherapie, Beratung |
+| SessionNote / SessionOutcome | Gesprächsnotiz, Vereinbarung, offene Punkte |
+| HealthAction | konkrete Handlung mit Herkunft/Quelle |
+| Routine | wiederkehrende Durchführung einer Nutzerentscheidung/HealthAction |
+| RoutineProgress | historischer Tages-/Periodenfortschritt |
+| Reminder | lokaler Benachrichtigungsplan |
+| SourceLocation | Seite, Absatz, Kapitel, URL-Anker oder andere Belegstelle |
+| EvidenceNote | Aussage + Quelle + Fundstelle + eigene Einordnung |
+| MediaResource | Bild/Datei/Medienressource inkl. Übungsbilder |
+| ContactReference | kleiner Kontaktverweis mit optionaler ExternalContactId |
+
+### 16.2 Wichtige Modellregeln
+
+1. `HealthAction` und `Routine` sind getrennt.
+2. Eine Session kann HealthActions erzeugen/referenzieren.
+3. Eine professionelle Aussage wird als dokumentierte Quelle/Session-Notiz gespeichert, nicht als von der App verifizierte Diagnose.
+4. `WeatherSnapshot` ist nach Speicherung unveränderlich, außer der Nutzer korrigiert ihn bewusst.
+5. Quellenbewertung und medizinische Wahrheit sind getrennt.
+6. Medien werden bevorzugt im verwalteten Dateisystem gespeichert; Metadaten und Beziehungen liegen in der Datenbank.
+7. `ContactReference` darf später auf eine externe SASD-Kontakte-ID zeigen.
+8. Messwerte werden strukturiert gespeichert; persönliche Interpretation bleibt separates Feld/Objekt.
+
+### 16.3 Fachliche Beziehungen
+
+```text
+HealthTopic
+  -> Observation / Measurement / NutritionEntry
+  -> Session
+       -> Question
+       -> HealthAction
+       -> Document / Source
+  -> HealthAction
+       -> Routine
+            -> RoutineProgress
+            -> Reminder
+  -> Source
+       -> SourceLocation
+       -> EvidenceNote
+  -> MediaResource
+  -> ContactReference
+
+Measurement / Observation
+  -> ContextSnapshot
+       -> WeatherSnapshot
+```
+
+### 16.4 Migrationsstrategie
+
+Die aktuelle JSON-Persistenz wird nicht durch Dokumentationsarbeit voreilig ersetzt. Die SQLite-Migration soll erst erfolgen, wenn:
+
+- das Kernmodell für die ersten vertikalen Slices stabil ist;
+- Migrationen automatisiert getestet werden;
+- bestehende JSON-Daten verlustfrei übernommen werden können;
+- Backup/Restore vor Schemaänderungen geklärt ist.
+
+Damit wird vermieden, dass ein vorschnelles relationales Schema die neuen Module unnötig einschränkt.
