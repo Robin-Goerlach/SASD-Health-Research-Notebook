@@ -481,3 +481,38 @@ docs/screenshots/condition-wizard-concept.png
 ```
 
 Sie sind nicht als fertige App-Screenshots zu verstehen, sondern als Orientierung für Layout, Informationsdichte und Bedienlogik.
+
+
+---
+
+## 22. UI-Revision Baseline 2.1 (2026-09-30)
+
+Die vorhandene WPF-Schale ist bereits eine funktionierende Grundlage. Der kurzfristige Schwerpunkt wird von "weitere Platzhalter-Funktionen" auf **Screenshot-first UI-Qualität** verschoben.
+
+Verbindliches Zielbild und Umsetzungsschritte: `055_UI_Zielbild_und_Screenshot_Plan.md`.
+
+Zusätzliche spätere Navigationsbereiche:
+
+- Tagebuch;
+- Messwerte;
+- Sitzungen & Termine;
+- Routinen;
+- Quellen & Recherche;
+- Dokumente;
+- Fragen.
+
+Nicht implementierte Seiten sollen nicht durch statische Mock-ups ersetzt werden.
+
+### Datenschutz in Notifications
+
+Benachrichtigungen benötigen einen diskreten Modus. Auf gemeinsam sichtbaren Bildschirmen soll statt "Blutdruck messen" oder eines Medikamentennamens optional nur "Eine Gesundheitsroutine ist offen" angezeigt werden.
+
+### Session UX
+
+Arzt- und Coaching-Sitzungen folgen dem Muster:
+
+```text
+Vorbereiten -> Sitzung dokumentieren -> Nachbereiten -> Aktionen/Folgetermine
+```
+
+Eigene Gesprächserinnerung, während des Gesprächs notierte Aussage und schriftlicher Befund müssen in der UI unterscheidbar sein.
