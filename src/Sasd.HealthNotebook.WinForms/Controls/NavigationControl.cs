@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Windows.Forms;
+using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
 
 namespace Sasd.HealthNotebook.WinForms.Controls;
@@ -9,6 +10,8 @@ namespace Sasd.HealthNotebook.WinForms.Controls;
 /// </summary>
 public sealed class NavigationControl : UserControl
 {
+    private readonly Label _footerLabel;
+    private readonly Label _titleLabel;
     private readonly NavigationButton _dashboardButton;
     private readonly NavigationButton _healthTopicsButton;
 
@@ -21,18 +24,17 @@ public sealed class NavigationControl : UserControl
         Width = UiMetrics.SidebarWidth;
         Dock = DockStyle.Left;
 
-        var footerLabel = new Label
+        _footerLabel = new Label
         {
             Dock = DockStyle.Bottom,
             Height = 72,
             Padding = new Padding(UiMetrics.Padding),
             Font = UiFonts.Small,
             ForeColor = UiColors.SidebarText,
-            Text = "Local-first\r\nNo cloud transfer",
             TextAlign = ContentAlignment.MiddleLeft
         };
 
-        var titleLabel = new Label
+        _titleLabel = new Label
         {
             Dock = DockStyle.Top,
             Height = 116,
@@ -43,17 +45,18 @@ public sealed class NavigationControl : UserControl
             TextAlign = ContentAlignment.TopLeft
         };
 
-        _healthTopicsButton = new NavigationButton { Text = "Gesundheitsthemen" };
+        _healthTopicsButton = new NavigationButton();
         _healthTopicsButton.Click += (_, _) => RequestPage(NavigationPage.HealthTopics);
 
-        _dashboardButton = new NavigationButton { Text = "Dashboard" };
+        _dashboardButton = new NavigationButton();
         _dashboardButton.Click += (_, _) => RequestPage(NavigationPage.Dashboard);
 
-        Controls.Add(footerLabel);
+        Controls.Add(_footerLabel);
         Controls.Add(_healthTopicsButton);
         Controls.Add(_dashboardButton);
-        Controls.Add(titleLabel);
+        Controls.Add(_titleLabel);
 
+        ApplyTexts();
         SelectPage(NavigationPage.Dashboard);
     }
 
@@ -61,6 +64,16 @@ public sealed class NavigationControl : UserControl
     /// Occurs when the user requests a navigation target.
     /// </summary>
     public event EventHandler<NavigationPageChangedEventArgs>? PageRequested;
+
+    /// <summary>
+    /// Applies localized labels to the navigation.
+    /// </summary>
+    public void ApplyTexts()
+    {
+        _dashboardButton.Text = AppStrings.Dashboard;
+        _healthTopicsButton.Text = AppStrings.HealthTopics;
+        _footerLabel.Text = AppStrings.SidebarFooter;
+    }
 
     /// <summary>
     /// Updates the selected navigation state.
