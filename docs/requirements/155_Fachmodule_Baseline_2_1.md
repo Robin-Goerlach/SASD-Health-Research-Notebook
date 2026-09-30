@@ -21,6 +21,7 @@ Dieses Dokument gibt den seit der ersten Baseline konkretisierten Fachmodulen st
 | FR-GEN-006 | Alle Kernfunktionen müssen lokal ohne Cloud nutzbar bleiben. |
 | FR-GEN-007 | Sensible Freitexte und Gesundheitswerte dürfen nicht in technische Logs geschrieben werden. |
 | FR-DEV-001 | Entwicklungs- und Testläufe müssen einen expliziten isolierten Datenordner verwenden können. Beide Frontends respektieren denselben Override; ohne Override bleibt der Produktpfad unverändert. Ungültige gesetzte Overrides dürfen nicht auf persönliche Daten zurückfallen. Smoke-Tests schreiben ausschließlich synthetische Daten in neue Lauf-Unterordner innerhalb des Repositorys. |
+| FR-UI-001 | Die bestehende WinForms-Schale, Dashboardkarten, Themenliste und Grunddaten-Wizard müssen bei dokumentierter Mindestgröße in Deutsch/Englisch ohne abgeschnittene Hauptaktionen bedienbar bleiben. Navigation besitzt unterscheidbare Auswahl-, Hover- und Fokuszustände; Refresh erhält die Themenauswahl und leere Listen zeigen einen lesbaren Hinweis. Keine zusätzlichen Fachmodule. |
 
 ## 3. Beobachtungen und Kontext
 

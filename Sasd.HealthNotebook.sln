@@ -14,12 +14,18 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.WinForm
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.SmokeTests", "tests\Sasd.HealthNotebook.SmokeTests\Sasd.HealthNotebook.SmokeTests.csproj", "{57EF9827-2176-4E04-8D26-919DC8213151}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sasd.HealthNotebook.WinForms.SmokeTests", "tests\Sasd.HealthNotebook.WinForms.SmokeTests\Sasd.HealthNotebook.WinForms.SmokeTests.csproj", "{C632D120-9B6C-41A0-A282-33120844ED87}"
+EndProject
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
         Debug|Any CPU = Debug|Any CPU
         Release|Any CPU = Release|Any CPU
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
+        {C632D120-9B6C-41A0-A282-33120844ED87}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {C632D120-9B6C-41A0-A282-33120844ED87}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {C632D120-9B6C-41A0-A282-33120844ED87}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {C632D120-9B6C-41A0-A282-33120844ED87}.Release|Any CPU.Build.0 = Release|Any CPU
         {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {B0FC4B29-6DBE-4F63-AE7B-2E7E05F05F01}.Release|Any CPU.ActiveCfg = Release|Any CPU

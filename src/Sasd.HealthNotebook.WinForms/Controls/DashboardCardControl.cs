@@ -22,21 +22,22 @@ public sealed class DashboardCardControl : UserControl
         Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
         Padding = new Padding(UiMetrics.Padding);
         Width = 250;
-        Height = 118;
+        Height = UiMetrics.DashboardCardHeight;
+        TabStop = false;
 
         _titleLabel = new Label
         {
             Dock = DockStyle.Top,
-            Height = 24,
+            Height = 36,
             Font = UiFonts.CardTitle,
             ForeColor = UiColors.SecondaryText,
-            AutoEllipsis = true
+            AutoEllipsis = false
         };
 
         _valueLabel = new Label
         {
             Dock = DockStyle.Top,
-            Height = 38,
+            Height = 44,
             Font = UiFonts.CardValue,
             ForeColor = UiColors.PrimaryText
         };
@@ -46,7 +47,7 @@ public sealed class DashboardCardControl : UserControl
             Dock = DockStyle.Fill,
             Font = UiFonts.Small,
             ForeColor = UiColors.SecondaryText,
-            AutoEllipsis = true
+            AutoEllipsis = false
         };
 
         Controls.Add(_descriptionLabel);

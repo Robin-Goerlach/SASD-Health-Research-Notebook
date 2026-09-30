@@ -87,6 +87,11 @@ reservierte DOS-Namen, abschließende Punkte/Leerzeichen und existierende Dateie
 werden abgewiesen. Das ist eine bewusste Einschränkung auf gewöhnliche Windows-Pfade.
 Der Launcher ist keine Sandbox gegen gleichzeitig manipulierte Dateisystemlinks.
 
+Seit UI Baseline 2 führt die Validate-Aktion zusätzlich die WinForms-Smoke-Tests
+über eine normale ProjectReference aus. Diese verlangen den expliziten Override
+unter `.codex/` und erzeugen einen eigenen synthetischen GUID-Unterordner.
+Prüfumfang und offene Desktopprüfung stehen in Dokument 147.
+
 ## SDK-Ersteinrichtungsereignis
 
 Der erste Restoreversuch mit lokalem CLI-Home meldete die Installation eines

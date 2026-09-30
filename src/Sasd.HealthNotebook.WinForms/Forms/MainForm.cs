@@ -30,6 +30,7 @@ public sealed class MainForm : Form
     private readonly DashboardPresenter _dashboardPresenter;
     private readonly HealthTopicPresenter _dashboardTopicsPresenter;
     private readonly HealthTopicPresenter _topicsPresenter;
+    private readonly Control _dashboardPage;
     private bool _isApplyingLanguageSelection;
     private int? _lastLoadedTopicCount;
     private NavigationPage _currentPage = NavigationPage.Dashboard;
@@ -41,13 +42,16 @@ public sealed class MainForm : Form
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
 
+        AutoScaleDimensions = new SizeF(96, 96);
+        AutoScaleMode = AutoScaleMode.Dpi;
+        StartPosition = FormStartPosition.CenterScreen;
         Text = AppStrings.AppTitle;
         MinimumSize = new Size(1120, 740);
         Size = new Size(1280, 820);
         BackColor = UiColors.WindowBackground;
         Font = UiFonts.Body;
 
-        _navigation = new NavigationControl();
+        _navigation = new NavigationControl { TabIndex = 0 };
         _navigation.PageRequested += Navigation_PageRequested;
 
         _pageTitleLabel = new Label
@@ -70,23 +74,33 @@ public sealed class MainForm : Form
 
         _refreshButton = new Button
         {
-            Width = 120,
-            Height = 34
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            MinimumSize = new Size(120, UiMetrics.ActionHeight),
+            Padding = new Padding(UiMetrics.StandardSpacing, 0, UiMetrics.StandardSpacing, 0),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = UiColors.CardBackground,
+            TabIndex = 3
         };
         _refreshButton.Click += async (_, _) => await ReloadSafeAsync();
 
         _newTopicButton = new Button
         {
-            Width = 190,
-            Height = 34
+            AutoSize = true,
+            AutoSizeMode = AutoSizeMode.GrowAndShrink,
+            MinimumSize = new Size(220, UiMetrics.ActionHeight),
+            Padding = new Padding(UiMetrics.StandardSpacing, 0, UiMetrics.StandardSpacing, 0),
+            FlatStyle = FlatStyle.Flat,
+            BackColor = UiColors.PrimaryAccent,
+            ForeColor = UiColors.CardBackground,
+            TabIndex = 4
         };
         _newTopicButton.Click += async (_, _) => await ShowCreateHealthTopicWizardAsync();
 
         _languageLabel = new Label
         {
-            AutoSize = false,
-            Width = 70,
-            Height = 34,
+            AutoSize = true,
+            Anchor = AnchorStyles.Left,
             TextAlign = ContentAlignment.MiddleRight,
             ForeColor = UiColors.SecondaryText,
             Font = UiFonts.Small
@@ -96,46 +110,68 @@ public sealed class MainForm : Form
         {
             Width = 120,
             Height = 34,
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            TabIndex = 1
         };
         PopulateLanguageComboBox();
         _languageComboBox.SelectedIndexChanged += LanguageComboBox_SelectedIndexChanged;
 
-        var actionsPanel = new FlowLayoutPanel
-        {
-            Dock = DockStyle.Right,
-            Width = 540,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(0, 34, 0, 0),
-            BackColor = UiColors.WindowBackground,
-            WrapContents = false
-        };
-        actionsPanel.Controls.Add(_newTopicButton);
-        actionsPanel.Controls.Add(_refreshButton);
-        actionsPanel.Controls.Add(_languageComboBox);
-        actionsPanel.Controls.Add(_languageLabel);
-
-        var headerTextPanel = new Panel
+        var actionsPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            ColumnCount = 5,
+            RowCount = 1,
+            Margin = Padding.Empty,
+            TabIndex = 2,
+            BackColor = UiColors.WindowBackground,
+        };
+        actionsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+        actionsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionsPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+        actionsPanel.Controls.Add(_languageLabel, 0, 0);
+        actionsPanel.Controls.Add(_languageComboBox, 1, 0);
+        actionsPanel.Controls.Add(_refreshButton, 3, 0);
+        actionsPanel.Controls.Add(_newTopicButton, 4, 0);
+        _languageComboBox.Anchor = AnchorStyles.Left;
+        _refreshButton.FlatAppearance.BorderColor = UiColors.BorderColor;
+        _newTopicButton.FlatAppearance.BorderSize = 0;
+
+        var headerTextPanel = new TableLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            ColumnCount = 1,
+            RowCount = 2,
+            Margin = Padding.Empty,
             BackColor = UiColors.WindowBackground
         };
-        headerTextPanel.Controls.Add(_pageDescriptionLabel);
-        headerTextPanel.Controls.Add(_pageTitleLabel);
+        headerTextPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+        headerTextPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        _pageTitleLabel.Dock = DockStyle.Fill;
+        _pageDescriptionLabel.Dock = DockStyle.Fill;
+        headerTextPanel.Controls.Add(_pageTitleLabel, 0, 0);
+        headerTextPanel.Controls.Add(_pageDescriptionLabel, 0, 1);
 
-        var headerPanel = new Panel
+        var headerPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
             Height = UiMetrics.HeaderHeight,
+            ColumnCount = 1,
+            RowCount = 2,
+            TabIndex = 0,
             Padding = new Padding(UiMetrics.LargeSpacing, 14, UiMetrics.LargeSpacing, 0),
             BackColor = UiColors.WindowBackground
         };
-        headerPanel.Controls.Add(headerTextPanel);
-        headerPanel.Controls.Add(actionsPanel);
+        headerPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+        headerPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 48));
+        headerPanel.Controls.Add(headerTextPanel, 0, 0);
+        headerPanel.Controls.Add(actionsPanel, 0, 1);
 
         _contentPanel = new Panel
         {
             Dock = DockStyle.Fill,
+            TabIndex = 1,
             Padding = new Padding(UiMetrics.LargeSpacing, 0, UiMetrics.LargeSpacing, UiMetrics.StandardSpacing),
             BackColor = UiColors.WindowBackground
         };
@@ -146,12 +182,18 @@ public sealed class MainForm : Form
             SizingGrip = false,
             BackColor = UiColors.CardBackground
         };
-        _statusLabel = new ToolStripStatusLabel(AppStrings.Ready);
+        _statusLabel = new ToolStripStatusLabel(AppStrings.Ready)
+        {
+            Spring = true,
+            TextAlign = ContentAlignment.MiddleLeft,
+            ForeColor = UiColors.SecondaryText
+        };
         statusStrip.Items.Add(_statusLabel);
 
         var rightPanel = new Panel
         {
             Dock = DockStyle.Fill,
+            TabIndex = 1,
             BackColor = UiColors.WindowBackground
         };
         rightPanel.Controls.Add(_contentPanel);
@@ -168,6 +210,7 @@ public sealed class MainForm : Form
         _dashboardPresenter = new DashboardPresenter(_healthTopicService, _dashboardView);
         _dashboardTopicsPresenter = new HealthTopicPresenter(_healthTopicService, _dashboardTopicsView);
         _topicsPresenter = new HealthTopicPresenter(_healthTopicService, _topicsView);
+        _dashboardPage = CreateDashboardPage();
 
         ApplyTexts();
 
@@ -182,6 +225,18 @@ public sealed class MainForm : Form
     {
         ShowPage(e.Page);
         await ReloadSafeAsync();
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            // Navigation detaches inactive views; they are still owned by this form.
+            _dashboardPage.Dispose();
+            _topicsView.Dispose();
+        }
+        base.Dispose(disposing);
     }
 
     private async void LanguageComboBox_SelectedIndexChanged(object? sender, EventArgs e)
@@ -250,7 +305,7 @@ public sealed class MainForm : Form
         {
             _pageTitleLabel.Text = AppStrings.Dashboard;
             _pageDescriptionLabel.Text = AppStrings.DashboardDescription;
-            _contentPanel.Controls.Add(CreateDashboardPage());
+            _contentPanel.Controls.Add(_dashboardPage);
         }
         else
         {
@@ -267,13 +322,12 @@ public sealed class MainForm : Form
             Dock = DockStyle.Fill,
             ColumnCount = 1,
             RowCount = 2,
+            Margin = Padding.Empty,
             BackColor = UiColors.WindowBackground
         };
 
-        // Keep the card row high enough for the full card content. The previous
-        // version used an inner scroll area, which made the cards look clipped on
-        // first start even at normal desktop window sizes.
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 184));
+        // Reuse this page when navigating/localizing; do not accumulate abandoned containers.
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, UiMetrics.DashboardOverviewHeight));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         layout.Controls.Add(_dashboardView, 0, 0);

@@ -10,6 +10,7 @@ namespace Sasd.HealthNotebook.WinForms.Controls;
 public sealed class NavigationButton : Button
 {
     private bool _isSelected;
+    private bool _isHovered;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NavigationButton" /> class.
@@ -46,16 +47,15 @@ public sealed class NavigationButton : Button
     {
         base.OnMouseEnter(e);
 
-        if (!IsSelected)
-        {
-            BackColor = UiColors.SidebarHoverBackground;
-        }
+        _isHovered = true;
+        ApplyVisualState();
     }
 
     /// <inheritdoc />
     protected override void OnMouseLeave(EventArgs e)
     {
         base.OnMouseLeave(e);
+        _isHovered = false;
         ApplyVisualState();
     }
 
@@ -64,10 +64,7 @@ public sealed class NavigationButton : Button
     {
         base.OnGotFocus(e);
 
-        if (!IsSelected)
-        {
-            BackColor = UiColors.SidebarHoverBackground;
-        }
+        ApplyVisualState();
     }
 
     /// <inheritdoc />
@@ -79,6 +76,30 @@ public sealed class NavigationButton : Button
 
     private void ApplyVisualState()
     {
-        BackColor = IsSelected ? UiColors.SidebarSelectedBackground : UiColors.SidebarBackground;
+        BackColor = IsSelected ? UiColors.SidebarSelectedBackground
+            : _isHovered || Focused ? UiColors.SidebarHoverBackground : UiColors.SidebarBackground;
+        FlatAppearance.MouseOverBackColor = BackColor;
+        FlatAppearance.MouseDownBackColor = UiColors.SidebarSelectedBackground;
+        Invalidate();
+    }
+
+    /// <inheritdoc />
+    protected override bool IsInputKey(Keys keyData) =>
+        (keyData & Keys.KeyCode) is Keys.Up or Keys.Down or Keys.Home or Keys.End || base.IsInputKey(keyData);
+
+    /// <inheritdoc />
+    protected override void OnPaint(PaintEventArgs e)
+    {
+        base.OnPaint(e);
+        if (IsSelected)
+        {
+            using var accent = new SolidBrush(UiColors.PrimaryAccent);
+            e.Graphics.FillRectangle(accent, 0, 8, 3, Height - 16);
+        }
+        if (Focused)
+        {
+            ControlPaint.DrawFocusRectangle(e.Graphics,
+                Rectangle.Inflate(ClientRectangle, -7, -7), UiColors.SidebarText, BackColor);
+        }
     }
 }

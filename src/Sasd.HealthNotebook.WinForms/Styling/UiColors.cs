@@ -36,4 +36,10 @@ public static class UiColors
 
     /// <summary>Sidebar text color.</summary>
     public static Color SidebarText => Color.FromArgb(236, 242, 250);
+
+    /// <summary>Quiet selection background for the documentation list.</summary>
+    public static Color ListSelectionBackground => Color.FromArgb(227, 239, 249);
+
+    /// <summary>Subtle alternating list rows.</summary>
+    public static Color AlternateRowBackground => Color.FromArgb(249, 251, 253);
 }
