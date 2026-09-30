@@ -145,28 +145,54 @@ public static class AppStrings
 
     /// <summary>Gets the tooltip for the health-topic title field.</summary>
     public static string ToolTipHealthTopicTitle => Text(
-        "A short, recognizable name for this health topic. Example: \"Blood pressure observations\". Put sensitive details into notes rather than into the title because titles are visible in lists.",
-        "Kurzer, wiedererkennbarer Name für dieses Gesundheitsthema. Beispiel: „Blutdruck-Beobachtung“. Sensible Details gehören eher in die Notizen, weil Titel in Listen sichtbar sind.");
+        Lines(
+            "A short, recognizable name for this health topic.",
+            "Example: \"Blood pressure observations\".",
+            "Put sensitive details into notes rather than into the title,",
+            "because titles are visible in lists."),
+        Lines(
+            "Kurzer, wiedererkennbarer Name für dieses Gesundheitsthema.",
+            "Beispiel: „Blutdruck-Beobachtung“.",
+            "Sensible Details gehören eher in die Notizen,",
+            "weil Titel in Listen sichtbar sind."));
 
     /// <summary>Gets the tooltip for the documentation status field.</summary>
     public static string ToolTipStatus => Text(
-        "How you want to document the current status. The app does not confirm or create a diagnosis.",
-        "Wie du den aktuellen Stand dokumentieren möchtest. Die App bestätigt oder erstellt keine Diagnose.");
+        Lines(
+            "How you want to document the current status.",
+            "The app does not confirm or create a diagnosis."),
+        Lines(
+            "Wie du den aktuellen Stand dokumentieren möchtest.",
+            "Die App bestätigt oder erstellt keine Diagnose."));
 
     /// <summary>Gets the tooltip for the priority field.</summary>
     public static string ToolTipPriority => Text(
-        "Personal organization priority for your notebook. This is not medical urgency and not triage.",
-        "Persönliche Organisationspriorität für dein Notizbuch. Das ist keine medizinische Dringlichkeit und keine Triage.");
+        Lines(
+            "Personal organization priority for your notebook.",
+            "This is not medical urgency and not triage."),
+        Lines(
+            "Persönliche Organisationspriorität für dein Notizbuch.",
+            "Das ist keine medizinische Dringlichkeit und keine Triage."));
 
     /// <summary>Gets the tooltip for the short-description field.</summary>
     public static string ToolTipShortDescription => Text(
-        "One or two neutral sentences for the overview list. Details, open questions and context can go into notes.",
-        "Ein bis zwei neutrale Sätze für die Übersichtsliste. Details, offene Fragen und Kontext können in die Notizen.");
+        Lines(
+            "One or two neutral sentences for the overview list.",
+            "Details, open questions and context can go into notes."),
+        Lines(
+            "Ein bis zwei neutrale Sätze für die Übersichtsliste.",
+            "Details, offene Fragen und Kontext können in die Notizen."));
 
     /// <summary>Gets the tooltip for the notes field.</summary>
     public static string ToolTipNotes => Text(
-        "Optional first notes, context or questions. These notes are saved as documentation and are not used to generate medical recommendations.",
-        "Optionale erste Notizen, Kontext oder Fragen. Diese Notizen werden nur dokumentiert und nicht für medizinische Empfehlungen verwendet.");
+        Lines(
+            "Optional first notes, context or questions.",
+            "These notes are saved as documentation only.",
+            "They are not used to generate medical recommendations."),
+        Lines(
+            "Optionale erste Notizen, Kontext oder Fragen.",
+            "Diese Notizen werden nur dokumentiert.",
+            "Sie werden nicht für medizinische Empfehlungen verwendet."));
 
     /// <summary>Gets the placeholder text for later wizard steps.</summary>
     public static string WizardPlaceholder => Text(
@@ -312,6 +338,11 @@ public static class AppStrings
     private static string Text(string english, string german)
     {
         return AppLanguage.Current == UiLanguage.German ? german : english;
+    }
+
+    private static string Lines(params string[] lines)
+    {
+        return string.Join("\r\n", lines);
     }
 }
 
