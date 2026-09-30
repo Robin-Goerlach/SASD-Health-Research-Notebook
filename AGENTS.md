@@ -24,24 +24,18 @@ The product is **not** a diagnostic, treatment, triage or medication-dosing syst
 - local-first; no cloud requirement; no telemetry.
 - WinForms currently provides German/English UI localization.
 
-Before changing code, read:
+Before changing code:
 
-1. `README.md`
-2. `docs/000_Dokumentationsuebersicht.md`
-3. `docs/changes/160_Dokumentationsrevision_2_1.md`
-4. `docs/requirements/155_Fachmodule_Baseline_2_1.md`
-5. `docs/ui-ux/055_UI_Zielbild_und_Screenshot_Plan.md`
-6. `docs/development/145_Codex_Arbeitsauftrag.md`
-7. `docs/architecture/030_Architekturkonzept.md`
-8. `docs/database/040_Datenmodell_Datenbankdesign.md`
-9. `docs/adr/130_Architekturentscheidungen_ADR.md`
+1. read this `AGENTS.md`;
+2. inspect the current branch, affected projects and existing tests;
+3. read only the task-relevant documents from the source hierarchy below;
+4. for large cross-cutting work, additionally read the current baseline revision and relevant ADRs.
 
 The repository and the current branch are authoritative over older chat history.
 
-
 ## Repository guidance and source hierarchy
 
-Do not read every planning document for every small edit. Read only the documents relevant to the task.
+Do not preload every planning document for a small edit. Use progressive disclosure: start with the repository state and only open the documentation needed for the affected behavior, architecture area or quality gate.
 
 Use these sources as the main map:
 
