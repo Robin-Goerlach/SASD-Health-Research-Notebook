@@ -3,6 +3,7 @@ using System.Windows.Forms;
 using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.Application.Services;
 using Sasd.HealthNotebook.Domain;
+using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
 
 namespace Sasd.HealthNotebook.WinForms.Forms;
@@ -18,7 +19,7 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 public sealed class CreateHealthTopicWizardForm : Form
 {
     private readonly HealthTopicService _healthTopicService;
-    private readonly List<WizardStep> _steps;
+    private readonly List<WizardStepText> _steps;
     private readonly ListBox _stepsListBox;
     private readonly Label _stepTitleLabel;
     private readonly Label _stepDescriptionLabel;
@@ -39,12 +40,12 @@ public sealed class CreateHealthTopicWizardForm : Form
     public CreateHealthTopicWizardForm(HealthTopicService healthTopicService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
-        _steps = CreateSteps();
+        _steps = AppStrings.CreateWizardSteps().ToList();
 
-        Text = "New Health Topic";
+        Text = AppStrings.NewHealthTopic;
         StartPosition = FormStartPosition.CenterParent;
-        MinimumSize = new Size(860, 600);
-        Size = new Size(940, 660);
+        MinimumSize = new Size(900, 620);
+        Size = new Size(980, 680);
         BackColor = UiColors.WindowBackground;
         Font = UiFonts.Body;
 
@@ -56,7 +57,7 @@ public sealed class CreateHealthTopicWizardForm : Form
             Padding = new Padding(UiMetrics.Padding),
             BackColor = UiColors.WindowBackground
         };
-        root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 240));
+        root.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260));
         root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         root.RowStyles.Add(new RowStyle(SizeType.Absolute, 58));
@@ -132,8 +133,8 @@ public sealed class CreateHealthTopicWizardForm : Form
 
         var cancelButton = new Button
         {
-            Text = "Cancel",
-            Width = 100,
+            Text = AppStrings.Cancel,
+            Width = 110,
             Height = 34
         };
         cancelButton.Click += (_, _) =>
@@ -144,7 +145,6 @@ public sealed class CreateHealthTopicWizardForm : Form
 
         _nextButton = new Button
         {
-            Text = "Next",
             Width = 120,
             Height = 34
         };
@@ -152,8 +152,8 @@ public sealed class CreateHealthTopicWizardForm : Form
 
         _backButton = new Button
         {
-            Text = "Back",
-            Width = 100,
+            Text = AppStrings.Back,
+            Width = 110,
             Height = 34
         };
         _backButton.Click += (_, _) => ShowStep(_currentStepIndex - 1);
@@ -169,27 +169,10 @@ public sealed class CreateHealthTopicWizardForm : Form
 
         Controls.Add(root);
 
-        _statusComboBox.DataSource = Enum.GetValues<HealthTopicStatus>();
-        _priorityComboBox.DataSource = Enum.GetValues<HealthTopicPriority>();
+        FillStatusComboBox();
+        FillPriorityComboBox();
 
         ShowStep(0);
-    }
-
-    private static List<WizardStep> CreateSteps()
-    {
-        return new List<WizardStep>
-        {
-            new("1. Basic data", "Create the main topic record with title, status, priority and first notes."),
-            new("2. Diagnosis / status", "Later: document external diagnosis information or open status without app-generated diagnosis."),
-            new("3. Symptoms", "Later: document symptoms and observations."),
-            new("4. Documents", "Later: connect letters, PDFs, lab reports and images."),
-            new("5. Sources & information", "Later: collect reliable sources and personal research notes."),
-            new("6. Doctors / contacts", "Later: connect doctors, clinics and contact persons."),
-            new("7. Medication / measures", "Later: document what was reported or prescribed elsewhere, not as an app recommendation."),
-            new("8. Measurements / lab values", "Later: document values and units."),
-            new("9. Open questions", "Later: collect questions for medical appointments."),
-            new("10. Summary", "Review the entered information before saving.")
-        };
     }
 
     private static Panel CreateBasicDataPanel(
@@ -213,12 +196,12 @@ public sealed class CreateHealthTopicWizardForm : Form
             AutoSize = true,
             BackColor = UiColors.CardBackground
         };
-        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 160));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 180));
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
         titleTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 160 };
-        statusComboBox = new ComboBox { Dock = DockStyle.Left, Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
-        priorityComboBox = new ComboBox { Dock = DockStyle.Left, Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
+        statusComboBox = new ComboBox { Dock = DockStyle.Left, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+        priorityComboBox = new ComboBox { Dock = DockStyle.Left, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
         shortDescriptionTextBox = new TextBox { Dock = DockStyle.Fill, MaxLength = 500 };
         notesTextBox = new TextBox
         {
@@ -229,11 +212,11 @@ public sealed class CreateHealthTopicWizardForm : Form
             MaxLength = 4000
         };
 
-        AddRow(layout, 0, "Title", titleTextBox);
-        AddRow(layout, 1, "Status", statusComboBox);
-        AddRow(layout, 2, "Priority", priorityComboBox);
-        AddRow(layout, 3, "Short description", shortDescriptionTextBox);
-        AddRow(layout, 4, "Notes", notesTextBox);
+        AddRow(layout, 0, AppStrings.FieldTitle, titleTextBox);
+        AddRow(layout, 1, AppStrings.FieldStatus, statusComboBox);
+        AddRow(layout, 2, AppStrings.FieldPriority, priorityComboBox);
+        AddRow(layout, 3, AppStrings.FieldShortDescription, shortDescriptionTextBox);
+        AddRow(layout, 4, AppStrings.FieldNotes, notesTextBox);
 
         panel.Controls.Add(layout);
         return panel;
@@ -252,7 +235,7 @@ public sealed class CreateHealthTopicWizardForm : Form
             Dock = DockStyle.Fill,
             Font = UiFonts.Body,
             ForeColor = UiColors.SecondaryText,
-            Text = "This step is part of the long-term wizard design. In the first WinForms baseline, only Basic data are stored.",
+            Text = AppStrings.WizardPlaceholder,
             TextAlign = ContentAlignment.MiddleCenter
         };
 
@@ -280,6 +263,28 @@ public sealed class CreateHealthTopicWizardForm : Form
         layout.Controls.Add(editor, 1, rowIndex);
     }
 
+    private void FillStatusComboBox()
+    {
+        var values = Enum.GetValues<HealthTopicStatus>()
+            .Select(value => new EnumDisplayItem<HealthTopicStatus>(value, AppStrings.HealthTopicStatusText(value)))
+            .Cast<object>()
+            .ToArray();
+
+        _statusComboBox.Items.AddRange(values);
+        _statusComboBox.SelectedIndex = 0;
+    }
+
+    private void FillPriorityComboBox()
+    {
+        var values = Enum.GetValues<HealthTopicPriority>()
+            .Select(value => new EnumDisplayItem<HealthTopicPriority>(value, AppStrings.HealthTopicPriorityText(value)))
+            .Cast<object>()
+            .ToArray();
+
+        _priorityComboBox.Items.AddRange(values);
+        _priorityComboBox.SelectedIndex = 0;
+    }
+
     private void StepsListBox_SelectedIndexChanged(object? sender, EventArgs e)
     {
         if (_stepsListBox.SelectedIndex >= 0 && _stepsListBox.SelectedIndex != _currentStepIndex)
@@ -292,7 +297,7 @@ public sealed class CreateHealthTopicWizardForm : Form
     {
         _currentStepIndex = Math.Clamp(stepIndex, 0, _steps.Count - 1);
 
-        WizardStep step = _steps[_currentStepIndex];
+        WizardStepText step = _steps[_currentStepIndex];
         _stepTitleLabel.Text = step.Title;
         _stepDescriptionLabel.Text = step.Description;
 
@@ -305,7 +310,7 @@ public sealed class CreateHealthTopicWizardForm : Form
         _placeholderPanel.Visible = _currentStepIndex != 0;
 
         _backButton.Enabled = _currentStepIndex > 0;
-        _nextButton.Text = _currentStepIndex == _steps.Count - 1 ? "Create" : "Next";
+        _nextButton.Text = _currentStepIndex == _steps.Count - 1 ? AppStrings.Create : AppStrings.Next;
     }
 
     private async void NextButton_Click(object? sender, EventArgs e)
@@ -325,8 +330,8 @@ public sealed class CreateHealthTopicWizardForm : Form
         {
             MessageBox.Show(
                 this,
-                "Please enter a title for the health topic.",
-                "SASD Health Research Notebook",
+                AppStrings.MissingTitleMessage,
+                AppStrings.AppTitle,
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
 
@@ -340,8 +345,8 @@ public sealed class CreateHealthTopicWizardForm : Form
             var request = new CreateHealthTopicRequest
             {
                 Title = _titleTextBox.Text,
-                Status = (HealthTopicStatus)(_statusComboBox.SelectedItem ?? HealthTopicStatus.Observation),
-                Priority = (HealthTopicPriority)(_priorityComboBox.SelectedItem ?? HealthTopicPriority.Normal),
+                Status = GetSelectedValue(_statusComboBox, HealthTopicStatus.Observation),
+                Priority = GetSelectedValue(_priorityComboBox, HealthTopicPriority.Normal),
                 ShortDescription = _shortDescriptionTextBox.Text,
                 Notes = _notesTextBox.Text
             };
@@ -358,15 +363,37 @@ public sealed class CreateHealthTopicWizardForm : Form
             MessageBox.Show(
                 this,
                 ex.Message,
-                "SASD Health Research Notebook",
+                AppStrings.AppTitle,
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Information);
         }
         catch
         {
-            UiErrorHandler.ShowSafeError(this, "create health topic");
+            UiErrorHandler.ShowSafeError(this, AppStrings.OperationCreateHealthTopic);
         }
     }
 
-    private sealed record WizardStep(string Title, string Description);
+    private static TEnum GetSelectedValue<TEnum>(ComboBox comboBox, TEnum fallback)
+        where TEnum : struct, Enum
+    {
+        return comboBox.SelectedItem is EnumDisplayItem<TEnum> selected
+            ? selected.Value
+            : fallback;
+    }
+
+    private sealed class EnumDisplayItem<TEnum>
+        where TEnum : struct, Enum
+    {
+        public EnumDisplayItem(TEnum value, string text)
+        {
+            Value = value;
+            Text = text;
+        }
+
+        public TEnum Value { get; }
+
+        private string Text { get; }
+
+        public override string ToString() => Text;
+    }
 }
