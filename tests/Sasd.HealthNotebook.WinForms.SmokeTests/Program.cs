@@ -55,6 +55,7 @@ internal static class Program
                         var service = new HealthTopicService(new JsonHealthTopicRepository());
                         CheckShell(service, testPath, language);
                         CheckWizard(service, testPath, language);
+                        CheckTimeline(service, testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }
@@ -62,7 +63,7 @@ internal static class Program
             };
             System.Windows.Forms.Application.Run(host);
             if (uiFailure is not null) { throw new InvalidOperationException(uiFailure.Message, uiFailure); }
-            Console.WriteLine("WinForms smoke tests passed (FR-UI-001).");
+            Console.WriteLine("WinForms smoke tests passed (FR-UI-001, FR-OBS-001).");
             return 0;
         }
         catch (Exception ex)
@@ -79,7 +80,7 @@ internal static class Program
     // UI-LAYOUT-001: header/cards/grid at start and minimum sizes, in both languages.
     private static void CheckShell(HealthTopicService service, string testPath, UiLanguage language)
     {
-        using var form = new MainForm(service);
+        using var form = new MainForm(service, CreateEntryService());
         ShowOffScreen(form);
         PumpUntil(() => Field<ToolStripStatusLabel>(form, "_statusLabel").Text != AppStrings.Ready, "initial shell load");
         foreach (Size size in new[] { new Size(1280, 820), form.MinimumSize })
@@ -158,7 +159,7 @@ internal static class Program
         PumpUntil(() => wizard.IsDisposed || wizard.DialogResult == DialogResult.OK, "wizard save");
         var reloaded = new HealthTopicService(new JsonHealthTopicRepository()).GetTopicSummariesAsync().GetAwaiter().GetResult();
         Assert(reloaded.Any(topic => topic.Title == syntheticTitle), "Wizard topic did not survive repository recreation.");
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()));
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService());
         ShowOffScreen(restarted);
         WaitForReload(restarted);
         var reloadedGrid = Field<DataGridView>(Field<HealthTopicsView>(restarted, "_dashboardTopicsView"), "_grid");
@@ -172,6 +173,94 @@ internal static class Program
         Task reload = (Task)form.GetType().GetMethod("ReloadSafeAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(form, null)!;
         PumpUntil(() => reload.IsCompleted, "shell refresh");
         reload.GetAwaiter().GetResult();
+    }
+
+    private static HealthEntryService CreateEntryService() => new(new JsonHealthEntryRepository(), new JsonHealthTopicRepository());
+
+    // FR-OBS-001 / UI-ENTRY-001: real navigation/action/dialog, both languages, isolated JSON reload.
+    private static void CheckTimeline(HealthTopicService topics, string testPath, UiLanguage language)
+    {
+        var entries = CreateEntryService();
+        int beforeCount = entries.GetEntriesAsync().GetAwaiter().GetResult().Count;
+        using var form = new MainForm(topics, entries);
+        ShowOffScreen(form);
+        form.Size = form.MinimumSize;
+        var navigation = Field<NavigationControl>(form, "_navigation");
+        var timelineButton = Field<NavigationButton>(navigation, "_timelineButton");
+        Assert(timelineButton.Text == AppStrings.Timeline, "Timeline navigation localization failed.");
+        timelineButton.PerformClick();
+        WaitForReload(form);
+        var view = Field<TimelineView>(form, "_timelineView");
+        var grid = Field<DataGridView>(view, "_grid");
+        Assert(grid.Rows.Count == beforeCount, "Timeline initial load failed.");
+        Assert(beforeCount != 0 || Field<Label>(view, "_emptyStateLabel").Visible, "Timeline empty state is missing.");
+        Button action = Field<Button>(form, "_newTopicButton");
+        Assert(action.Text == AppStrings.NewTimelineEntry, "Timeline main action failed.");
+        AssertWithinParent(action); AssertTextFits(action);
+        Capture(form, Path.Combine(testPath, $"timeline-{language}-before.png"));
+        bool dialogClosed = false;
+        string syntheticTitle = $"CODEX TEST – Timeline Entry {language}";
+        using var timer = new System.Windows.Forms.Timer { Interval = 30 };
+        timer.Tick += (_, _) =>
+        {
+            var dialog = System.Windows.Forms.Application.OpenForms.OfType<CreateHealthEntryForm>().SingleOrDefault();
+            if (dialog is null) return;
+            timer.Stop();
+            dialog.Size = dialog.MinimumSize;
+            foreach (string field in new[] { "_datePicker", "_timePicker", "_typeComboBox", "_topicComboBox", "_titleTextBox", "_contentTextBox", "_saveButton" })
+                AssertWithinParent(Field<Control>(dialog, field));
+            Assert(Field<TextBox>(dialog, "_titleTextBox").AccessibleName == AppStrings.EntryTitle, "Entry-specific title label missing.");
+            int[] tabOrder = new[] { "_datePicker", "_timePicker", "_typeComboBox", "_topicComboBox", "_titleTextBox", "_contentTextBox" }
+                .Select(field => Field<Control>(dialog, field).TabIndex).ToArray();
+            Assert(tabOrder.SequenceEqual(Enumerable.Range(0, 6)), "Entry field tab order failed.");
+            AssertTextFits(Field<Button>(dialog, "_saveButton"));
+            Assert(dialog.AcceptButton == Field<Button>(dialog, "_saveButton") && dialog.CancelButton is not null,
+                "Entry dialog keyboard commands missing.");
+            Field<Button>(dialog, "_saveButton").PerformClick();
+            Assert(Field<Label>(dialog, "_validationLabel").Text == AppStrings.EntryValidationFailed,
+                "Missing title was not rejected in dialog.");
+            Field<TextBox>(dialog, "_titleTextBox").Text = syntheticTitle;
+            Field<TextBox>(dialog, "_contentTextBox").Text = "Synthetic notebook entry for automated UI verification.";
+            Field<ComboBox>(dialog, "_typeComboBox").SelectedIndex = 1;
+            Field<ComboBox>(dialog, "_topicComboBox").SelectedIndex = language == UiLanguage.German ? 1 : 0;
+            Capture(dialog, Path.Combine(testPath, $"entry-dialog-{language}-minimum.png"));
+            dialog.FormClosed += (_, _) => dialogClosed = true;
+            Field<Button>(dialog, "_saveButton").PerformClick();
+        };
+        timer.Start();
+        action.PerformClick();
+        PumpUntil(() => dialogClosed && grid.Rows.Count == beforeCount + 1, "entry dialog and immediate timeline refresh");
+        var persisted = entries.GetEntriesAsync().GetAwaiter().GetResult();
+        Assert(persisted[0].Title == syntheticTitle && persisted[0].EntryType == HealthEntryType.Observation,
+            "Entry dialog persisted wrong data.");
+        Assert(persisted[0].HealthTopicId.HasValue == (language == UiLanguage.German), "Optional topic selection failed.");
+        var displayedEntry = grid.Rows.Cast<DataGridViewRow>().Single(row => Equals(row.Cells[2].Value, syntheticTitle));
+        string expectedTopic = persisted[0].HealthTopicTitle ?? AppStrings.NoEntryTopic;
+        Assert(Equals(displayedEntry.Cells[3].Value, expectedTopic), "Timeline does not display the resolved topic title.");
+        var missingReference = new HealthEntrySummary(Guid.NewGuid(), Guid.NewGuid(), null,
+            HealthEntryType.Note, DateTimeOffset.Now, "Synthetic missing-topic entry", "Synthetic content.");
+        view.SetEntries(new[] { missingReference });
+        Assert(grid.Rows.Count == 1 && Equals(grid.Rows[0].Cells[3].Value, AppStrings.MissingEntryTopic),
+            "Missing topic reference is not displayed neutrally.");
+        WaitForReload(form);
+        Assert(grid.Columns.Cast<DataGridViewColumn>().Sum(column => column.Width) <= grid.ClientSize.Width,
+            "Timeline columns overflow minimum size.");
+        var selector = Field<ComboBox>(form, "_languageComboBox");
+        selector.SelectedIndex = language == UiLanguage.German ? 1 : 0;
+        WaitForReload(form);
+        Assert(action.Text == AppStrings.NewTimelineEntry && timelineButton.Text == AppStrings.Timeline,
+            "Timeline language switch failed.");
+        selector.SelectedIndex = language == UiLanguage.German ? 0 : 1;
+        WaitForReload(form);
+        Capture(form, Path.Combine(testPath, $"timeline-{language}-after.png"));
+        form.Close();
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService());
+        ShowOffScreen(restarted);
+        Field<NavigationButton>(Field<NavigationControl>(restarted, "_navigation"), "_timelineButton").PerformClick();
+        WaitForReload(restarted);
+        Assert(Field<DataGridView>(Field<TimelineView>(restarted, "_timelineView"), "_grid").Rows.Count == beforeCount + 1,
+            "Timeline did not survive shell/repository recreation.");
+        restarted.Close();
     }
 
     private static void ShowOffScreen(Form form)

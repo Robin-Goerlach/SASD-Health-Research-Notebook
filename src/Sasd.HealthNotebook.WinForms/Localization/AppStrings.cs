@@ -13,6 +13,56 @@ namespace Sasd.HealthNotebook.WinForms.Localization;
 /// </remarks>
 public static class AppStrings
 {
+    /// <summary>Timeline navigation title.</summary>
+    public static string Timeline => Text("Timeline", "Verlauf");
+    /// <summary>Timeline main action.</summary>
+    public static string NewTimelineEntry => Text("New timeline entry", "Neuer Verlaufseintrag");
+    /// <summary>Timeline explanatory text.</summary>
+    public static string TimelineDescription => Text("Your notes, observations and research, newest event first.", "Ihre Notizen, Beobachtungen und Recherchen, neueste Ereignisse zuerst.");
+    /// <summary>Empty timeline hint.</summary>
+    public static string TimelineEmpty => Text("No entries yet. Choose New timeline entry to add a note.", "Noch keine Einträge. Mit Neuer Verlaufseintrag eine Notiz erfassen.");
+    /// <summary>Documented event time label.</summary>
+    public static string EntryTime => Text("When", "Zeitpunkt");
+    /// <summary>Date editor label.</summary>
+    public static string EntryDate => Text("Date", "Datum");
+    /// <summary>Time editor label.</summary>
+    public static string EntryClock => Text("Time", "Uhrzeit");
+    /// <summary>Category editor label.</summary>
+    public static string EntryType => Text("Type", "Typ");
+    /// <summary>Optional topic label.</summary>
+    public static string EntryTopic => Text("Health topic (optional)", "Gesundheitsthema (optional)");
+    /// <summary>No topic choice.</summary>
+    public static string NoEntryTopic => Text("No health topic", "Kein Gesundheitsthema");
+    /// <summary>Unresolved stored topic reference.</summary>
+    public static string MissingEntryTopic => Text("Health topic unavailable", "Gesundheitsthema nicht verfügbar");
+    /// <summary>Specific entry title field label.</summary>
+    public static string EntryTitle => Text("Timeline entry title", "Titel des Verlaufseintrags");
+    /// <summary>Content editor label.</summary>
+    public static string EntryContent => Text("Text", "Text");
+    /// <summary>Save command.</summary>
+    public static string SaveEntry => Text("Save entry", "Eintrag speichern");
+    /// <summary>Entry title guidance.</summary>
+    public static string EntryTitleHelp => Text("Required title, up to 160 characters.", "Erforderlicher Titel, höchstens 160 Zeichen.");
+    /// <summary>Content guidance.</summary>
+    public static string EntryContentHelp => Text("Optional text, up to 4000 characters.\r\nStored without medical assessment.", "Optionaler Text, höchstens 4000 Zeichen.\r\nSpeicherung ohne medizinische Bewertung.");
+    /// <summary>Event date/time guidance.</summary>
+    public static string EntryTimeHelp => Text("When did it happen? Enter local date and time.", "Wann war das Ereignis? Lokales Datum und Uhrzeit eingeben.");
+    /// <summary>Topic choice guidance.</summary>
+    public static string EntryTopicHelp => Text("Choose an existing topic or leave the entry unassigned.", "Vorhandenes Thema wählen oder den Eintrag ohne Zuordnung speichern.");
+    /// <summary>Input validation guidance, without echoed user data.</summary>
+    public static string EntryValidationFailed => Text("Check title, text length and the selected topic. For clock changes, choose an unambiguous local time.", "Titel, Textlänge und gewähltes Thema prüfen. Bei Zeitumstellungen eine eindeutige lokale Uhrzeit wählen.");
+    /// <summary>Privacy-safe save operation.</summary>
+    public static string OperationSaveEntry => Text("save timeline entry", "Verlaufseintrag speichern");
+    /// <summary>Loaded entry count.</summary>
+    public static string FormatLoadedEntries(int count) => Text($"Loaded {count} timeline entries.", $"{count} Verlaufseinträge geladen.");
+    /// <summary>Localized domain category label.</summary>
+    public static string HealthEntryTypeText(HealthEntryType type) => type switch
+    {
+        HealthEntryType.Note => Text("Note", "Notiz"),
+        HealthEntryType.Observation => Text("Observation", "Beobachtung"),
+        HealthEntryType.Research => Text("Research", "Recherche"),
+        _ => throw new ArgumentOutOfRangeException(nameof(type))
+    };
     /// <summary>Gets the display name of the application.</summary>
     public static string AppTitle => Text("SASD Health Research Notebook", "SASD Health Research Notebook");
 

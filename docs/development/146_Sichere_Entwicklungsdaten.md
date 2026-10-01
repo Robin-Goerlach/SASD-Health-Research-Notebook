@@ -36,6 +36,11 @@ bleibt das Produktverhalten unverändert. Ein gesetzter ungültiger Override fü
 zu einem Fehler. Ein explizites Repository-Dateipfadargument behält Vorrang.
 Konfiguration erfolgt ausschließlich im Prozess, ohne globale Einstellungen.
 
+HealthEntry / Timeline Slice 1 verwendet zusätzlich `health-entries.json` im selben
+aufgelösten Verzeichnis. Der Launcher prüft auch dessen primäre Datei, Backup und
+Writer-Lock auf Reparse Points. Tests erzeugen weiterhin frische synthetische
+Unterordner; der manuelle Frontend-Lauf nutzt den gemeinsamen synthetischen Root.
+
 Das Skript leitet Daten, .NET-CLI-Home, NuGet-Caches sowie TEMP/TMP nach `.codex/`
 um und deaktiviert SDK-Telemetrie, Zertifikaterstellung und globale PATH-Ergänzung.
 `.codex/` ist ignoriert. Junctions und symbolische Links in den Zielvorfahren

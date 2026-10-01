@@ -107,4 +107,7 @@ public static class LocalHealthNotebookPaths
     /// Gets the JSON file path under the resolved data directory.
     /// </summary>
     public static string HealthTopicsFilePath => Path.Combine(DataDirectory, "health-topics.json");
+
+    /// <summary>Gets the separate entry store in the same resolved data directory.</summary>
+    public static string HealthEntriesFilePath => Path.Combine(DataDirectory, "health-entries.json");
 }

@@ -15,6 +15,9 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 public sealed class MainForm : Form
 {
     private readonly HealthTopicService _healthTopicService;
+    private readonly HealthEntryService _healthEntryService;
+    private readonly TimelineView _timelineView;
+    private readonly TimelinePresenter _timelinePresenter;
     private readonly NavigationControl _navigation;
     private readonly Panel _contentPanel;
     private readonly Label _pageTitleLabel;
@@ -38,9 +41,10 @@ public sealed class MainForm : Form
     /// <summary>
     /// Initializes a new instance of the <see cref="MainForm" /> class.
     /// </summary>
-    public MainForm(HealthTopicService healthTopicService)
+    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
+        _healthEntryService = healthEntryService ?? throw new ArgumentNullException(nameof(healthEntryService));
 
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -95,7 +99,11 @@ public sealed class MainForm : Form
             ForeColor = UiColors.CardBackground,
             TabIndex = 4
         };
-        _newTopicButton.Click += async (_, _) => await ShowCreateHealthTopicWizardAsync();
+        _newTopicButton.Click += async (_, _) =>
+        {
+            if (_currentPage == NavigationPage.Timeline) await ShowCreateHealthEntryAsync();
+            else await ShowCreateHealthTopicWizardAsync();
+        };
 
         _languageLabel = new Label
         {
@@ -211,6 +219,8 @@ public sealed class MainForm : Form
         _dashboardTopicsPresenter = new HealthTopicPresenter(_healthTopicService, _dashboardTopicsView);
         _topicsPresenter = new HealthTopicPresenter(_healthTopicService, _topicsView);
         _dashboardPage = CreateDashboardPage();
+        _timelineView = new TimelineView();
+        _timelinePresenter = new TimelinePresenter(_healthEntryService, _timelineView);
 
         ApplyTexts();
 
@@ -235,6 +245,7 @@ public sealed class MainForm : Form
             // Navigation detaches inactive views; they are still owned by this form.
             _dashboardPage.Dispose();
             _topicsView.Dispose();
+            _timelineView.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -263,6 +274,7 @@ public sealed class MainForm : Form
         _dashboardTopicsView.ApplyTexts();
         _topicsView.SetTitle(AppStrings.AllHealthTopics);
         _topicsView.ApplyTexts();
+        _timelineView.ApplyTexts();
 
         ShowPage(_currentPage);
         _statusLabel.Text = _lastLoadedTopicCount.HasValue
@@ -307,12 +319,19 @@ public sealed class MainForm : Form
             _pageDescriptionLabel.Text = AppStrings.DashboardDescription;
             _contentPanel.Controls.Add(_dashboardPage);
         }
-        else
+        else if (page == NavigationPage.HealthTopics)
         {
             _pageTitleLabel.Text = AppStrings.HealthTopics;
             _pageDescriptionLabel.Text = AppStrings.HealthTopicsDescription;
             _contentPanel.Controls.Add(_topicsView);
         }
+        else
+        {
+            _pageTitleLabel.Text = AppStrings.Timeline;
+            _pageDescriptionLabel.Text = AppStrings.TimelineDescription;
+            _contentPanel.Controls.Add(_timelineView);
+        }
+        _newTopicButton.Text = page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry : AppStrings.NewHealthTopic;
     }
 
     private Control CreateDashboardPage()
@@ -340,6 +359,11 @@ public sealed class MainForm : Form
     {
         try
         {
+            if (_currentPage == NavigationPage.Timeline)
+            {
+                _statusLabel.Text = AppStrings.FormatLoadedEntries(await _timelinePresenter.LoadAsync());
+                return;
+            }
             await _dashboardPresenter.LoadAsync().ConfigureAwait(true);
             var dashboardTopics = await _dashboardTopicsPresenter.LoadAsync().ConfigureAwait(true);
             var topicPageTopics = await _topicsPresenter.LoadAsync().ConfigureAwait(true);
@@ -365,6 +389,17 @@ public sealed class MainForm : Form
         {
             await ReloadSafeAsync();
         }
+    }
+
+    private async Task ShowCreateHealthEntryAsync()
+    {
+        try
+        {
+            var topics = await _healthTopicService.GetTopicSummariesAsync();
+            using var dialog = new CreateHealthEntryForm(_healthEntryService, topics);
+            if (dialog.ShowDialog(this) == DialogResult.OK) await ReloadSafeAsync();
+        }
+        catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
     }
 
     private sealed class LanguageSelectionItem
