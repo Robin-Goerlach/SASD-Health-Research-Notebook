@@ -118,3 +118,41 @@ erfolgte nach dieser Bestätigung; Push/PR/Merge sind nicht beauftragt.
 Offen außerhalb Slice 1: Edit/Delete/Archive, Dateiimport, Vertrauens-/Prüfstatus,
 Many-to-many-/HealthEntry-Verknüpfungen, automatische Store-Wiederherstellung.
 Nächster geplanter Slice: Measurement / Vitalwerte.
+
+## Regression: Fundstelle nach Neustart/erneuter Auswahl scheinbar verschwunden
+
+Der Fehler liegt in der WinForms-Auswahlbenachrichtigung, nicht in Persistenz oder
+Application. `SourcesView` verwendete `DataGridView.SelectionChanged`, las aber
+`CurrentRow`. Beim Wechsel der aktuellen Zeile feuert dieses Ereignis, bevor
+`CurrentRow` aktualisiert ist. Der Presenter leert zunächst die abhängigen Listen,
+lädt die vorherige Quelle und verwirft deren Ergebnis anschließend wegen der nun
+abweichenden Auswahl. Die neu gewählte Quelle bleibt dadurch ohne Fundstellenanzeige.
+Ihre Fundstellen sind weiterhin unverändert in `sources.json` gespeichert.
+
+Die Reparatur verwendet `CurrentCellChanged` für die Quelle: `SourceSelected` meldet
+damit die tatsächlich neue aktuelle Quelle. Binding-Unterdrückung und der vorhandene
+Generation-/ID-Schutz des Presenters bleiben erhalten. Empty States unterscheiden
+in DE/EN zwischen fehlender Auswahl und einer ausgewählten Quelle ohne Fundstellen
+bzw. Notizen. Keine Store-/Formatänderung, Migration oder zweite Persistenzquelle.
+
+Der alte UI-Test erzeugte eine neue, standardmäßig ausgewählte Quelle und rief nach
+dem Neustart explizit `WaitForReload` auf. Dieser zusätzliche Refresh lud die richtige
+Quelle und verdeckte den fehlerhaften Auswahlweg. Er prüfte nicht die Auswahl einer
+älteren Quelle unter mehreren Quellen ohne Refresh.
+
+- IT-SRC-RELOAD-001: frischer isolierter Store, Source/Location über den produktiven
+  Service erstellen, tatsächliche JSON-Felder prüfen, ursprüngliche Instanzen verwerfen,
+  neue Repository-/Service-Instanzen und `GetSourceDetailsAsync`; Id, SourceId, Typ,
+  Locator, Notiz und CreatedAt vergleichen. Andere Stores bleiben bytegenau erhalten.
+- UI-SRC-RELOAD-001: echte Source-/Location-Dialoge, zweite neuere Quelle, ursprüngliche
+  MainForm schließen und disposen; neue Shell/Services, Sources öffnen und ältere
+  Quelle ohne expliziten Refresh auswählen. Originalfundstelle, sichtbare Liste,
+  Rück-/Wiederauswahl und korrekte Empty States werden in DE/EN geprüft.
+
+Vor der Reparatur besteht der JSON-/Service-Test, während der neue UI-Test mit
+fehlender Fundstellenanzeige fehlschlägt. Eine zusätzliche Assertion bestätigt,
+dass `SourceSelected` die vorherige `CurrentRow` meldet. Nach der Reparatur muss der
+vollständige sichere Release-/Smoke-Lauf einschließlich WPF erfolgreich sein.
+Der anschließende vollständige Lauf ist erfolgreich: 0 Warnungen/0 Fehler,
+beide Smoke-Testprojekte grün, Neustart-/Wiederauswahlregression in DE/EN bestanden.
+Measurement-Checkpoint und Draft PR #14 bleiben von diesem separaten Bugfix unberührt.

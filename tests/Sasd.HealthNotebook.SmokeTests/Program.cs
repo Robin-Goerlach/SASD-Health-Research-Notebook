@@ -32,6 +32,7 @@ internal static class Program
             await RunSharedRepositoryContractTestAsync();
             await HealthEntryTests.RunAsync();
             await SourceTests.RunAsync();
+            await SourceLocationReloadTests.RunAsync();
             await SafeEntryLauncherTests.RunAsync();
             Console.WriteLine("Smoke tests passed.");
             return 0;

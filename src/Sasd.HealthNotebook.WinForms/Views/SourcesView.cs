@@ -43,7 +43,9 @@ public sealed class SourcesView : UserControl
         _notesTab.Controls.Add(Pane(_notesGrid, _notesEmptyLabel, _noteDetails, _newNoteButton, 40));
         tabs.TabPages.Add(_locationsTab); tabs.TabPages.Add(_notesTab); layout.Controls.Add(tabs, 1, 0);
         Controls.Add(layout);
-        _sourcesGrid.SelectionChanged += (_, _) => { if (!_binding) { UpdateSourceDetails(); SourceSelected?.Invoke(this, EventArgs.Empty); } };
+        // SelectionChanged runs before CurrentRow changes. Dependents must be loaded
+        // from the new current source; otherwise the presenter discards the old result.
+        _sourcesGrid.CurrentCellChanged += (_, _) => { if (!_binding) { UpdateSourceDetails(); SourceSelected?.Invoke(this, EventArgs.Empty); } };
         _locationsGrid.SelectionChanged += (_, _) => UpdateLocationDetails();
         _notesGrid.SelectionChanged += (_, _) => UpdateNoteDetails();
         _newLocationButton.Click += (_, _) => NewLocationRequested?.Invoke(this, EventArgs.Empty);
@@ -86,14 +88,15 @@ public sealed class SourcesView : UserControl
         SelectId(_locationsGrid, selectedLocation); SelectId(_notesGrid, selectedNote);
         SetEmpty(_locationsGrid, _locationsEmptyLabel, locations.Count == 0);
         SetEmpty(_notesGrid, _notesEmptyLabel, notes.Count == 0);
+        UpdateDependentEmptyTexts();
         _newLocationButton.Enabled = _newNoteButton.Enabled = SelectedSource is not null;
         UpdateLocationDetails(); UpdateNoteDetails();
     }
     /// <summary>Updates all localized headings and current details.</summary>
     public void ApplyTexts()
     {
-        _emptyStateLabel.Text = AppStrings.SourcesEmpty; _locationsEmptyLabel.Text = AppStrings.LocationsEmpty;
-        _notesEmptyLabel.Text = AppStrings.NotesEmpty;
+        _emptyStateLabel.Text = AppStrings.SourcesEmpty;
+        UpdateDependentEmptyTexts();
         _locationsTab.Text = AppStrings.SourceLocations; _notesTab.Text = AppStrings.SourceNotes;
         _newLocationButton.Text = AppStrings.NewSourceLocation; _newNoteButton.Text = AppStrings.NewSourceNote;
         _sourcesGrid.Columns[0].HeaderText = AppStrings.SourceTitle; _sourcesGrid.Columns[1].HeaderText = AppStrings.EntryType;
@@ -116,6 +119,12 @@ public sealed class SourcesView : UserControl
             AppStrings.EntryTopic + ": " + (item.HealthTopicTitle ?? (source.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic)) });
     }
     private void UpdateLocationDetails() => _locationDetails.Text = _locations.SingleOrDefault(location => location.Id == SelectedId(_locationsGrid))?.Note ?? string.Empty;
+    private void UpdateDependentEmptyTexts()
+    {
+        bool selected = SelectedSource is not null;
+        _locationsEmptyLabel.Text = selected ? AppStrings.LocationsEmpty : AppStrings.SourceSelectionEmpty;
+        _notesEmptyLabel.Text = selected ? AppStrings.NotesEmpty : AppStrings.SourceSelectionEmpty;
+    }
     private void UpdateNoteDetails()
     {
         var note = _notes.SingleOrDefault(item => item.Id == SelectedId(_notesGrid));
