@@ -262,3 +262,14 @@ Quellen-Notiz, sofortige Anzeige, Reload, Sprachwechsel, getrennte Textanzeigen,
 Tab-Reihenfolge, Tooltips und Mindestgrößen. Alle Daten sind ausdrücklich synthetisch
 in frischen `.codex/`-Laufverzeichnissen. Keine neuen Testprojekte/Pakete.
 Manuelle Desktopakzeptanz bleibt ein separates Gate; Stand und Prüfliste in Dokument 149.
+
+SourceLocation-Neustartregression: IT-SRC-RELOAD-001 prüft einen frischen isolierten
+Store über den produktiven Servicepfad, tatsächliche JSON-Felder und neue Repository-/
+Service-Instanzen mit `GetSourceDetailsAsync`. UI-SRC-RELOAD-001 erstellt über echte
+Dialoge eine Quelle/Fundstelle und eine zweite Quelle, disposed die ursprüngliche
+Shell und wählt nach Neustart die ältere Quelle ohne zusätzlichen Refresh aus.
+Die Auswahlbenachrichtigung muss bereits die neue CurrentRow melden; Fundstelle,
+Original-IDs, Wieder-/Rückauswahl und Empty States sind in Deutsch/English abgesichert.
+Der Test schlägt mit dem alten SelectionChanged-Leseweg fehl und besteht erst mit
+CurrentCellChanged. Ein direkter Save/Load-Test oder ein Refresh nach Auswahl würde
+diese UI-Regression verdecken; Dokument 149 hält Ursache und bisherigen Testblindspot fest.

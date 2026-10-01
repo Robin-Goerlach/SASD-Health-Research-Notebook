@@ -57,6 +57,7 @@ internal static partial class Program
                         CheckWizard(service, testPath, language);
                         CheckTimeline(service, testPath, language);
                         CheckSources(service, testPath, language);
+                        CheckSourceLocationRestart(testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }

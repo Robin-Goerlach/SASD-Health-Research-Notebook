@@ -33,17 +33,34 @@ public sealed class SourcesView : UserControl
         _locationsGrid = Grid(new[] { "Type", "Locator" }, new[] { 90, 140 });
         _notesGrid = Grid(new[] { "Statement", "Location" }, new[] { 170, 100 });
         _emptyStateLabel = EmptyLabel(); _locationsEmptyLabel = EmptyLabel(); _notesEmptyLabel = EmptyLabel();
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty };
+        // A shared proportional detail row keeps both sides aligned despite the
+        // right-hand tab header and action buttons consuming different list space.
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = Padding.Empty };
         layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 45)); layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 55));
-        var sourcePane = Pane(_sourcesGrid, _emptyStateLabel, _sourceDetails, null, 60);
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 60));
+        layout.RowStyles.Add(new RowStyle(SizeType.Percent, 40));
+        var sourcePane = Pane(_sourcesGrid, _emptyStateLabel, null);
         sourcePane.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
         layout.Controls.Add(sourcePane, 0, 0);
         var tabs = new TabControl { Dock = DockStyle.Fill, TabIndex = 1, Margin = Padding.Empty };
-        _locationsTab.Controls.Add(Pane(_locationsGrid, _locationsEmptyLabel, _locationDetails, _newLocationButton, 65));
-        _notesTab.Controls.Add(Pane(_notesGrid, _notesEmptyLabel, _noteDetails, _newNoteButton, 40));
+        _locationsTab.Controls.Add(Pane(_locationsGrid, _locationsEmptyLabel, _newLocationButton));
+        _notesTab.Controls.Add(Pane(_notesGrid, _notesEmptyLabel, _newNoteButton));
         tabs.TabPages.Add(_locationsTab); tabs.TabPages.Add(_notesTab); layout.Controls.Add(tabs, 1, 0);
+        _sourceDetails.Margin = new Padding(0, 3, UiMetrics.StandardSpacing, 3);
+        layout.Controls.Add(_sourceDetails, 0, 1);
+        var dependentDetails = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0, 3, 0, 3), TabIndex = 2 };
+        dependentDetails.Controls.Add(_noteDetails); dependentDetails.Controls.Add(_locationDetails);
+        _noteDetails.Visible = false;
+        tabs.SelectedIndexChanged += (_, _) =>
+        {
+            _locationDetails.Visible = tabs.SelectedTab == _locationsTab;
+            _noteDetails.Visible = tabs.SelectedTab == _notesTab;
+        };
+        layout.Controls.Add(dependentDetails, 1, 1);
         Controls.Add(layout);
-        _sourcesGrid.SelectionChanged += (_, _) => { if (!_binding) { UpdateSourceDetails(); SourceSelected?.Invoke(this, EventArgs.Empty); } };
+        // SelectionChanged runs before CurrentRow changes. Dependents must be loaded
+        // from the new current source; otherwise the presenter discards the old result.
+        _sourcesGrid.CurrentCellChanged += (_, _) => { if (!_binding) { UpdateSourceDetails(); SourceSelected?.Invoke(this, EventArgs.Empty); } };
         _locationsGrid.SelectionChanged += (_, _) => UpdateLocationDetails();
         _notesGrid.SelectionChanged += (_, _) => UpdateNoteDetails();
         _newLocationButton.Click += (_, _) => NewLocationRequested?.Invoke(this, EventArgs.Empty);
@@ -86,14 +103,15 @@ public sealed class SourcesView : UserControl
         SelectId(_locationsGrid, selectedLocation); SelectId(_notesGrid, selectedNote);
         SetEmpty(_locationsGrid, _locationsEmptyLabel, locations.Count == 0);
         SetEmpty(_notesGrid, _notesEmptyLabel, notes.Count == 0);
+        UpdateDependentEmptyTexts();
         _newLocationButton.Enabled = _newNoteButton.Enabled = SelectedSource is not null;
         UpdateLocationDetails(); UpdateNoteDetails();
     }
     /// <summary>Updates all localized headings and current details.</summary>
     public void ApplyTexts()
     {
-        _emptyStateLabel.Text = AppStrings.SourcesEmpty; _locationsEmptyLabel.Text = AppStrings.LocationsEmpty;
-        _notesEmptyLabel.Text = AppStrings.NotesEmpty;
+        _emptyStateLabel.Text = AppStrings.SourcesEmpty;
+        UpdateDependentEmptyTexts();
         _locationsTab.Text = AppStrings.SourceLocations; _notesTab.Text = AppStrings.SourceNotes;
         _newLocationButton.Text = AppStrings.NewSourceLocation; _newNoteButton.Text = AppStrings.NewSourceNote;
         _sourcesGrid.Columns[0].HeaderText = AppStrings.SourceTitle; _sourcesGrid.Columns[1].HeaderText = AppStrings.EntryType;
@@ -116,6 +134,12 @@ public sealed class SourcesView : UserControl
             AppStrings.EntryTopic + ": " + (item.HealthTopicTitle ?? (source.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic)) });
     }
     private void UpdateLocationDetails() => _locationDetails.Text = _locations.SingleOrDefault(location => location.Id == SelectedId(_locationsGrid))?.Note ?? string.Empty;
+    private void UpdateDependentEmptyTexts()
+    {
+        bool selected = SelectedSource is not null;
+        _locationsEmptyLabel.Text = selected ? AppStrings.LocationsEmpty : AppStrings.SourceSelectionEmpty;
+        _notesEmptyLabel.Text = selected ? AppStrings.NotesEmpty : AppStrings.SourceSelectionEmpty;
+    }
     private void UpdateNoteDetails()
     {
         var note = _notes.SingleOrDefault(item => item.Id == SelectedId(_notesGrid));
@@ -144,14 +168,14 @@ public sealed class SourcesView : UserControl
         BorderStyle = BorderStyle.FixedSingle, Font = UiFonts.Body, TabIndex = 2 };
     private static Label EmptyLabel() => new() { Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter,
         Padding = new Padding(UiMetrics.StandardSpacing), ForeColor = UiColors.SecondaryText, Font = UiFonts.Body };
-    private static Control Pane(DataGridView grid, Label empty, TextBox details, Button? action, float listHeight)
+    private static Control Pane(DataGridView grid, Label empty, Button? action)
     {
-        var pane = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 3, Margin = Padding.Empty };
+        var pane = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty };
         pane.RowStyles.Add(new RowStyle(SizeType.Absolute, action is null ? 0 : 48));
-        pane.RowStyles.Add(new RowStyle(SizeType.Percent, listHeight)); pane.RowStyles.Add(new RowStyle(SizeType.Percent, 100 - listHeight));
+        pane.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
         if (action is not null) { action.Anchor = AnchorStyles.Left; pane.Controls.Add(action, 0, 0); }
         var list = new Panel { Dock = DockStyle.Fill, Margin = Padding.Empty, TabIndex = 1 };
-        list.Controls.Add(grid); list.Controls.Add(empty); pane.Controls.Add(list, 0, 1); pane.Controls.Add(details, 0, 2);
+        list.Controls.Add(grid); list.Controls.Add(empty); pane.Controls.Add(list, 0, 1);
         return pane;
     }
     private static DataGridView Grid(string[] properties, int[] widths)
