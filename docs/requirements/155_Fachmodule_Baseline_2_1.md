@@ -65,6 +65,18 @@ FR-OBS-005 bleiben außerhalb dieses Slices.
 | FR-MEA-006 | Messwerte können mit Dokument, Gesundheitsthema, Beobachtung und Session verknüpft werden. |
 | FR-MEA-007 | Die Anwendung darf Messwerte nicht automatisch diagnostisch bewerten. |
 
+Akzeptanz für FR-MEA-001/002/004/005/007, Measurement/Vitalwerte Slice 1:
+Der Nutzer dokumentiert Blutdruck mit getrennten systolischen/diastolischen Zahlen
+und optionalem Puls oder einen Einzelwert für Puls, Körpertemperatur, Blutzucker
+oder Körpergewicht. Zeitpunkt mit Offset, feste Einheit (mmHg, /min, °C, mg/dL, kg),
+manuelle Erfassungsart, optionale Messsituation und eigene Notiz bleiben beim
+Wiederladen erhalten. Neueste fachliche Zeitpunkte stehen zuerst. Zahlen werden
+numerisch gespeichert; nur Pflichtwerte, Struktur, endliche und nichtnegative Zahlen
+werden geprüft, ohne medizinische Grenzwerte oder Bewertung. Optionaler Themenbezug
+(Teilumfang FR-MEA-006) löst den aktuellen Titel auf; fehlende/archivierte Themen
+verlieren keine Messung. Dokument-/Beobachtungs-/Session-Verknüpfungen, allgemeine
+Timeline-Integration und benutzerdefinierte Typen bleiben spätere Slices.
+
 ## 6. Wetter- und Kontext-Snapshots
 
 | ID | Anforderung |

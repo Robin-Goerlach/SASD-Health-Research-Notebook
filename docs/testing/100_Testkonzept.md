@@ -262,3 +262,26 @@ Quellen-Notiz, sofortige Anzeige, Reload, Sprachwechsel, getrennte Textanzeigen,
 Tab-Reihenfolge, Tooltips und Mindestgrößen. Alle Daten sind ausdrücklich synthetisch
 in frischen `.codex/`-Laufverzeichnissen. Keine neuen Testprojekte/Pakete.
 Manuelle Desktopakzeptanz bleibt ein separates Gate; Stand und Prüfliste in Dokument 149.
+
+## 21. Measurement / Vitalwerte Slice 1 – aktuelle Prüfungen
+
+Die bestehenden Smoke-Testprojekte decken FR-MEA-001/002/004/005/007 und den
+Themenbezug aus FR-MEA-006 ab. `MeasurementTests` prüft alle fünf Kategorien,
+getrennte Blutdruckkomponenten/optionalen Puls, Pflichtwerte, NaN/Infinity,
+negative Zahlen, technische Extremwerte ohne klinische Schranken, Textgrenzen,
+feste Einheiten, Offset-Sortierung, unabhängiges Reload und fehlende/archivierte Themen.
+Kennung/Version, beschädigte/fremde/zukünftige Stores, Backup, vorhandene Temp-/Lock-
+Dateien und bytegenauer Erhalt von Topic-/Entry-/Source-Dateien werden abgesichert.
+Der echte Windows-PowerShell-5.1-Launcher weist Links unter allen vier Messwertnamen ab.
+
+`MeasurementUiTests` prüft echte Navigation und Dialoge in Deutsch/English, alle fünf
+synthetischen Messarten mit/ohne Thema, sichtbare Einheiten, Dezimalzeichen gemäß
+UI-Sprache ohne stille Tausender-/Einheitenumrechnung, dynamische Felder, sofortige
+Anzeige, Refresh-Auswahl, Shell-/Repository-Neustart, Tooltips, Tab-Reihenfolge und
+Mindestgrößen. Vorhandene Dashboard-/HealthTopic-/Timeline-/Sources-Prüfungen bleiben
+Teil desselben Laufs. WPF ist im vollständigen Release-Build enthalten.
+
+Test-IDs: UT-MEA-001, IT-MEA-001, SEC-MEA-001, SEC-MEA-002, UI-MEA-001.
+Manuelle Desktopakzeptanz steht noch aus; Prüfliste und Abgrenzungen in Dokument 150.
+Kein weiteres Testprojekt, keine zusätzlichen Pakete, ausschließlich synthetische
+Daten unter `.codex/`. Ein grüner automatisierter Lauf ersetzt dieses manuelle Gate nicht.

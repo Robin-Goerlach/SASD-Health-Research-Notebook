@@ -57,6 +57,7 @@ internal static partial class Program
                         CheckWizard(service, testPath, language);
                         CheckTimeline(service, testPath, language);
                         CheckSources(service, testPath, language);
+                        CheckMeasurements(service, testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }
@@ -64,7 +65,7 @@ internal static partial class Program
             };
             System.Windows.Forms.Application.Run(host);
             if (uiFailure is not null) { throw new InvalidOperationException(uiFailure.Message, uiFailure); }
-            Console.WriteLine("WinForms smoke tests passed (FR-UI-001, FR-OBS-001, FR-SRC-001/002/004/005/006).");
+            Console.WriteLine("WinForms smoke tests passed (FR-UI-001, FR-OBS-001, FR-SRC-001/002/004/005/006, FR-MEA-001/002/004/005/007).");
             return 0;
         }
         catch (Exception ex)
@@ -81,7 +82,7 @@ internal static partial class Program
     // UI-LAYOUT-001: header/cards/grid at start and minimum sizes, in both languages.
     private static void CheckShell(HealthTopicService service, string testPath, UiLanguage language)
     {
-        using var form = new MainForm(service, CreateEntryService(), CreateSourceService());
+        using var form = new MainForm(service, CreateEntryService(), CreateSourceService(), CreateMeasurementService());
         ShowOffScreen(form);
         PumpUntil(() => Field<ToolStripStatusLabel>(form, "_statusLabel").Text != AppStrings.Ready, "initial shell load");
         foreach (Size size in new[] { new Size(1280, 820), form.MinimumSize })
@@ -160,7 +161,7 @@ internal static partial class Program
         PumpUntil(() => wizard.IsDisposed || wizard.DialogResult == DialogResult.OK, "wizard save");
         var reloaded = new HealthTopicService(new JsonHealthTopicRepository()).GetTopicSummariesAsync().GetAwaiter().GetResult();
         Assert(reloaded.Any(topic => topic.Title == syntheticTitle), "Wizard topic did not survive repository recreation.");
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService());
         ShowOffScreen(restarted);
         WaitForReload(restarted);
         var reloadedGrid = Field<DataGridView>(Field<HealthTopicsView>(restarted, "_dashboardTopicsView"), "_grid");
@@ -183,7 +184,7 @@ internal static partial class Program
     {
         var entries = CreateEntryService();
         int beforeCount = entries.GetEntriesAsync().GetAwaiter().GetResult().Count;
-        using var form = new MainForm(topics, entries, CreateSourceService());
+        using var form = new MainForm(topics, entries, CreateSourceService(), CreateMeasurementService());
         ShowOffScreen(form);
         form.Size = form.MinimumSize;
         var navigation = Field<NavigationControl>(form, "_navigation");
@@ -255,7 +256,7 @@ internal static partial class Program
         WaitForReload(form);
         Capture(form, Path.Combine(testPath, $"timeline-{language}-after.png"));
         form.Close();
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService());
         ShowOffScreen(restarted);
         Field<NavigationButton>(Field<NavigationControl>(restarted, "_navigation"), "_timelineButton").PerformClick();
         WaitForReload(restarted);

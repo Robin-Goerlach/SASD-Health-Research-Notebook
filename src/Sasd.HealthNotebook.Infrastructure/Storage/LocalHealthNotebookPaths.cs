@@ -113,4 +113,7 @@ public static class LocalHealthNotebookPaths
 
     /// <summary>Gets the source notebook store in the same resolved data directory.</summary>
     public static string SourcesFilePath => Path.Combine(DataDirectory, "sources.json");
+
+    /// <summary>Gets the separate numeric measurement store in the resolved shared directory.</summary>
+    public static string MeasurementsFilePath => Path.Combine(DataDirectory, "measurements.json");
 }

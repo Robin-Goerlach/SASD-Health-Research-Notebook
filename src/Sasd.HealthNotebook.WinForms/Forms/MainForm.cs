@@ -17,6 +17,9 @@ public sealed class MainForm : Form
     private readonly HealthTopicService _healthTopicService;
     private readonly HealthEntryService _healthEntryService;
     private readonly SourceService _sourceService;
+    private readonly MeasurementService _measurementService;
+    private readonly MeasurementsView _measurementsView;
+    private readonly MeasurementsPresenter _measurementsPresenter;
     private readonly SourcesView _sourcesView;
     private readonly SourcesPresenter _sourcesPresenter;
     private readonly TimelineView _timelineView;
@@ -44,11 +47,12 @@ public sealed class MainForm : Form
     /// <summary>
     /// Initializes a new instance of the <see cref="MainForm" /> class.
     /// </summary>
-    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService)
+    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService, MeasurementService measurementService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
         _healthEntryService = healthEntryService ?? throw new ArgumentNullException(nameof(healthEntryService));
         _sourceService = sourceService ?? throw new ArgumentNullException(nameof(sourceService));
+        _measurementService = measurementService ?? throw new ArgumentNullException(nameof(measurementService));
 
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -107,6 +111,7 @@ public sealed class MainForm : Form
         {
             if (_currentPage == NavigationPage.Timeline) await ShowCreateHealthEntryAsync();
             else if (_currentPage == NavigationPage.Sources) await ShowCreateSourceAsync();
+            else if (_currentPage == NavigationPage.Measurements) await ShowCreateMeasurementAsync();
             else await ShowCreateHealthTopicWizardAsync();
         };
 
@@ -228,6 +233,8 @@ public sealed class MainForm : Form
         _timelinePresenter = new TimelinePresenter(_healthEntryService, _timelineView);
         _sourcesView = new SourcesView();
         _sourcesPresenter = new SourcesPresenter(_sourceService, _sourcesView);
+        _measurementsView = new MeasurementsView();
+        _measurementsPresenter = new MeasurementsPresenter(_measurementService, _measurementsView);
         _sourcesView.SourceSelected += async (_, _) =>
         {
             try { await _sourcesPresenter.LoadSelectionAsync(); }
@@ -261,6 +268,7 @@ public sealed class MainForm : Form
             _topicsView.Dispose();
             _timelineView.Dispose();
             _sourcesView.Dispose();
+            _measurementsView.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -291,6 +299,7 @@ public sealed class MainForm : Form
         _topicsView.ApplyTexts();
         _timelineView.ApplyTexts();
         _sourcesView.ApplyTexts();
+        _measurementsView.ApplyTexts();
 
         ShowPage(_currentPage);
         _statusLabel.Text = _lastLoadedTopicCount.HasValue
@@ -347,14 +356,21 @@ public sealed class MainForm : Form
             _pageDescriptionLabel.Text = AppStrings.TimelineDescription;
             _contentPanel.Controls.Add(_timelineView);
         }
-        else
+        else if (page == NavigationPage.Sources)
         {
             _pageTitleLabel.Text = AppStrings.Sources;
             _pageDescriptionLabel.Text = AppStrings.SourcesDescription;
             _contentPanel.Controls.Add(_sourcesView);
         }
+        else if (page == NavigationPage.Measurements)
+        {
+            _pageTitleLabel.Text = AppStrings.Measurements;
+            _pageDescriptionLabel.Text = AppStrings.MeasurementsDescription;
+            _contentPanel.Controls.Add(_measurementsView);
+        }
         _newTopicButton.Text = page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry
-            : page == NavigationPage.Sources ? AppStrings.NewSource : AppStrings.NewHealthTopic;
+            : page == NavigationPage.Sources ? AppStrings.NewSource
+            : page == NavigationPage.Measurements ? AppStrings.NewMeasurement : AppStrings.NewHealthTopic;
     }
 
     private Control CreateDashboardPage()
@@ -382,6 +398,11 @@ public sealed class MainForm : Form
     {
         try
         {
+            if (_currentPage == NavigationPage.Measurements)
+            {
+                _statusLabel.Text = AppStrings.FormatLoadedMeasurements(await _measurementsPresenter.LoadAsync());
+                return;
+            }
             if (_currentPage == NavigationPage.Sources)
             {
                 _statusLabel.Text = AppStrings.FormatLoadedSources(await _sourcesPresenter.LoadAsync());
@@ -438,6 +459,17 @@ public sealed class MainForm : Form
             using var dialog = new CreateSourceForm(_sourceService, topics);
             if (dialog.ShowDialog(this) == DialogResult.OK)
                 _statusLabel.Text = AppStrings.FormatLoadedSources(await _sourcesPresenter.LoadAsync(dialog.CreatedSourceId));
+        }
+        catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
+    }
+
+    private async Task ShowCreateMeasurementAsync()
+    {
+        try
+        {
+            var topics = await _healthTopicService.GetTopicSummariesAsync();
+            using var dialog = new CreateMeasurementForm(_measurementService, topics);
+            if (dialog.ShowDialog(this) == DialogResult.OK) await ReloadSafeAsync();
         }
         catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
     }
