@@ -1,7 +1,7 @@
 # 145 - Codex-Arbeitsauftrag
 
 Projekt: SASD Health Research Notebook  
-Stand: 2026-09-30  
+Stand: 2026-10-01
 Dokumenttyp: Entwickler-/Codex-Leitfaden  
 Status: aktiv – WinForms primär
 
@@ -51,7 +51,7 @@ Vor jeder größeren Änderung:
 
 Keine Architektur aus älteren Chats erraten, wenn der Repository-Stand etwas anderes zeigt.
 
-## 4. Aktueller Codex-Auftrag: Sources + SourceLocation + EvidenceNote Slice 1
+## 4. Aktueller Codex-Auftrag: Measurement / Vitalwerte Slice 1
 
 WinForms UI Baseline 2 ist abgeschlossen: Release-/Smoke-Prüfungen erfolgreich,
 manuelle Nutzerakzeptanz bestätigt, PR #11 gemergt. Details stehen in Dokument 147.
@@ -76,16 +76,25 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDe
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
 ```
 
-Sources + SourceLocation + EvidenceNote Slice 1 ist der aktuelle implementierte Slice
-auf `feat/sources-evidence-slice-1`; manuelle Nutzerakzeptanz ist bestätigt.
-Der Slice wird nach grüner Abschlussprüfung ausschließlich lokal committed.
+Sources + SourceLocation + EvidenceNote Slice 1 ist abgeschlossen (PR #13 gemergt);
+manuelle Nutzerakzeptanz ist bestätigt und der Slice ist auf `main` enthalten.
 FR-SRC-001/002/004/005/006 werden durch getrennte Entitäten,
 gemeinsame Application-Verträge und einen atomar aktualisierten `sources.json`-Store
 umgesetzt. Originalzitat und eigene Einordnung bleiben getrennt. Details und
 Prüfliste: Dokument 149. Keine Vertrauensbewertung, kein Import und keine SQLite-Migration.
 
-WPF bleibt buildbar und erhält keine Sources-Oberfläche.
-Nächster geplanter Slice: **Measurement / Vitalwerte**.
+Measurement / Vitalwerte Slice 1 ist der aktuelle implementierte Slice auf
+`feat/measurements-vitals-slice-1`; die manuelle Nutzerakzeptanz ist bestätigt (2026-10-01). Der Sources-Regressionsfix aus PR #15 ist integriert.
+Blutdruck wird mit getrennten systolischen/diastolischen Zahlen und optionalem Puls
+dokumentiert. Puls, Körpertemperatur, Blutzucker und Körpergewicht verwenden
+typgebundene Einheiten ohne Umrechnung. Persönliche Notiz und Messsituation bleiben
+getrennt von Zahlen. Ein separater `measurements.json`-Store lässt die drei bestehenden
+Stores unverändert. Keine medizinische Bewertung und keine duplizierte Timeline-Persistenz.
+FR-MEA-001/002/004/005/007 sowie der Themenbezug aus FR-MEA-006 werden abgedeckt;
+weitere Verknüpfungen bleiben offen. Details und manuelle Prüfliste: Dokument 150.
+
+WPF bleibt buildbar und erhält weder Sources- noch Measurement-Oberfläche.
+Nächster geplanter Slice: **Session + Questions + Follow-up**.
 
 ## 5. Frontend-Regel
 
