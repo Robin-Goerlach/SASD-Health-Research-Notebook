@@ -44,7 +44,12 @@ frischen GUID-Unterordnern von `.codex/synthetic-development-data/ui-tests`.
 Die Tests verlangen einen expliziten Override unter der Repository-`.codex` und
 prüfen Link-Vorfahren vor Schreibzugriffen; persönliche Daten werden nicht geladen.
 
-## Noch offene manuelle Desktopprüfung
+## Manuelle Desktopprüfung
+
+Nach dem lokalen Commit hat der Nutzer die manuelle Prüfung der WinForms UI
+Baseline 2 ausdrücklich als erfolgreich bestätigt. Der Slice wurde mit PR #11
+gemergt. Die folgende Beschreibung hält die zuvor eingeschränkte agentenseitige
+Prüfmöglichkeit fest; sie bedeutet nicht, dass die Nutzerakzeptanz noch aussteht.
 
 Ein separater WinForms-Start über den sicheren Launcher wurde ausgeführt; die
 Desktopverbindung war nicht verfügbar und lieferte kein bedienbares Fenster.

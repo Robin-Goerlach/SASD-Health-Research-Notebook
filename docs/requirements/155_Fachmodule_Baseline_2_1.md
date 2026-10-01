@@ -33,6 +33,14 @@ Dieses Dokument gibt den seit der ersten Baseline konkretisierten Fachmodulen st
 | FR-OBS-004 | Wiederholte ähnliche Beobachtungen dürfen deskriptiv zusammengefasst werden. |
 | FR-OBS-005 | Beobachtungen können für ein späteres Arzt-/Coach-Gespräch markiert werden. |
 
+Akzeptanz für FR-OBS-001, HealthEntry/Timeline Slice 1: Ein Nutzer erstellt eine
+Notiz, Beobachtung oder Recherchenotiz mit fachlichem Datum/Uhrzeit, Pflicht-Titel
+(maximal 160 Zeichen), optionalem Text (maximal 4000 Zeichen) und optional einem
+vorhandenen Gesundheitsthema. Nach Speichern und Neustart erscheint der Eintrag
+im WinForms-Verlauf mit Zeitpunkt, Typ, Titel und Themenname, neueste fachliche
+Zeitpunkte zuerst. Kein medizinischer Inhalt wird ausgewertet. FR-OBS-002 bis
+FR-OBS-005 bleiben außerhalb dieses Slices.
+
 ## 4. Ernährungstagebuch
 
 | ID | Anforderung |

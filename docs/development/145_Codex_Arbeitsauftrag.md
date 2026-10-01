@@ -51,55 +51,33 @@ Vor jeder größeren Änderung:
 
 Keine Architektur aus älteren Chats erraten, wenn der Repository-Stand etwas anderes zeigt.
 
-## 4. Aktueller Codex-Auftrag: WinForms UI Baseline 2
+## 4. Aktueller Codex-Auftrag: HealthEntry / Timeline Slice 1
 
-### Ziel
+WinForms UI Baseline 2 ist abgeschlossen: Release-/Smoke-Prüfungen erfolgreich,
+manuelle Nutzerakzeptanz bestätigt, PR #11 gemergt. Details stehen in Dokument 147.
 
-Die laufende WinForms-Anwendung soll funktional stabil bleiben und dem Dashboard-/Wizard-Konzeptbild sichtbar näherkommen.
+Der aktuelle fachliche Slice setzt FR-OBS-001 um: allgemeine Notiz, Beobachtung oder
+Recherchenotiz mit Datum/Uhrzeit, Titel, Text und optional einem vorhandenen Thema.
+Domain/Application bleiben UI-unabhängig. Der separate JSON-Store
+`health-entries.json` liegt neben dem unveränderten `health-topics.json`.
+HealthEntry wird direkt chronologisch angezeigt; kein dupliziertes TimelineEvent.
 
-### Aufgaben
+HealthEntry / Timeline Slice 1 ist implementiert und manuell akzeptiert:
+Am 2026-10-01 bestätigte der Nutzer Anlage mit/ohne Thema, sofortige Anzeige,
+Wiederladen nach Neustart, Themenzuordnung, Deutsch/English, Tooltips, Tab-Reihenfolge
+und Layout. Der Slice wird nach grüner Abschlussprüfung ausschließlich lokal committed.
+Prüfumfang, Sicherheitsentscheidungen und Akzeptanzschritte: Dokument 148.
+FR-OBS-002 bis FR-OBS-005, SQLite und neue Spezialmodule bleiben außerhalb des Scopes.
 
-- vorhandene WinForms-Stylingklassen konsequent nutzen und bei Bedarf erweitern;
-- Shell-Proportionen, Abstände und Typografie verfeinern;
-- Navigation selected/hover/focus und Tastaturbedienung prüfen;
-- Dashboardkarten visuell angleichen und Clipping vermeiden;
-- HealthTopic-Grid und Empty State verbessern;
-- Header, Hauptaktion und Statusbereich harmonisieren;
-- Wizard visuell näher an das Konzept bringen;
-- Deutsch/Englisch-Lokalisierung erhalten;
-- bestehende Load-/Refresh-/Create-Funktion beibehalten;
-- keine neuen Fachmodule in diesen UI-Sprint hineinziehen.
-
-### Guardrails
-
-- WinForms ist primär; kein paralleles Nachbauen derselben UI-Verbesserung in WPF.
-- WPF muss weiterhin kompilieren.
-- keine Gesundheitsdaten in Logs;
-- keine externe UI-Bibliothek ohne klare Begründung;
-- keine statischen Fake-Screens statt funktionierender Controls;
-- kein Framework-Wechsel als Nebenarbeit;
-- keine SQLite-Migration als Nebenarbeit;
-- Kommentare/XML-Dokumentation erhalten oder verbessern.
-
-### Prüfung
+Alle Build-/Testläufe verwenden ausschließlich den sicheren Launcher:
 
 ```powershell
-dotnet restore
-dotnet build Sasd.HealthNotebook.sln --configuration Release
-dotnet run --project tests/Sasd.HealthNotebook.SmokeTests --configuration Release
-dotnet run --project src/Sasd.HealthNotebook.WinForms
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
 ```
 
-Bei Änderungen an gemeinsamen Services/Persistenz zusätzlich:
-
-```powershell
-dotnet run --project src/Sasd.HealthNotebook.Wpf
-```
-
-Manuell vergleichen mit:
-
-- `docs/screenshots/dashboard-concept.png`
-- `docs/screenshots/condition-wizard-concept.png`
+WPF bleibt buildbar und wird für diesen Slice nicht funktional erweitert.
+Nächster geplanter Slice: **Sources + SourceLocation + EvidenceNote**.
 
 ## 5. Frontend-Regel
 

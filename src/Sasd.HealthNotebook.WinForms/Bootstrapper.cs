@@ -13,6 +13,9 @@ namespace Sasd.HealthNotebook.WinForms;
 /// </remarks>
 public static class Bootstrapper
 {
+    /// <summary>Creates the entry service using the same topic repository and data resolver.</summary>
+    public static HealthEntryService CreateHealthEntryService() =>
+        new(new JsonHealthEntryRepository(), new JsonHealthTopicRepository());
     /// <summary>
     /// Creates the shared health-topic application service.
     /// </summary>

@@ -14,6 +14,7 @@ public sealed class NavigationControl : UserControl
     private readonly Label _titleLabel;
     private readonly NavigationButton _dashboardButton;
     private readonly NavigationButton _healthTopicsButton;
+    private readonly NavigationButton _timelineButton;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NavigationControl" /> class.
@@ -52,8 +53,12 @@ public sealed class NavigationControl : UserControl
         _dashboardButton.Click += (_, _) => RequestPage(NavigationPage.Dashboard);
         _dashboardButton.KeyDown += Navigation_KeyDown;
         _healthTopicsButton.KeyDown += Navigation_KeyDown;
+        _timelineButton = new NavigationButton { TabIndex = 2 };
+        _timelineButton.Click += (_, _) => RequestPage(NavigationPage.Timeline);
+        _timelineButton.KeyDown += Navigation_KeyDown;
 
         Controls.Add(_footerLabel);
+        Controls.Add(_timelineButton);
         Controls.Add(_healthTopicsButton);
         Controls.Add(_dashboardButton);
         Controls.Add(_titleLabel);
@@ -74,6 +79,7 @@ public sealed class NavigationControl : UserControl
     {
         _dashboardButton.Text = AppStrings.Dashboard;
         _healthTopicsButton.Text = AppStrings.HealthTopics;
+        _timelineButton.Text = AppStrings.Timeline;
         _footerLabel.Text = AppStrings.SidebarFooter;
     }
 
@@ -84,6 +90,7 @@ public sealed class NavigationControl : UserControl
     {
         _dashboardButton.IsSelected = page == NavigationPage.Dashboard;
         _healthTopicsButton.IsSelected = page == NavigationPage.HealthTopics;
+        _timelineButton.IsSelected = page == NavigationPage.Timeline;
     }
 
     private void RequestPage(NavigationPage page)
@@ -97,9 +104,11 @@ public sealed class NavigationControl : UserControl
         if (e.KeyCode is Keys.Up or Keys.Down or Keys.Home or Keys.End)
         {
             // Move focus without loading a page until the user presses Enter/Space.
-            (e.KeyCode == Keys.Home ? _dashboardButton
-                : e.KeyCode == Keys.End ? _healthTopicsButton
-                : ReferenceEquals(sender, _dashboardButton) ? _healthTopicsButton : _dashboardButton).Focus();
+            NavigationButton[] buttons = { _dashboardButton, _healthTopicsButton, _timelineButton };
+            int index = Array.IndexOf(buttons, sender);
+            int target = e.KeyCode == Keys.Home ? 0 : e.KeyCode == Keys.End ? buttons.Length - 1
+                : (index + (e.KeyCode == Keys.Down ? 1 : -1) + buttons.Length) % buttons.Length;
+            buttons[target].Focus();
             e.Handled = true;
             e.SuppressKeyPress = true;
         }
@@ -115,7 +124,10 @@ public enum NavigationPage
     Dashboard,
 
     /// <summary>Health-topic list page.</summary>
-    HealthTopics
+    HealthTopics,
+
+    /// <summary>User-entered notes, observations and research.</summary>
+    Timeline
 }
 
 /// <summary>

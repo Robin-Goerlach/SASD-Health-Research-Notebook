@@ -30,6 +30,8 @@ internal static class Program
             Console.WriteLine($"Synthetic test data directory: {LocalHealthNotebookPaths.DataDirectory}");
             await RunSharedJsonPersistenceSmokeTestAsync();
             await RunSharedRepositoryContractTestAsync();
+            await HealthEntryTests.RunAsync();
+            await SafeEntryLauncherTests.RunAsync();
             Console.WriteLine("Smoke tests passed.");
             return 0;
         }
@@ -82,7 +84,7 @@ internal static class Program
         Assert(outsideRejected, "Test runner must reject data outside the repository.");
     }
 
-    private static string FindRepositoryRoot()
+    internal static string FindRepositoryRoot()
     {
         for (DirectoryInfo? directory = new(Environment.CurrentDirectory); directory is not null; directory = directory.Parent)
         {

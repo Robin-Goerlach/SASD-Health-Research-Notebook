@@ -74,7 +74,8 @@ try {
         throw 'The development data directory is a junction or symbolic link.'
     }
     [IO.Directory]::CreateDirectory($dataDirectory.FullName) | Out-Null
-    foreach ($fileName in @('health-topics.json', 'health-topics.json.tmp', 'health-topics.backup.json')) {
+    foreach ($fileName in @('health-topics.json', 'health-topics.json.tmp', 'health-topics.backup.json',
+        'health-entries.json', 'health-entries.json.tmp', 'health-entries.backup.json', 'health-entries.json.lock')) {
         $file = Get-Item -LiteralPath (Join-Path $dataDirectory.FullName $fileName) -Force -ErrorAction SilentlyContinue
         if ($null -ne $file -and ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
             throw 'A development persistence file is a junction or symbolic link.'

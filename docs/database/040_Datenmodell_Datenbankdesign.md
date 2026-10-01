@@ -92,6 +92,13 @@ erDiagram
 
 ## 5. Tabellenentwurf
 
+Aktuelle Umsetzung HealthEntry / Timeline Slice 1 (2026-09-30): Die folgenden
+Tabellen bleiben Zielmodell. Slice 1 speichert ausschließlich allgemeine
+HealthEntries in einem separaten versionierten `health-entries.json` neben dem
+unveränderten HealthTopic-Store. HealthEntry ist selbst Timeline-Quelle; es gibt
+keine zusätzliche persistierte TimelineEvent-Kopie und keine SQLite-Migration.
+Felder, Validierung und Sicherheitsentscheidungen stehen in Dokument 148.
+
 ### 5.1 `conditions`
 
 Zentrale Tabelle für Gesundheitsthemen.
