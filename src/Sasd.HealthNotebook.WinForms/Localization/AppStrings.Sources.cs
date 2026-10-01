@@ -21,10 +21,12 @@ public static partial class AppStrings
     public static string SourceLocations => Text("Locations", "Fundstellen");
     /// <summary>Notes section heading.</summary>
     public static string SourceNotes => Text("Source notes", "Quellen-Notizen");
-    /// <summary>Empty dependent list.</summary>
-    public static string LocationsEmpty => Text("Select a source. Add an exact location with New location.", "Quelle auswählen. Mit Neue Fundstelle eine konkrete Stelle erfassen.");
-    /// <summary>Empty notes.</summary>
-    public static string NotesEmpty => Text("Select a source. Keep claims, quotations and your own summary separate.", "Quelle auswählen. Aussage, Zitat und eigene Zusammenfassung getrennt festhalten.");
+    /// <summary>No selected source for dependent records.</summary>
+    public static string SourceSelectionEmpty => Text("Select a source to view its locations and notes.", "Quelle auswählen, um ihre Fundstellen und Notizen anzuzeigen.");
+    /// <summary>Selected source has no locations.</summary>
+    public static string LocationsEmpty => Text("No locations for this source yet. Add one with New location.", "Noch keine Fundstellen für diese Quelle. Mit Neue Fundstelle eine Stelle erfassen.");
+    /// <summary>Selected source has no notes.</summary>
+    public static string NotesEmpty => Text("No notes for this source yet. Add one with New source note.", "Noch keine Notizen für diese Quelle. Mit Neue Quellen-Notiz eine Notiz erfassen.");
     /// <summary>Source title editor.</summary>
     public static string SourceTitle => Text("Source title", "Titel der Quelle");
     /// <summary>URL editor.</summary>
