@@ -124,6 +124,17 @@ FR-OBS-005 bleiben außerhalb dieses Slices.
 | FR-SRC-008 | Eine Vertrauensbewertung soll zusätzlich eine Begründung oder Kategorie unterstützen. |
 | FR-SRC-009 | Quellen können als ungeprüft, geprüft, mit Arzt/Apotheke besprochen, widersprüchlich oder verworfen markiert werden. |
 
+Akzeptanz für FR-SRC-001/002/004/005/006, Sources Slice 1: Eine Quelle mit einem
+der sieben Typen lässt sich lokal anlegen; mindestens Titel, absolute HTTP(S)-URL
+oder Autor/Institution ist vorhanden. Publikations-/Abrufdatum und externe ID
+(FR-SRC-003) sind optional. Eine konkrete Fundstelle gehört genau einer vorhandenen
+Quelle. Eine Quellen-Notiz enthält Aussage und eigene Zusammenfassung, optional
+Originalexzerpt und eine Fundstelle derselben Quelle. Fremde Fundstellen werden
+abgewiesen. Nach Neustart bleiben Metadaten, getrennte Texte und Beziehungen erhalten;
+WinForms bietet Deutsch/English. Eine Quelle kann optional einem vorhandenen Thema
+zugeordnet werden (kleine Slice-1-Teilmenge von FR-GEN-001). Kein Wahrheitsurteil,
+keine medizinische Bewertung; FR-SRC-007 bis FR-SRC-009 bleiben außerhalb dieses Slices.
+
 ## 11. Medien und Übungsbilder
 
 | ID | Anforderung |

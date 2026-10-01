@@ -110,4 +110,7 @@ public static class LocalHealthNotebookPaths
 
     /// <summary>Gets the separate entry store in the same resolved data directory.</summary>
     public static string HealthEntriesFilePath => Path.Combine(DataDirectory, "health-entries.json");
+
+    /// <summary>Gets the source notebook store in the same resolved data directory.</summary>
+    public static string SourcesFilePath => Path.Combine(DataDirectory, "sources.json");
 }

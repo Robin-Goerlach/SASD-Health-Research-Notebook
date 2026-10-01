@@ -246,3 +246,19 @@ Wichtig für den aktuellen Stand:
 - `dotnet test` wird erst zu einem belastbaren Quality Gate, sobald echte Testprojekte mit einem Testframework in der Solution vorhanden sind;
 - neue oder wesentlich geänderte MUSS-Funktionalität soll künftig mit Requirement-ID und Testzuordnung entwickelt werden;
 - ein grüner Build allein ist kein Nachweis der vollständigen fachlichen Umsetzung.
+
+## 20. Sources Slice 1 – aktuelle Prüfungen
+
+Die bestehenden beiden Smoke-Testprojekte prüfen FR-SRC-001/002/004/005/006
+einschließlich optionaler externer ID (FR-SRC-003). `SourceTests` deckt Domaingrenzen,
+Application-Referenzintegrität, alle Kategorien, Roundtrip und unabhängiges Reload ab.
+Fremde/beschädigte/neue Store-Versionen, inkonsistente Beziehungen, vorhandene
+Temp-/Lock-Dateien und fremde Backups werden abgewiesen und erhalten.
+Topic-/Entry-JSON bleibt bytegenau unverändert. `SafeEntryLauncherTests` prüft
+zusätzlich die vier Sources-Dateiguards mit echtem Windows PowerShell 5.1.
+
+Die WinForms-Smoke-Tests verwenden echte Controls und Dialoge: Quelle, Fundstelle,
+Quellen-Notiz, sofortige Anzeige, Reload, Sprachwechsel, getrennte Textanzeigen,
+Tab-Reihenfolge, Tooltips und Mindestgrößen. Alle Daten sind ausdrücklich synthetisch
+in frischen `.codex/`-Laufverzeichnissen. Keine neuen Testprojekte/Pakete.
+Manuelle Desktopakzeptanz bleibt ein separates Gate; Stand und Prüfliste in Dokument 149.

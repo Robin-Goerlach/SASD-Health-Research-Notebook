@@ -84,6 +84,10 @@ Empfohlenes Tabellenformat:
 
 | FR-UI-001 | Deutsche/englische Aktionen und Grunddaten bei Mindestgröße ohne Clipping; Navigation mit Fokus; leere Liste und stabile Refresh-Auswahl; synthetisches Anlegen/Wiederladen. | UI-LAYOUT-001, UI-WIZARD-001 | teilweise | erfüllt | Automatisierte Controls und Rendervergleich; manuelle Nutzerakzeptanz bestätigt, PR #11 gemergt, siehe Dokument 147. |
 | FR-OBS-001 | Note/Observation/Research mit fachlichem Zeitpunkt, Titel, Text und optionalem vorhandenem Thema erstellen; chronologisch wiederladen; Themen-JSON unverändert. | UT-ENTRY-001, IT-ENTRY-001, SEC-ENTRY-001, SEC-ENTRY-002, UI-ENTRY-001 | teilweise | erfüllt (Slice 1) | Domain/Service/JSON, Launcher-Dateiguards und echter WinForms-Dialog in Deutsch/English automatisiert; manuelle Nutzerakzeptanz am 2026-10-01 bestätigt. Siehe Dokument 148. |
+| FR-SRC-001, FR-SRC-002, FR-SRC-003 | Sieben Quellenkategorien, Metadaten und optionale externe ID erstellen/wiederladen; Mindestvalidierung. | UT-SRC-001, IT-SRC-001, UI-SRC-001 | teilweise | erfüllt (Slice 1; manuell akzeptiert) | Gemeinsame Domain/Application und WinForms-Dialog DE/EN; siehe Dokument 149. |
+| FR-SRC-004 | Mehrere konkrete Fundstellen gehören einer vorhandenen Quelle. | UT-SRC-001, IT-SRC-001, UI-SRC-001 | teilweise | erfüllt (Slice 1; manuell akzeptiert) | Fehlende Quelle abweisen; Typ/Locator/Notiz wiederladen. |
+| FR-SRC-005, FR-SRC-006 | Aussage, Originalexzerpt und eigene Einordnung getrennt; nur Fundstellen derselben Quelle zulässig. | UT-SRC-001, IT-SRC-001, SEC-SRC-001, UI-SRC-001 | teilweise | erfüllt (Slice 1; manuell akzeptiert) | Application prüft Referenzen, Store prüft unter Writer-Lock erneut; keine Bewertung. |
+| FR-DEV-001 / Sources | Gemeinsamer Datenpfad und vier Sources-Dateiguards; bestehende Topic-/Entry-Dateien unverändert. | IT-SRC-001, SEC-SRC-001, SEC-SRC-002 | ja | automatisiert geprüft | Version/Kennung, fremde/beschädigte Stores, Backup, Temp/Lock und tatsächlicher PowerShell-5.1-Launcher. |
 
 Die Matrix muss nicht für alle zukünftigen KANN-/SPÄTER-Anforderungen vorab ausgefüllt werden. Sie wächst mit den implementierten vertikalen Slices.
 

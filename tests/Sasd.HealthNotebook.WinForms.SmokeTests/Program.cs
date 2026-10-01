@@ -15,7 +15,7 @@ using Sasd.HealthNotebook.WinForms.Views;
 namespace Sasd.HealthNotebook.WinForms.SmokeTests;
 
 /// <summary>FR-UI-001: integration checks against real WinForms controls, without a test framework.</summary>
-internal static class Program
+internal static partial class Program
 {
     [STAThread]
     private static int Main()
@@ -56,6 +56,7 @@ internal static class Program
                         CheckShell(service, testPath, language);
                         CheckWizard(service, testPath, language);
                         CheckTimeline(service, testPath, language);
+                        CheckSources(service, testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }
@@ -63,7 +64,7 @@ internal static class Program
             };
             System.Windows.Forms.Application.Run(host);
             if (uiFailure is not null) { throw new InvalidOperationException(uiFailure.Message, uiFailure); }
-            Console.WriteLine("WinForms smoke tests passed (FR-UI-001, FR-OBS-001).");
+            Console.WriteLine("WinForms smoke tests passed (FR-UI-001, FR-OBS-001, FR-SRC-001/002/004/005/006).");
             return 0;
         }
         catch (Exception ex)
@@ -80,7 +81,7 @@ internal static class Program
     // UI-LAYOUT-001: header/cards/grid at start and minimum sizes, in both languages.
     private static void CheckShell(HealthTopicService service, string testPath, UiLanguage language)
     {
-        using var form = new MainForm(service, CreateEntryService());
+        using var form = new MainForm(service, CreateEntryService(), CreateSourceService());
         ShowOffScreen(form);
         PumpUntil(() => Field<ToolStripStatusLabel>(form, "_statusLabel").Text != AppStrings.Ready, "initial shell load");
         foreach (Size size in new[] { new Size(1280, 820), form.MinimumSize })
@@ -159,7 +160,7 @@ internal static class Program
         PumpUntil(() => wizard.IsDisposed || wizard.DialogResult == DialogResult.OK, "wizard save");
         var reloaded = new HealthTopicService(new JsonHealthTopicRepository()).GetTopicSummariesAsync().GetAwaiter().GetResult();
         Assert(reloaded.Any(topic => topic.Title == syntheticTitle), "Wizard topic did not survive repository recreation.");
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService());
         ShowOffScreen(restarted);
         WaitForReload(restarted);
         var reloadedGrid = Field<DataGridView>(Field<HealthTopicsView>(restarted, "_dashboardTopicsView"), "_grid");
@@ -182,7 +183,7 @@ internal static class Program
     {
         var entries = CreateEntryService();
         int beforeCount = entries.GetEntriesAsync().GetAwaiter().GetResult().Count;
-        using var form = new MainForm(topics, entries);
+        using var form = new MainForm(topics, entries, CreateSourceService());
         ShowOffScreen(form);
         form.Size = form.MinimumSize;
         var navigation = Field<NavigationControl>(form, "_navigation");
@@ -254,7 +255,7 @@ internal static class Program
         WaitForReload(form);
         Capture(form, Path.Combine(testPath, $"timeline-{language}-after.png"));
         form.Close();
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService());
         ShowOffScreen(restarted);
         Field<NavigationButton>(Field<NavigationControl>(restarted, "_navigation"), "_timelineButton").PerformClick();
         WaitForReload(restarted);
@@ -282,9 +283,13 @@ internal static class Program
         }
     }
 
-    private static T Field<T>(object target, string name) where T : class =>
-        (T)(target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(target)
-            ?? throw new InvalidOperationException($"Missing UI field {name}."));
+    private static T Field<T>(object target, string name) where T : class
+    {
+        for (Type? type = target.GetType(); type is not null; type = type.BaseType)
+            if (type.GetField(name, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly)?.GetValue(target) is T field)
+                return field;
+        throw new InvalidOperationException($"Missing UI field {name}.");
+    }
 
     private static IEnumerable<Control> Descendants(Control parent) =>
         parent.Controls.Cast<Control>().SelectMany(child => new[] { child }.Concat(Descendants(child)));

@@ -3,14 +3,15 @@ using Sasd.HealthNotebook.Infrastructure.Storage;
 
 namespace Sasd.HealthNotebook.SmokeTests;
 
-/// <summary>SEC-ENTRY-002: exercises the actual PowerShell 5.1 launcher file guards in synthetic repositories.</summary>
+/// <summary>SEC-ENTRY-002 / SEC-SRC-002: exercises actual PowerShell 5.1 file guards in synthetic repositories.</summary>
 internal static class SafeEntryLauncherTests
 {
     internal static async Task RunAsync()
     {
         string sourceLauncher = Path.Combine(Program.FindRepositoryRoot(), "scripts", "Invoke-SafeDevelopment.ps1");
         foreach (string fileName in new[] { "health-entries.json", "health-entries.json.tmp",
-            "health-entries.backup.json", "health-entries.json.lock" })
+            "health-entries.backup.json", "health-entries.json.lock",
+            "sources.json", "sources.json.tmp", "sources.backup.json", "sources.json.lock" })
         {
             // Keep fixtures near .codex: deeply nested GUID roots can exceed the
             // ordinary path limit of Windows PowerShell 5.1 / .NET Framework.
@@ -49,7 +50,7 @@ internal static class SafeEntryLauncherTests
             }
             string diagnostic = await output + await error;
             if (process.ExitCode == 0 || !diagnostic.Contains("A development persistence file is a junction or symbolic link.", StringComparison.Ordinal))
-                throw new InvalidOperationException("Safe launcher did not reject an entry persistence link.");
+                throw new InvalidOperationException("Safe launcher did not reject a persistence link.");
         }
     }
 }

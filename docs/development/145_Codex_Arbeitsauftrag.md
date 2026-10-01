@@ -51,21 +51,21 @@ Vor jeder größeren Änderung:
 
 Keine Architektur aus älteren Chats erraten, wenn der Repository-Stand etwas anderes zeigt.
 
-## 4. Aktueller Codex-Auftrag: HealthEntry / Timeline Slice 1
+## 4. Aktueller Codex-Auftrag: Sources + SourceLocation + EvidenceNote Slice 1
 
 WinForms UI Baseline 2 ist abgeschlossen: Release-/Smoke-Prüfungen erfolgreich,
 manuelle Nutzerakzeptanz bestätigt, PR #11 gemergt. Details stehen in Dokument 147.
 
-Der aktuelle fachliche Slice setzt FR-OBS-001 um: allgemeine Notiz, Beobachtung oder
+Der abgeschlossene HealthEntry-Slice setzt FR-OBS-001 um: allgemeine Notiz, Beobachtung oder
 Recherchenotiz mit Datum/Uhrzeit, Titel, Text und optional einem vorhandenen Thema.
 Domain/Application bleiben UI-unabhängig. Der separate JSON-Store
 `health-entries.json` liegt neben dem unveränderten `health-topics.json`.
 HealthEntry wird direkt chronologisch angezeigt; kein dupliziertes TimelineEvent.
 
-HealthEntry / Timeline Slice 1 ist implementiert und manuell akzeptiert:
+HealthEntry / Timeline Slice 1 ist abgeschlossen (PR #12 gemergt):
 Am 2026-10-01 bestätigte der Nutzer Anlage mit/ohne Thema, sofortige Anzeige,
 Wiederladen nach Neustart, Themenzuordnung, Deutsch/English, Tooltips, Tab-Reihenfolge
-und Layout. Der Slice wird nach grüner Abschlussprüfung ausschließlich lokal committed.
+und Layout. Der Slice ist auf `main` enthalten.
 Prüfumfang, Sicherheitsentscheidungen und Akzeptanzschritte: Dokument 148.
 FR-OBS-002 bis FR-OBS-005, SQLite und neue Spezialmodule bleiben außerhalb des Scopes.
 
@@ -76,8 +76,16 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDe
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
 ```
 
-WPF bleibt buildbar und wird für diesen Slice nicht funktional erweitert.
-Nächster geplanter Slice: **Sources + SourceLocation + EvidenceNote**.
+Sources + SourceLocation + EvidenceNote Slice 1 ist der aktuelle implementierte Slice
+auf `feat/sources-evidence-slice-1`; manuelle Nutzerakzeptanz ist bestätigt.
+Der Slice wird nach grüner Abschlussprüfung ausschließlich lokal committed.
+FR-SRC-001/002/004/005/006 werden durch getrennte Entitäten,
+gemeinsame Application-Verträge und einen atomar aktualisierten `sources.json`-Store
+umgesetzt. Originalzitat und eigene Einordnung bleiben getrennt. Details und
+Prüfliste: Dokument 149. Keine Vertrauensbewertung, kein Import und keine SQLite-Migration.
+
+WPF bleibt buildbar und erhält keine Sources-Oberfläche.
+Nächster geplanter Slice: **Measurement / Vitalwerte**.
 
 ## 5. Frontend-Regel
 
