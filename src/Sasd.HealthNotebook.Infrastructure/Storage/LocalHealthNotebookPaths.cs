@@ -116,4 +116,7 @@ public static class LocalHealthNotebookPaths
 
     /// <summary>Gets the separate numeric measurement store in the resolved shared directory.</summary>
     public static string MeasurementsFilePath => Path.Combine(DataDirectory, "measurements.json");
+
+    /// <summary>Shared versioned session store path.</summary>
+    public static string SessionsFilePath => Path.Combine(DataDirectory, "sessions.json");
 }

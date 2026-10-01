@@ -12,7 +12,8 @@ internal static class SafeEntryLauncherTests
         foreach (string fileName in new[] { "health-entries.json", "health-entries.json.tmp",
             "health-entries.backup.json", "health-entries.json.lock",
             "sources.json", "sources.json.tmp", "sources.backup.json", "sources.json.lock",
-            "measurements.json", "measurements.json.tmp", "measurements.backup.json", "measurements.json.lock" })
+            "measurements.json", "measurements.json.tmp", "measurements.backup.json", "measurements.json.lock",
+            "sessions.json", "sessions.json.tmp", "sessions.backup.json", "sessions.json.lock" })
         {
             // Keep fixtures near .codex: deeply nested GUID roots can exceed the
             // ordinary path limit of Windows PowerShell 5.1 / .NET Framework.
