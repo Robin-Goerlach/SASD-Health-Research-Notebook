@@ -109,6 +109,7 @@ internal static partial class Program
         tabs.SelectedIndex = 0; System.Windows.Forms.Application.DoEvents();
         Assert(locationGrid.Columns.Cast<DataGridViewColumn>().Sum(column => column.Width) <= locationGrid.ClientSize.Width, "Location columns clip.");
         Capture(form, Path.Combine(testPath, $"sources-locations-{language}-minimum.png"));
+        CheckSourceDetailLayout(form, view, testPath, language);
         form.Close();
         using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService());
         ShowOffScreen(restarted);
@@ -134,6 +135,31 @@ internal static partial class Program
         foreach (var label in Descendants(dialog).OfType<Label>()) AssertTextFits(label);
         var save = Field<Button>(dialog, "_saveButton"); AssertWithinParent(save); AssertTextFits(save);
         Assert(dialog.AcceptButton == save && dialog.CancelButton is not null, "Source dialog Enter/Escape missing.");
+    }
+    // UI-SRC-LAYOUT-001: aligned proportional details at normal/minimum size, both tabs and languages.
+    private static void CheckSourceDetailLayout(MainForm form, SourcesView view, string testPath, UiLanguage language)
+    {
+        var tabs = Descendants(view).OfType<TabControl>().Single();
+        var sourceDetails = Field<TextBox>(view, "_sourceDetails");
+        foreach (Size size in new[] { new Size(1280, 820), form.MinimumSize })
+        {
+            form.Size = size;
+            foreach (int tab in new[] { 0, 1 })
+            {
+                tabs.SelectedIndex = tab;
+                System.Windows.Forms.Application.DoEvents();
+                var right = Field<TextBox>(view, tab == 0 ? "_locationDetails" : "_noteDetails");
+                var inactive = Field<TextBox>(view, tab == 0 ? "_noteDetails" : "_locationDetails");
+                Assert(sourceDetails.Visible && right.Visible && !inactive.Visible, "Source detail tab visibility changed.");
+                AssertWithinParent(sourceDetails); AssertWithinParent(right);
+                Point leftTop = view.PointToClient(sourceDetails.PointToScreen(Point.Empty));
+                Point rightTop = view.PointToClient(right.PointToScreen(Point.Empty));
+                Assert(Math.Abs(sourceDetails.Height - right.Height) <= 1 && Math.Abs(leftTop.Y - rightTop.Y) <= 1,
+                    "Source detail areas must have equal heights and aligned tops.");
+                AssertWithinParent(Field<Button>(form, "_newTopicButton"));
+                Capture(form, Path.Combine(testPath, $"sources-aligned-{language}-{size.Width}-tab{tab}.png"));
+            }
+        }
     }
     private static void RunSourceDialog<T>(Button action, Action<T> fill) where T : SourceRecordForm
     {

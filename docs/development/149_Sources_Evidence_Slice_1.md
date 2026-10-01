@@ -156,3 +156,10 @@ vollständige sichere Release-/Smoke-Lauf einschließlich WPF erfolgreich sein.
 Der anschließende vollständige Lauf ist erfolgreich: 0 Warnungen/0 Fehler,
 beide Smoke-Testprojekte grün, Neustart-/Wiederauswahlregression in DE/EN bestanden.
 Measurement-Checkpoint und Draft PR #14 bleiben von diesem separaten Bugfix unberührt.
+
+Visuelle Ergänzung: Beide unteren Detailfelder liegen in derselben proportionalen
+40%-Zeile eines gemeinsamen TableLayoutPanel; die oberen Listen/Tabs nutzen 60%.
+Der rechte Detailtext folgt weiterhin dem gewählten Fundstellen-/Notizen-Tab.
+UI-SRC-LAYOUT-001 prüft gleiche Höhe und ausgerichtete Oberkante (maximal ein Pixel
+Rundungsabweichung), beide Tabs und normale/Mindestfenstergröße in DE/EN.
+Keine feste Detailhöhe, Änderung der Mindestgröße, Fachlogik oder Persistenz.
