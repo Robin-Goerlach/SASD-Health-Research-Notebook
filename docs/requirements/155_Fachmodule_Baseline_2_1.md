@@ -180,7 +180,7 @@ Fragen mit getrennter dokumentierter Antwort und eigene Gesprächsnotiz, keine I
 FR-SES-007 teilweise / PF-APT-006: nutzererfasste nächste Schritte, Open/Done und optionale
 Kalenderfälligkeit ohne Reminder. Atomarer gemeinsamer sessions.json-Store; Dokument 151.
 Dokument-/Messwert-/Quellenbeziehungen, Herkunftsmarkierungen, HealthActions, Export und
-unabhängiger Frageeingang bleiben offen. Manuelle Akzeptanz steht noch aus.
+unabhängiger Frageeingang bleiben offen. Slice 1 ist implementiert und manuell akzeptiert (2026-10-01).
 
 ## 13. Kontakte
 

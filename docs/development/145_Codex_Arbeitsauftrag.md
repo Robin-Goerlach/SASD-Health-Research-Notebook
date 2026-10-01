@@ -96,8 +96,8 @@ weitere Verknüpfungen bleiben offen. Details und manuelle Prüfliste: Dokument 
 WPF bleibt buildbar und erhält weder Sources- noch Measurement-Oberfläche.
 Aktuell: **Session + Questions + Follow-up Slice 1**, Branch
 `feat/session-questions-followup-slice-1`. Domain/Application/JSON und WinForms werden
-als kohärente Checkpoints über Draft PR #16 gesichert. Manuelle Akzeptanz ist offen;
-kein Ready/Merge davor. Details und Abgrenzungen stehen in Dokument 151.
+als kohärente Checkpoints über PR #16 gesichert. Manuelle Nutzerakzeptanz ist bestätigt (2026-10-01);
+der Slice ist implementiert und manuell akzeptiert. Merge bleibt separat freizugeben. Details und Abgrenzungen stehen in Dokument 151.
 
 ## 5. Frontend-Regel
 

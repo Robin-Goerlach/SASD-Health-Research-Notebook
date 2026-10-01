@@ -1,6 +1,6 @@
 # 151 – Session + Questions + Follow-up Slice 1
 
-Stand: 2026-10-01. In Entwicklung; keine manuelle Akzeptanz und nicht mergefertig.
+Stand: 2026-10-01. Implementiert und manuell akzeptiert.
 
 ## Modell und Abgrenzung
 
@@ -44,7 +44,7 @@ Follow-up hinzufügen, Antwort/offen ändern und Follow-up erledigen/wieder öff
 Optionaler Topic-Bezug; aktuelle Titel erst bei Anzeige auflösen. Kein Cascading Delete.
 Fragen/Antworten/Nachbereitung sind Nutzerdokumentation, keine medizinisch bestätigten Fakten.
 
-## Nachweise und offenes Gate
+## Nachweise
 
 UT/IT/SEC-SES-001 im gemeinsamen Smoke-Testprojekt prüft Validierung, Beziehungen,
 unabhängiges Reload, Sortierung, Statusänderungen, Store-Guards, Backup, Temp/Lock
@@ -58,15 +58,21 @@ proportionale untere Detailzeile. WPF erhält keine neue Session-Oberfläche.
 Session-Metadaten sind im Slice create-only; Frageantwort und Follow-up-Status
 sind gezielt änderbar. Die persönliche Session-Notiz wird beim Erstellen erfasst;
 spätere Gesprächsantworten und nächste Schritte über die getrennten Kindobjekte.
-Der Draft-PR dient Backup/CI; keine Freigabe zum Merge.
+PR #16 enthält den implementierten und manuell akzeptierten Slice; Merge bleibt ein separater Freigabeschritt.
 
 Der vollständige Safe-Development-Lauf ist grün: Release einschließlich WPF,
 0 Warnungen/0 Fehler, beide Smoke-Testprojekte und alle bestehenden Regressionen.
 Synthetische Renderbilder bei Mindestgröße wurden geprüft; keine manuelle
 Desktopakzeptanz wird daraus abgeleitet. Der frühe Backend-Checkpoint `8e38a3e`
-ist über Draft PR #16 gesichert; weitere kohärente UI-Checkpoints bleiben Draft.
+wurde früh über Draft PR #16 gesichert; UI-Checkpoint `827bd1d` und manuelle Akzeptanz folgen auf demselben Branch.
 
-## Manuelle Akzeptanz – offen
+## Manuelle Akzeptanz – bestätigt
+
+Der Nutzer bestätigte am 2026-10-01: Navigation und verständlichen Empty State,
+Sessions mit/ohne HealthTopic, neue Fragen und getrennte Antwortnotizen,
+beantwortet/offen, Follow-ups mit optionaler Fälligkeit und erledigt/offen,
+Sessionwechsel, Refresh, Erhalt nach Neustart, Deutsch/English, plausible Tooltips
+und Tab-Reihenfolge sowie Layout ohne abgeschnittene wichtige Controls.
 
 Computer Use bietet in dieser Sitzung keine native Desktopsteuerung. Automatisierte
 Control-/Renderprüfungen ersetzen keine manuelle Nutzerakzeptanz.

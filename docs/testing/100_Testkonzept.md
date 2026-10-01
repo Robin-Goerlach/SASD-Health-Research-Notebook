@@ -308,4 +308,4 @@ SEC-SES-002 ergänzt vier Session-Dateiguards mit echtem Windows PowerShell 5.1.
 UI-SES-001 nutzt echte Session-/Frage-/Follow-up-Dialoge, Antwortänderung,
 Statuswechsel, Themenbezug, Neustart mit frischen Services und Wiederauswahl ohne
 Refresh, DE/EN sowie Mindestgröße. Alle vorhandenen Regressionen bleiben aktiv.
-Manuelle Desktopakzeptanz bleibt ein eigenes Gate; Prüfliste und Grenzen in Dokument 151.
+Manuelle Desktopakzeptanz als eigenes Gate am 2026-10-01 vom Nutzer bestätigt; Prüfumfang und Grenzen in Dokument 151.
