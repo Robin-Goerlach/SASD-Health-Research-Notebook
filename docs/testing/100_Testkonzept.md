@@ -296,3 +296,16 @@ Test-IDs: UT-MEA-001, IT-MEA-001, SEC-MEA-001, SEC-MEA-002, UI-MEA-001.
 Manuelle Desktopakzeptanz ist bestätigt; genaue Abdeckung, Prüfliste und Abgrenzungen in Dokument 150.
 Kein weiteres Testprojekt, keine zusätzlichen Pakete, ausschließlich synthetische
 Daten unter `.codex/`. Ein grüner automatisierter Lauf ersetzt dieses manuelle Gate nicht.
+
+## 22. Session + Questions + Follow-up Slice 1
+
+UT/IT/SEC-SES-001 prüft Session-/Kindvalidierung, optionale Themen, chronologische
+Sortierung, getrennte Antwortnotizen, beantwortet/offen und Follow-up-Status,
+Kalenderfälligkeit, unabhängiges Reload und Referenzintegrität auch im Repository.
+Version/Kennung, beschädigte/fremde/zukünftige Stores, Backup, Temp/Lock und
+bytegenauer Erhalt von Topic-/Entry-/Source-/Measurement-Dateien sind abgesichert.
+SEC-SES-002 ergänzt vier Session-Dateiguards mit echtem Windows PowerShell 5.1.
+UI-SES-001 nutzt echte Session-/Frage-/Follow-up-Dialoge, Antwortänderung,
+Statuswechsel, Themenbezug, Neustart mit frischen Services und Wiederauswahl ohne
+Refresh, DE/EN sowie Mindestgröße. Alle vorhandenen Regressionen bleiben aktiv.
+Manuelle Desktopakzeptanz bleibt ein eigenes Gate; Prüfliste und Grenzen in Dokument 151.

@@ -10,7 +10,8 @@ Typen: DoctorVisit, Checkup, Coaching, Physiotherapy, NutritionConsultation,
 OtherConsultation. Status: Planned, Completed, Cancelled. Keine automatischen Übergänge.
 SessionQuestion und SessionFollowUp gehören jeweils genau einer Session.
 Frage und Antwortnotiz sind getrennte Texte (je 4000); explizite SortOrder und
-IsAnswered. Follow-up ist ein selbst eingegebener nächster Schritt (4000), Open/Done.
+IsAnswered. Follow-up ist ein selbst eingegebener nächster Schritt (4000), Open/Done
+mit optionaler `DateOnly DueDate` ohne Zeitzonenumrechnung oder Reminder.
 
 FR-SES-001/002 sowie Teilumfang von FR-SES-003/004/007/008 sind betroffen.
 Dokument-/Messwert-/Quellenverknüpfungen, Kontakte als eigenes Modul,
@@ -49,8 +50,46 @@ UT/IT/SEC-SES-001 im gemeinsamen Smoke-Testprojekt prüft Validierung, Beziehung
 unabhängiges Reload, Sortierung, Statusänderungen, Store-Guards, Backup, Temp/Lock
 und bytegenauen Erhalt der vier bestehenden Stores. SEC-SES-002 erweitert den echten
 PowerShell-5.1-Launcher-Test um alle vier Session-Dateinamen.
-WinForms und manuelle Akzeptanz werden im nächsten kohärenten Zwischenstand ergänzt.
+UI-SES-001 prüft echte Dialoge, getrennte Antwortänderung, Follow-up-Status und
+Fälligkeit, Themenbezug, frische Shell/Services und Wiederauswahl ohne Refresh
+in Deutsch/English. WinForms nutzt die bestehenden Controls, Styling, Localization
+und Dialogbasis. Termine links, Fragen/Nachbereitung in rechten Tabs, gemeinsame
+proportionale untere Detailzeile. WPF erhält keine neue Session-Oberfläche.
+Session-Metadaten sind im Slice create-only; Frageantwort und Follow-up-Status
+sind gezielt änderbar. Die persönliche Session-Notiz wird beim Erstellen erfasst;
+spätere Gesprächsantworten und nächste Schritte über die getrennten Kindobjekte.
 Der Draft-PR dient Backup/CI; keine Freigabe zum Merge.
+
+Der vollständige Safe-Development-Lauf ist grün: Release einschließlich WPF,
+0 Warnungen/0 Fehler, beide Smoke-Testprojekte und alle bestehenden Regressionen.
+Synthetische Renderbilder bei Mindestgröße wurden geprüft; keine manuelle
+Desktopakzeptanz wird daraus abgeleitet. Der frühe Backend-Checkpoint `8e38a3e`
+ist über Draft PR #16 gesichert; weitere kohärente UI-Checkpoints bleiben Draft.
+
+## Manuelle Akzeptanz – offen
+
+Computer Use bietet in dieser Sitzung keine native Desktopsteuerung. Automatisierte
+Control-/Renderprüfungen ersetzen keine manuelle Nutzerakzeptanz.
+Vom Repository aus nach grünem Validate-Lauf:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
+```
+
+1. Termine & Fragen / Sessions öffnen; Empty State oder ausschließlich synthetische Daten.
+2. `CODEX TEST – Session` mit Datum/Uhrzeit, Typ/Status, optional synthetischem Thema
+   und Kontakt/Notiz anlegen. Eine zweite Session ohne Thema anlegen.
+3. Eigene synthetische Frage hinzufügen; Antwort separat dokumentieren, beantwortet
+   markieren und wieder öffnen. Keine Aussage wird von der App bestätigt.
+4. Synthetischen nächsten Schritt hinzufügen, optionales Datum prüfen, erledigen und
+   wieder öffnen. Keine Benachrichtigung oder medizinischer Vorschlag.
+5. Refresh und Wechsel zwischen den beiden Sessions ohne zusätzlichen Refresh prüfen.
+6. Schließen und mit demselben Safe-Befehl neu starten; Fragen, Antwortnotiz und
+   Follow-up/Status/Fälligkeit nach Wiederauswahl erhalten.
+7. Deutsch/English, Tooltips, Tab/Enter/Escape sowie Mindestgröße ohne wichtiges Clipping.
+
+Nur `.codex/synthetic-development-data/sessions.json` wird für neue Sessiondaten verwendet.
+Benutzer-Wizard-`.resx` unverändert/untracked; `.codex/` nicht versioniert.
 
 Keine medizinische Bewertung, Diagnose, Therapie-, Medikamenten-/Dosislogik,
 Kalenderintegration, Benachrichtigung, Cloud-Sync oder generische Workflow-Engine.

@@ -13,4 +13,4 @@ public sealed record CreateSessionRequest(DateTimeOffset ScheduledAt, string Tit
 /// <summary>User-entered question and separately documented answer.</summary>
 public sealed record CreateSessionQuestionRequest(Guid SessionId, string Text, int SortOrder = 0, bool IsAnswered = false, string? AnswerNote = null);
 /// <summary>User-entered next step, without medical recommendation.</summary>
-public sealed record CreateSessionFollowUpRequest(Guid SessionId, string Text, SessionFollowUpStatus Status = SessionFollowUpStatus.Open);
+public sealed record CreateSessionFollowUpRequest(Guid SessionId, string Text, SessionFollowUpStatus Status = SessionFollowUpStatus.Open, DateOnly? DueDate = null);

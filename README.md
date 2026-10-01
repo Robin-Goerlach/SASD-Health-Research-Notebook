@@ -15,6 +15,7 @@ A working .NET desktop application baseline already exists with:
 - a WinForms timeline for notes, observations and research entries, stored separately in `health-entries.json`;
 - a WinForms source workspace with exact locations and source notes, separating original excerpts from personal summaries in a versioned `sources.json` store (Slice 1; manually accepted);
 - a WinForms measurement workspace for blood pressure (separate systolic/diastolic values and optional pulse), pulse, body temperature, blood glucose and weight, with explicit fixed units in a separate `measurements.json` store (Slice 1; manually accepted);
+- a WinForms session workspace for appointments, ordered questions with separate answer notes and user-entered follow-ups with optional due dates in `sessions.json` (Slice 1; manual acceptance pending);
 - a functional WPF application shell;
 - a first WinForms frontend baseline using the same application services and JSON persistence;
 - a first "new health topic" wizard;
@@ -161,7 +162,7 @@ For an existing developer shell, an explicit override is also supported:
 $env:SASD_HEALTHNOTEBOOK_DATA_PATH = Join-Path (Get-Location).Path '.codex/synthetic-development-data'
 ```
 
-The override specifies the **data directory**; `health-topics.json`, `health-entries.json`, `sources.json`, `measurements.json` and their backups
+The override specifies the **data directory**; `health-topics.json`, `health-entries.json`, `sources.json`, `measurements.json`, `sessions.json` and their backups
 are stored directly there. It must be a fully qualified ordinary drive or UNC path;
 Windows device/extended-length namespaces are rejected. Invalid configured values
 fail instead of falling back to personal data. Both frontends use the shared

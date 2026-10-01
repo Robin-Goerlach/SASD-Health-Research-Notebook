@@ -11,16 +11,18 @@ public sealed record SessionFollowUp
     public required string Text { get; init; }
     /// <summary>User-maintained state.</summary>
     public required SessionFollowUpStatus Status { get; init; }
+    /// <summary>Optional user-selected calendar due date; no reminder is generated.</summary>
+    public DateOnly? DueDate { get; init; }
     /// <summary>Technical creation time.</summary>
     public required DateTimeOffset CreatedAt { get; init; }
     /// <summary>Technical last update time.</summary>
     public required DateTimeOffset ModifiedAt { get; init; }
     /// <summary>Creates a next step without reminders or inferred actions.</summary>
-    public static SessionFollowUp Create(Guid sessionId, string text, SessionFollowUpStatus status = SessionFollowUpStatus.Open)
+    public static SessionFollowUp Create(Guid sessionId, string text, SessionFollowUpStatus status = SessionFollowUpStatus.Open, DateOnly? dueDate = null)
     {
         var now = DateTimeOffset.Now;
         var followUp = new SessionFollowUp { Id = Guid.NewGuid(), SessionId = sessionId, Text = text?.Trim() ?? string.Empty,
-            Status = status, CreatedAt = now, ModifiedAt = now };
+            Status = status, DueDate = dueDate, CreatedAt = now, ModifiedAt = now };
         followUp.Validate(); return followUp;
     }
     /// <summary>Updates only the explicitly selected state.</summary>

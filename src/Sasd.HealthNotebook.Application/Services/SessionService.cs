@@ -51,7 +51,7 @@ public sealed class SessionService
     public async Task<SessionFollowUp> CreateFollowUpAsync(CreateSessionFollowUpRequest request, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        var followUp = SessionFollowUp.Create(request.SessionId, request.Text, request.Status);
+        var followUp = SessionFollowUp.Create(request.SessionId, request.Text, request.Status, request.DueDate);
         await RequireSessionAsync(followUp.SessionId, cancellationToken).ConfigureAwait(false);
         await _sessions.AddFollowUpAsync(followUp, cancellationToken).ConfigureAwait(false); return followUp;
     }

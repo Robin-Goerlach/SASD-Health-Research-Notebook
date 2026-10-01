@@ -3,7 +3,7 @@ using Sasd.HealthNotebook.WinForms.Styling;
 
 namespace Sasd.HealthNotebook.WinForms.Forms;
 
-/// <summary>Shared presentation layout and save lifecycle for the three small source dialogs.</summary>
+/// <summary>Shared presentation layout and save lifecycle for small notebook record dialogs.</summary>
 public abstract class SourceRecordForm : Form
 {
     private readonly TableLayoutPanel _fields;
@@ -57,14 +57,18 @@ public abstract class SourceRecordForm : Form
     }
     /// <summary>Calls the specific Application use case. No business rules live in the dialog.</summary>
     protected abstract Task SaveRecordAsync();
+    /// <summary>Localized validation guidance supplied by the record family.</summary>
+    protected virtual string ValidationMessage => AppStrings.SourceValidationFailed;
+    /// <summary>Localized operation name for content-free technical errors.</summary>
+    protected virtual string SaveOperation => AppStrings.OperationSaveSourceRecord;
     private async Task SaveAsync()
     {
         if (_saving) return;
         _saving = true; _saveButton.Enabled = false; _validationLabel.Text = string.Empty;
         bool saved = false;
         try { await SaveRecordAsync(); saved = true; }
-        catch (ArgumentException) { _validationLabel.Text = AppStrings.SourceValidationFailed; }
-        catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationSaveSourceRecord); }
+        catch (ArgumentException) { _validationLabel.Text = ValidationMessage; }
+        catch { UiErrorHandler.ShowSafeError(this, SaveOperation); }
         finally { _saving = false; _saveButton.Enabled = true; }
         if (saved) { DialogResult = DialogResult.OK; Close(); }
     }

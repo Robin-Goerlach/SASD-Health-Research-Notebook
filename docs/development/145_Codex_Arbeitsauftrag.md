@@ -51,7 +51,7 @@ Vor jeder größeren Änderung:
 
 Keine Architektur aus älteren Chats erraten, wenn der Repository-Stand etwas anderes zeigt.
 
-## 4. Aktueller Codex-Auftrag: Measurement / Vitalwerte Slice 1
+## 4. Aktueller Codex-Auftrag: Session + Questions + Follow-up Slice 1
 
 WinForms UI Baseline 2 ist abgeschlossen: Release-/Smoke-Prüfungen erfolgreich,
 manuelle Nutzerakzeptanz bestätigt, PR #11 gemergt. Details stehen in Dokument 147.
@@ -83,7 +83,7 @@ gemeinsame Application-Verträge und einen atomar aktualisierten `sources.json`-
 umgesetzt. Originalzitat und eigene Einordnung bleiben getrennt. Details und
 Prüfliste: Dokument 149. Keine Vertrauensbewertung, kein Import und keine SQLite-Migration.
 
-Measurement / Vitalwerte Slice 1 ist der aktuelle implementierte Slice auf
+Measurement / Vitalwerte Slice 1 ist abgeschlossen (PR #14 gemergt), zuletzt auf
 `feat/measurements-vitals-slice-1`; die manuelle Nutzerakzeptanz ist bestätigt (2026-10-01). Der Sources-Regressionsfix aus PR #15 ist integriert.
 Blutdruck wird mit getrennten systolischen/diastolischen Zahlen und optionalem Puls
 dokumentiert. Puls, Körpertemperatur, Blutzucker und Körpergewicht verwenden
@@ -94,7 +94,10 @@ FR-MEA-001/002/004/005/007 sowie der Themenbezug aus FR-MEA-006 werden abgedeckt
 weitere Verknüpfungen bleiben offen. Details und manuelle Prüfliste: Dokument 150.
 
 WPF bleibt buildbar und erhält weder Sources- noch Measurement-Oberfläche.
-Nächster geplanter Slice: **Session + Questions + Follow-up**.
+Aktuell: **Session + Questions + Follow-up Slice 1**, Branch
+`feat/session-questions-followup-slice-1`. Domain/Application/JSON und WinForms werden
+als kohärente Checkpoints über Draft PR #16 gesichert. Manuelle Akzeptanz ist offen;
+kein Ready/Merge davor. Details und Abgrenzungen stehen in Dokument 151.
 
 ## 5. Frontend-Regel
 

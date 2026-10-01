@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.Application.Services;
+using Sasd.HealthNotebook.Application.Repositories;
 using Sasd.HealthNotebook.Domain;
 using Sasd.HealthNotebook.Infrastructure.Storage;
 
@@ -22,10 +23,14 @@ internal static class SessionTests
         Assert((await service.GetSessionsAsync()).Count == 0, "Missing store not empty.");
         var first = await service.CreateSessionAsync(new(time, "CODEX TEST – Session", HealthTopicId: topicId, ContactText: "Synthetic contact", Notes: "Synthetic conversation note."));
         foreach (SessionType type in Enum.GetValues<SessionType>())
-            await service.CreateSessionAsync(new(time.AddDays((int)type + 1), "CODEX TEST – Conversation", type, SessionStatus.Completed));
+            await service.CreateSessionAsync(new(time.AddDays((int)type + 1), "CODEX TEST – Conversation", type,
+                type == SessionType.OtherConsultation ? SessionStatus.Cancelled : SessionStatus.Completed));
         var question = await service.CreateQuestionAsync(new(first.Id, "Synthetic user question?", 2));
         var earlier = await service.CreateQuestionAsync(new(first.Id, "Synthetic earlier question?", 1, true, "Synthetic documented answer."));
-        var followUp = await service.CreateFollowUpAsync(new(first.Id, "Synthetic next step."));
+        var followUp = await service.CreateFollowUpAsync(new(first.Id, "Synthetic next step.", DueDate: new DateOnly(2026, 10, 10)));
+        var otherSessionId = (await service.GetSessionsAsync())[0].Session.Id;
+        var noDueDate = await service.CreateFollowUpAsync(new(otherSessionId, "Synthetic step without date."));
+        Assert((await Service().GetSessionDetailsAsync(otherSessionId)).FollowUps.Single().DueDate is null, "Optional due date became required.");
         await service.SetQuestionAnswerAsync(question.Id, true, "Synthetic answer note.");
         await service.SetFollowUpStatusAsync(followUp.Id, SessionFollowUpStatus.Done);
         var details = await Service().GetSessionDetailsAsync(first.Id);
@@ -33,7 +38,8 @@ internal static class SessionTests
         var actual = details.Questions.Single(item => item.Id == question.Id);
         Assert(actual.SessionId == first.Id && actual.IsAnswered && actual.AnswerNote == "Synthetic answer note." && actual.Text == question.Text
             && actual.CreatedAt == question.CreatedAt && actual.ModifiedAt >= question.ModifiedAt, "Answer fields or identity lost.");
-        Assert(details.FollowUps.Single().SessionId == first.Id && details.FollowUps.Single().Status == SessionFollowUpStatus.Done, "Follow-up status lost.");
+        Assert(details.FollowUps.Single().SessionId == first.Id && details.FollowUps.Single().Status == SessionFollowUpStatus.Done
+            && details.FollowUps.Single().DueDate == new DateOnly(2026, 10, 10), "Follow-up status/due date lost.");
         await service.SetQuestionAnswerAsync(question.Id, false, actual.AnswerNote);
         await service.SetFollowUpStatusAsync(followUp.Id, SessionFollowUpStatus.Open);
         Assert(!(await Service().GetSessionDetailsAsync(first.Id)).Questions.Single(item => item.Id == question.Id).IsAnswered, "Cannot reopen question.");
@@ -41,6 +47,12 @@ internal static class SessionTests
         var sessions = await Service().GetSessionsAsync();
         Assert(sessions.Count == 7 && sessions.Zip(sessions.Skip(1)).All(pair => pair.First.Session.ScheduledAt >= pair.Second.Session.ScheduledAt), "Session chronological reload failed.");
         Assert((await service.GetSessionsAsync(topicId)).Single().HealthTopicTitle is not null, "Topic resolution failed.");
+        var renamed = new HealthTopic { Id = topicId, Title = "CODEX TEST – Current archived title", Status = HealthTopicStatus.Archived };
+        var archivedService = new SessionService(new JsonSessionRepository(), new TopicSnapshot(new[] { renamed }));
+        Assert((await archivedService.GetSessionsAsync(topicId)).Single().HealthTopicTitle == renamed.Title, "Current archived topic title not resolved.");
+        var missingService = new SessionService(new JsonSessionRepository(), new TopicSnapshot(Array.Empty<HealthTopic>()));
+        Assert((await missingService.GetSessionsAsync(topicId)).Single().Session.Id == first.Id
+            && (await missingService.GetSessionsAsync(topicId)).Single().HealthTopicTitle is null, "Missing topic lost session.");
         await Fails<ArgumentException>(() => service.CreateSessionAsync(new(time, " ")));
         await Fails<ArgumentException>(() => service.CreateSessionAsync(new(time, new string('x', 161))));
         await Fails<ArgumentException>(() => service.CreateSessionAsync(new(time, "CODEX TEST", Notes: new string('x', 4001))));
@@ -49,6 +61,9 @@ internal static class SessionTests
         await Fails<ArgumentException>(() => service.CreateQuestionAsync(new(Guid.NewGuid(), "Synthetic orphan?")));
         await Fails<ArgumentException>(() => service.CreateFollowUpAsync(new(Guid.NewGuid(), "Synthetic orphan.")));
         await Fails<ArgumentException>(() => service.CreateQuestionAsync(new(first.Id, " ")));
+        await Fails<ArgumentException>(() => service.CreateQuestionAsync(new(first.Id, new string('x', 4001))));
+        await Fails<ArgumentException>(() => service.CreateFollowUpAsync(new(first.Id, " ")));
+        await Fails<ArgumentException>(() => service.CreateFollowUpAsync(new(first.Id, new string('x', 4001))));
         await Fails<ArgumentException>(() => service.CreateQuestionAsync(new(first.Id, "Synthetic?", -1)));
         await Fails<ArgumentException>(() => service.SetQuestionAnswerAsync(question.Id, true, new string('x', 4001)));
         await Fails<ArgumentException>(() => service.SetQuestionAnswerAsync(Guid.NewGuid(), true, null));
@@ -68,6 +83,12 @@ internal static class SessionTests
             await RejectStore(root, bad, time);
         var orphan = json.DeepClone(); orphan["Questions"]![0]!["SessionId"] = Guid.NewGuid();
         await RejectStore(root, orphan.ToJsonString(), time);
+        var duplicate = json.DeepClone(); duplicate["Sessions"]!.AsArray().Add(duplicate["Sessions"]![0]!.DeepClone());
+        await RejectStore(root, duplicate.ToJsonString(), time);
+        var unknown = json.DeepClone(); unknown["FutureField"] = true;
+        await RejectStore(root, unknown.ToJsonString(), time);
+        var missingField = json.DeepClone(); missingField["Questions"]![0]!.AsObject().Remove("IsAnswered");
+        await RejectStore(root, missingField.ToJsonString(), time);
         foreach (string suffix in new[] { ".tmp", ".lock" })
         {
             string guard = LocalHealthNotebookPaths.SessionsFilePath + suffix;
@@ -82,6 +103,22 @@ internal static class SessionTests
             byte[] current = await File.ReadAllBytesAsync(Path.Combine(root, file.Key));
             Assert(file.Value.SequenceEqual(current), "Session writes altered an existing store.");
         }
+        string failureRoot = Path.Combine(root, "session-backup-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(failureRoot);
+        Environment.SetEnvironmentVariable(LocalHealthNotebookPaths.DataPathEnvironmentVariable, failureRoot);
+        try
+        {
+            string primary = LocalHealthNotebookPaths.SessionsFilePath, backupPath = Path.Combine(failureRoot, "sessions.backup.json");
+            await File.WriteAllBytesAsync(backupPath, valid);
+            await Fails<InvalidDataException>(() => Service().CreateSessionAsync(new(time, "CODEX TEST – Missing primary")));
+            Assert(!File.Exists(primary), "Missing primary recreated over surviving backup.");
+            await File.WriteAllBytesAsync(primary, valid);
+            await File.WriteAllTextAsync(backupPath, "Foreign synthetic backup");
+            await Fails<InvalidDataException>(() => Service().CreateSessionAsync(new(time, "CODEX TEST – Foreign backup")));
+            byte[] after = await File.ReadAllBytesAsync(primary);
+            string backupText = await File.ReadAllTextAsync(backupPath);
+            Assert(valid.SequenceEqual(after) && backupText == "Foreign synthetic backup", "Invalid backup overwritten.");
+        }
+        finally { Environment.SetEnvironmentVariable(LocalHealthNotebookPaths.DataPathEnvironmentVariable, root); }
         Console.WriteLine("Session domain/application/persistence checks passed (FR-SES-001/002/003/004/007/008, Slice 1).");
     }
     private static SessionService Service() => new(new JsonSessionRepository(), new JsonHealthTopicRepository());
@@ -103,4 +140,10 @@ internal static class SessionTests
     private static void Assert(bool ok, string message) { if (!ok) throw new InvalidOperationException(message); }
     private static async Task Fails<T>(Func<Task> action) where T : Exception
     { try { await action(); } catch (T) { return; } throw new InvalidOperationException("Expected " + typeof(T).Name); }
+    private sealed class TopicSnapshot(IReadOnlyList<HealthTopic> topics) : IHealthTopicRepository
+    {
+        public Task<IReadOnlyList<HealthTopic>> GetAllAsync(CancellationToken cancellationToken = default) => Task.FromResult(topics);
+        public Task AddAsync(HealthTopic topic, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Session service must not write topics.");
+        public Task SaveAllAsync(IReadOnlyList<HealthTopic> values, CancellationToken cancellationToken = default) => throw new InvalidOperationException("Session service must not write topics.");
+    }
 }

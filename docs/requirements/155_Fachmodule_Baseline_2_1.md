@@ -172,6 +172,16 @@ keine medizinische Bewertung; FR-SRC-007 bis FR-SRC-009 bleiben außerhalb diese
 | FR-SES-008 | Statt eines medizinisch verbindlichen Diagnosetexts wird dokumentiert, was der Nutzer verstanden oder schriftlich erhalten hat. |
 | FR-SES-009 | Session-Inhalte können in eine Arzt-/Coach-Vorbereitungs- und Nachbereitungsansicht exportiert werden. |
 
+### Implementierungsstand: Session Slice 1
+
+FR-SES-001/002: sechs Gesprächstypen, Zeitpunkt/Titel/Status und optionaler Kontaktfreitext
+sowie ein einzelnes optionales HealthTopic. FR-SES-003/004/008 teilweise: sessionbezogene
+Fragen mit getrennter dokumentierter Antwort und eigene Gesprächsnotiz, keine Interpretation.
+FR-SES-007 teilweise / PF-APT-006: nutzererfasste nächste Schritte, Open/Done und optionale
+Kalenderfälligkeit ohne Reminder. Atomarer gemeinsamer sessions.json-Store; Dokument 151.
+Dokument-/Messwert-/Quellenbeziehungen, Herkunftsmarkierungen, HealthActions, Export und
+unabhängiger Frageeingang bleiben offen. Manuelle Akzeptanz steht noch aus.
+
 ## 13. Kontakte
 
 | ID | Anforderung |

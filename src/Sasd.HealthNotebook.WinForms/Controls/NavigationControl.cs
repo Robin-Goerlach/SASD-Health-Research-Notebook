@@ -17,6 +17,7 @@ public sealed class NavigationControl : UserControl
     private readonly NavigationButton _timelineButton;
     private readonly NavigationButton _sourcesButton;
     private readonly NavigationButton _measurementsButton;
+    private readonly NavigationButton _sessionsButton;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NavigationControl" /> class.
@@ -65,6 +66,10 @@ public sealed class NavigationControl : UserControl
         _measurementsButton.Click += (_, _) => RequestPage(NavigationPage.Measurements);
         _measurementsButton.KeyDown += Navigation_KeyDown;
 
+        _sessionsButton = new NavigationButton { TabIndex = 5, UseMnemonic = false };
+        _sessionsButton.Click += (_, _) => RequestPage(NavigationPage.Sessions);
+        _sessionsButton.KeyDown += Navigation_KeyDown;
+        Controls.Add(_sessionsButton);
         Controls.Add(_footerLabel);
         Controls.Add(_measurementsButton);
         Controls.Add(_sourcesButton);
@@ -92,6 +97,7 @@ public sealed class NavigationControl : UserControl
         _timelineButton.Text = AppStrings.Timeline;
         _sourcesButton.Text = AppStrings.Sources;
         _measurementsButton.Text = AppStrings.Measurements;
+        _sessionsButton.Text = AppStrings.Sessions;
         _footerLabel.Text = AppStrings.SidebarFooter;
     }
 
@@ -105,6 +111,7 @@ public sealed class NavigationControl : UserControl
         _timelineButton.IsSelected = page == NavigationPage.Timeline;
         _sourcesButton.IsSelected = page == NavigationPage.Sources;
         _measurementsButton.IsSelected = page == NavigationPage.Measurements;
+        _sessionsButton.IsSelected = page == NavigationPage.Sessions;
     }
 
     private void RequestPage(NavigationPage page)
@@ -118,7 +125,7 @@ public sealed class NavigationControl : UserControl
         if (e.KeyCode is Keys.Up or Keys.Down or Keys.Home or Keys.End)
         {
             // Move focus without loading a page until the user presses Enter/Space.
-            NavigationButton[] buttons = { _dashboardButton, _healthTopicsButton, _timelineButton, _sourcesButton, _measurementsButton };
+            NavigationButton[] buttons = { _dashboardButton, _healthTopicsButton, _timelineButton, _sourcesButton, _measurementsButton, _sessionsButton };
             int index = Array.IndexOf(buttons, sender);
             int target = e.KeyCode == Keys.Home ? 0 : e.KeyCode == Keys.End ? buttons.Length - 1
                 : (index + (e.KeyCode == Keys.Down ? 1 : -1) + buttons.Length) % buttons.Length;
@@ -147,7 +154,9 @@ public enum NavigationPage
     Sources,
 
     /// <summary>Manually documented numeric measurements.</summary>
-    Measurements
+    Measurements,
+    /// <summary>User-documented conversations, questions and next steps.</summary>
+    Sessions
 }
 
 /// <summary>
