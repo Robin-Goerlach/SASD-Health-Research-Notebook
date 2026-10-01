@@ -11,7 +11,7 @@ namespace Sasd.HealthNotebook.WinForms.Localization;
 /// This avoids scattered hard-coded labels and prepares the UI for additional
 /// languages without introducing resource-generation complexity too early.
 /// </remarks>
-public static class AppStrings
+public static partial class AppStrings
 {
     /// <summary>Timeline navigation title.</summary>
     public static string Timeline => Text("Timeline", "Verlauf");

@@ -16,6 +16,9 @@ public sealed class MainForm : Form
 {
     private readonly HealthTopicService _healthTopicService;
     private readonly HealthEntryService _healthEntryService;
+    private readonly SourceService _sourceService;
+    private readonly SourcesView _sourcesView;
+    private readonly SourcesPresenter _sourcesPresenter;
     private readonly TimelineView _timelineView;
     private readonly TimelinePresenter _timelinePresenter;
     private readonly NavigationControl _navigation;
@@ -41,10 +44,11 @@ public sealed class MainForm : Form
     /// <summary>
     /// Initializes a new instance of the <see cref="MainForm" /> class.
     /// </summary>
-    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService)
+    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
         _healthEntryService = healthEntryService ?? throw new ArgumentNullException(nameof(healthEntryService));
+        _sourceService = sourceService ?? throw new ArgumentNullException(nameof(sourceService));
 
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -102,6 +106,7 @@ public sealed class MainForm : Form
         _newTopicButton.Click += async (_, _) =>
         {
             if (_currentPage == NavigationPage.Timeline) await ShowCreateHealthEntryAsync();
+            else if (_currentPage == NavigationPage.Sources) await ShowCreateSourceAsync();
             else await ShowCreateHealthTopicWizardAsync();
         };
 
@@ -221,6 +226,15 @@ public sealed class MainForm : Form
         _dashboardPage = CreateDashboardPage();
         _timelineView = new TimelineView();
         _timelinePresenter = new TimelinePresenter(_healthEntryService, _timelineView);
+        _sourcesView = new SourcesView();
+        _sourcesPresenter = new SourcesPresenter(_sourceService, _sourcesView);
+        _sourcesView.SourceSelected += async (_, _) =>
+        {
+            try { await _sourcesPresenter.LoadSelectionAsync(); }
+            catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
+        };
+        _sourcesView.NewLocationRequested += async (_, _) => await ShowCreateSourceLocationAsync();
+        _sourcesView.NewNoteRequested += async (_, _) => await ShowCreateSourceNoteAsync();
 
         ApplyTexts();
 
@@ -246,6 +260,7 @@ public sealed class MainForm : Form
             _dashboardPage.Dispose();
             _topicsView.Dispose();
             _timelineView.Dispose();
+            _sourcesView.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -275,6 +290,7 @@ public sealed class MainForm : Form
         _topicsView.SetTitle(AppStrings.AllHealthTopics);
         _topicsView.ApplyTexts();
         _timelineView.ApplyTexts();
+        _sourcesView.ApplyTexts();
 
         ShowPage(_currentPage);
         _statusLabel.Text = _lastLoadedTopicCount.HasValue
@@ -325,13 +341,20 @@ public sealed class MainForm : Form
             _pageDescriptionLabel.Text = AppStrings.HealthTopicsDescription;
             _contentPanel.Controls.Add(_topicsView);
         }
-        else
+        else if (page == NavigationPage.Timeline)
         {
             _pageTitleLabel.Text = AppStrings.Timeline;
             _pageDescriptionLabel.Text = AppStrings.TimelineDescription;
             _contentPanel.Controls.Add(_timelineView);
         }
-        _newTopicButton.Text = page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry : AppStrings.NewHealthTopic;
+        else
+        {
+            _pageTitleLabel.Text = AppStrings.Sources;
+            _pageDescriptionLabel.Text = AppStrings.SourcesDescription;
+            _contentPanel.Controls.Add(_sourcesView);
+        }
+        _newTopicButton.Text = page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry
+            : page == NavigationPage.Sources ? AppStrings.NewSource : AppStrings.NewHealthTopic;
     }
 
     private Control CreateDashboardPage()
@@ -359,6 +382,11 @@ public sealed class MainForm : Form
     {
         try
         {
+            if (_currentPage == NavigationPage.Sources)
+            {
+                _statusLabel.Text = AppStrings.FormatLoadedSources(await _sourcesPresenter.LoadAsync());
+                return;
+            }
             if (_currentPage == NavigationPage.Timeline)
             {
                 _statusLabel.Text = AppStrings.FormatLoadedEntries(await _timelinePresenter.LoadAsync());
@@ -397,6 +425,43 @@ public sealed class MainForm : Form
         {
             var topics = await _healthTopicService.GetTopicSummariesAsync();
             using var dialog = new CreateHealthEntryForm(_healthEntryService, topics);
+            if (dialog.ShowDialog(this) == DialogResult.OK) await ReloadSafeAsync();
+        }
+        catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
+    }
+
+    private async Task ShowCreateSourceAsync()
+    {
+        try
+        {
+            var topics = await _healthTopicService.GetTopicSummariesAsync();
+            using var dialog = new CreateSourceForm(_sourceService, topics);
+            if (dialog.ShowDialog(this) == DialogResult.OK)
+                _statusLabel.Text = AppStrings.FormatLoadedSources(await _sourcesPresenter.LoadAsync(dialog.CreatedSourceId));
+        }
+        catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
+    }
+
+    private async Task ShowCreateSourceLocationAsync()
+    {
+        var source = _sourcesView.SelectedSource;
+        if (source is null) return;
+        try
+        {
+            using var dialog = new CreateSourceLocationForm(_sourceService, source);
+            if (dialog.ShowDialog(this) == DialogResult.OK) await ReloadSafeAsync();
+        }
+        catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
+    }
+
+    private async Task ShowCreateSourceNoteAsync()
+    {
+        var source = _sourcesView.SelectedSource;
+        if (source is null) return;
+        try
+        {
+            var locations = await _sourceService.GetLocationsAsync(source.Id);
+            using var dialog = new CreateEvidenceNoteForm(_sourceService, source, locations);
             if (dialog.ShowDialog(this) == DialogResult.OK) await ReloadSafeAsync();
         }
         catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData); }
