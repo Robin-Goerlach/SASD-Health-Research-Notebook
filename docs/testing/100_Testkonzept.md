@@ -293,6 +293,6 @@ Mindestgrößen. Vorhandene Dashboard-/HealthTopic-/Timeline-/Sources-Prüfungen
 Teil desselben Laufs. WPF ist im vollständigen Release-Build enthalten.
 
 Test-IDs: UT-MEA-001, IT-MEA-001, SEC-MEA-001, SEC-MEA-002, UI-MEA-001.
-Manuelle Desktopakzeptanz steht noch aus; Prüfliste und Abgrenzungen in Dokument 150.
+Manuelle Desktopakzeptanz ist bestätigt; genaue Abdeckung, Prüfliste und Abgrenzungen in Dokument 150.
 Kein weiteres Testprojekt, keine zusätzlichen Pakete, ausschließlich synthetische
 Daten unter `.codex/`. Ein grüner automatisierter Lauf ersetzt dieses manuelle Gate nicht.

@@ -84,7 +84,7 @@ umgesetzt. Originalzitat und eigene Einordnung bleiben getrennt. Details und
 Prüfliste: Dokument 149. Keine Vertrauensbewertung, kein Import und keine SQLite-Migration.
 
 Measurement / Vitalwerte Slice 1 ist der aktuelle implementierte Slice auf
-`feat/measurements-vitals-slice-1`; die manuelle Nutzerakzeptanz steht noch aus.
+`feat/measurements-vitals-slice-1`; die manuelle Nutzerakzeptanz ist bestätigt (2026-10-01). Der Sources-Regressionsfix aus PR #15 ist integriert.
 Blutdruck wird mit getrennten systolischen/diastolischen Zahlen und optionalem Puls
 dokumentiert. Puls, Körpertemperatur, Blutzucker und Körpergewicht verwenden
 typgebundene Einheiten ohne Umrechnung. Persönliche Notiz und Messsituation bleiben

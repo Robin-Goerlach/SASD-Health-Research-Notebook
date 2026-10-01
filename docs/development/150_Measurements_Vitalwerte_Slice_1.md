@@ -1,6 +1,6 @@
 # 150 – Measurement / Vitalwerte Slice 1
 
-Stand: 2026-10-01. Implementiert; manuelle Nutzerakzeptanz noch offen.
+Stand: 2026-10-01. Implementiert und manuell akzeptiert.
 Anforderungen: FR-MEA-001/002/004/005/007; FR-MEA-006 teilweise (Gesundheitsthema).
 
 ## Modellentscheidung
@@ -90,11 +90,15 @@ WPF erhält keine Measurement-UI und bleibt Bestandteil des Release-Builds.
 Der vollständige sichere Release-Lauf einschließlich WPF und beiden Smoke-Testprojekten
 ist grün (0 Warnungen, 0 Fehler). Synthetische Renderbilder der Liste und Dialoge
 wurden geprüft. Computer Use kann die native Windows-Pipe nicht verbinden (os error 2);
-eine manuelle Desktopprüfung wurde daher nicht als bestanden gewertet.
+die manuelle Desktopakzeptanz wurde anschließend vom Nutzer bestätigt.
 
-## Manuelle Akzeptanz – ausstehend
+## Manuelle Akzeptanz – bestätigt
 
-Nach grünem vollständigem Validate-Lauf vom Repository aus starten:
+Manuelle Nutzerakzeptanz am 2026-10-01 bestätigt: Navigation, strukturierter Blutdruck mit getrennten numerischen systolischen/diastolischen Feldern und optionalem separatem Puls, eigener Puls, Blutzucker, Gewicht, feste sichtbare Einheiten, optionaler Themenbezug und Erhalt nach Neustart. Keine medizinische Bewertung, Ampelfarben oder Warnungen; deutsche Oberfläche plausibel, kein relevanter Measurement-UI-Fehler. Körpertemperatur und Englisch sind zusätzlich automatisiert geprüft; die manuelle Bestätigung nennt sie nicht ausdrücklich.
+
+Der Sources-/SourceLocation-Regressionsfix aus PR #15 ist durch den normalen main-Merge integriert. Neustart und Wiederauswahl ohne Refresh bleiben Teil des automatisierten Gates.
+
+Reproduzierbarer sicherer Startbefehl und Prüfliste:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
@@ -110,7 +114,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDe
 6. Schließen, mit demselben Launcher neu starten; alle Messungen/Themenbezüge erhalten.
 7. Deutsch/English, Tooltips, Tab/Enter/Escape und Mindestfenster ohne Clipping prüfen.
 
-Bis zur manuellen Bestätigung kein Commit/Push/PR. Die untracked Benutzer-Wizard-
+Die untracked Benutzer-Wizard-
 `.resx` bleibt unverändert; `.codex/` wird nicht versioniert.
 
 Offen außerhalb Slice 1: Edit/Delete/Archive, freie Typen/Einheiten und Umrechnung,
