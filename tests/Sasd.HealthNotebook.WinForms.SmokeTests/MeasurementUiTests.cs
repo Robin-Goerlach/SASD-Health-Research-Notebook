@@ -20,7 +20,7 @@ internal static partial class Program
         var priorBytes = priorFiles.ToDictionary(file => file, file => File.ReadAllBytes(Path.Combine(testPath, file)));
         var service = CreateMeasurementService();
         int before = service.GetMeasurementsAsync().GetAwaiter().GetResult().Count;
-        using var form = new MainForm(topics, CreateEntryService(), CreateSourceService(), service);
+        using var form = new MainForm(topics, CreateEntryService(), CreateSourceService(), service, CreateSessionService());
         ShowOffScreen(form); form.Size = form.MinimumSize;
         var navigation = Field<NavigationControl>(form, "_navigation");
         var button = Field<NavigationButton>(navigation, "_measurementsButton");
@@ -121,7 +121,7 @@ internal static partial class Program
         AssertWithinParent(action); AssertTextFits(action);
         selector.SelectedIndex = language == UiLanguage.German ? 0 : 1; WaitForReload(form);
         Capture(form, Path.Combine(testPath, $"measurements-{language}-after.png")); form.Close();
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
         ShowOffScreen(restarted);
         Field<NavigationButton>(Field<NavigationControl>(restarted, "_navigation"), "_measurementsButton").PerformClick(); WaitForReload(restarted);
         Assert(Field<DataGridView>(Field<MeasurementsView>(restarted, "_measurementsView"), "_grid").Rows.Count == before + 5, "Measurements failed shell/repository restart.");

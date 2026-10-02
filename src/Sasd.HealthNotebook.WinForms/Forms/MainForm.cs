@@ -12,7 +12,7 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 /// <summary>
 /// Main window for the Windows Forms frontend.
 /// </summary>
-public sealed class MainForm : Form
+public sealed partial class MainForm : Form
 {
     private readonly HealthTopicService _healthTopicService;
     private readonly HealthEntryService _healthEntryService;
@@ -47,12 +47,13 @@ public sealed class MainForm : Form
     /// <summary>
     /// Initializes a new instance of the <see cref="MainForm" /> class.
     /// </summary>
-    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService, MeasurementService measurementService)
+    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService, MeasurementService measurementService, SessionService sessionService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
         _healthEntryService = healthEntryService ?? throw new ArgumentNullException(nameof(healthEntryService));
         _sourceService = sourceService ?? throw new ArgumentNullException(nameof(sourceService));
         _measurementService = measurementService ?? throw new ArgumentNullException(nameof(measurementService));
+        _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
 
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
@@ -112,6 +113,7 @@ public sealed class MainForm : Form
             if (_currentPage == NavigationPage.Timeline) await ShowCreateHealthEntryAsync();
             else if (_currentPage == NavigationPage.Sources) await ShowCreateSourceAsync();
             else if (_currentPage == NavigationPage.Measurements) await ShowCreateMeasurementAsync();
+            else if (_currentPage == NavigationPage.Sessions) await ShowCreateSessionAsync();
             else await ShowCreateHealthTopicWizardAsync();
         };
 
@@ -243,6 +245,7 @@ public sealed class MainForm : Form
         _sourcesView.NewLocationRequested += async (_, _) => await ShowCreateSourceLocationAsync();
         _sourcesView.NewNoteRequested += async (_, _) => await ShowCreateSourceNoteAsync();
 
+        InitializeSessions();
         ApplyTexts();
 
         Shown += async (_, _) =>
@@ -269,6 +272,7 @@ public sealed class MainForm : Form
             _timelineView.Dispose();
             _sourcesView.Dispose();
             _measurementsView.Dispose();
+            _sessionsView.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -300,6 +304,7 @@ public sealed class MainForm : Form
         _timelineView.ApplyTexts();
         _sourcesView.ApplyTexts();
         _measurementsView.ApplyTexts();
+        _sessionsView.ApplyTexts();
 
         ShowPage(_currentPage);
         _statusLabel.Text = _lastLoadedTopicCount.HasValue
@@ -368,9 +373,17 @@ public sealed class MainForm : Form
             _pageDescriptionLabel.Text = AppStrings.MeasurementsDescription;
             _contentPanel.Controls.Add(_measurementsView);
         }
+        if (page == NavigationPage.Sessions)
+        {
+            _pageTitleLabel.UseMnemonic = false;
+            _pageTitleLabel.Text = AppStrings.Sessions;
+            _pageDescriptionLabel.Text = AppStrings.SessionsDescription;
+            _contentPanel.Controls.Add(_sessionsView);
+        }
         _newTopicButton.Text = page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry
             : page == NavigationPage.Sources ? AppStrings.NewSource
-            : page == NavigationPage.Measurements ? AppStrings.NewMeasurement : AppStrings.NewHealthTopic;
+            : page == NavigationPage.Measurements ? AppStrings.NewMeasurement
+            : page == NavigationPage.Sessions ? AppStrings.NewSession : AppStrings.NewHealthTopic;
     }
 
     private Control CreateDashboardPage()
@@ -398,6 +411,11 @@ public sealed class MainForm : Form
     {
         try
         {
+            if (_currentPage == NavigationPage.Sessions)
+            {
+                _statusLabel.Text = AppStrings.FormatLoadedSessions(await _sessionsPresenter.LoadAsync());
+                return;
+            }
             if (_currentPage == NavigationPage.Measurements)
             {
                 _statusLabel.Text = AppStrings.FormatLoadedMeasurements(await _measurementsPresenter.LoadAsync());

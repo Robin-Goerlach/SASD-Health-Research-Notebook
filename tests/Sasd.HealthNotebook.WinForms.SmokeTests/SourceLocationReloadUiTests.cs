@@ -62,7 +62,7 @@ internal static partial class Program
         }
         finally { Environment.SetEnvironmentVariable(LocalHealthNotebookPaths.DataPathEnvironmentVariable, testPath); }
     }
-    private static MainForm NewSourceShell() => new(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService());
+    private static MainForm NewSourceShell() => new(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
     private static SourceLocation CreateLocationThroughDialogs()
     {
         using var form = NewSourceShell();
