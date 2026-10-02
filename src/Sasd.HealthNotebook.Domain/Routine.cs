@@ -34,7 +34,8 @@ public sealed record Routine
     /// <summary>Changes only status; preserves content and history.</summary>
     public Routine WithStatus(RoutineStatus status)
     {
-        var changed = this with { Status = status, ModifiedAt = DateTimeOffset.Now > ModifiedAt ? DateTimeOffset.Now : ModifiedAt };
+        var now = DateTimeOffset.Now;
+        var changed = this with { Status = status, ModifiedAt = now > ModifiedAt ? now : ModifiedAt };
         changed.Validate(); return changed;
     }
     /// <summary>Validates structural rules, not medical suitability.</summary>

@@ -21,21 +21,25 @@ internal static class HealthActionTests
         var time = new DateTimeOffset(2026, 10, 2, 12, 30, 0, TimeSpan.FromHours(2));
         Guid topicId = (await new JsonHealthTopicRepository().GetAllAsync())[0].Id;
         Assert((await service.GetActionsAsync()).Count == 0, "Missing store not empty.");
+        Guid sourceId = (await new JsonSourceRepository().LoadAsync()).Sources[0].Id;
+        Guid sessionId = (await new JsonSessionRepository().LoadAsync()).Sessions[0].Id;
         var action = await service.CreateActionAsync(new("  CODEX TEST – Action  ", HealthActionType.Organization,
-            HealthTopicId: topicId, Description: "Synthetic action description.", Origin: HealthActionOrigin.Coach, OriginNote: "Synthetic reported origin."));
+            HealthTopicId: topicId, Description: "Synthetic action description.", Origin: HealthActionOrigin.Coach, OriginNote: "Synthetic reported origin.", SourceId: sourceId, SessionId: sessionId));
         var independent = await service.CreateActionAsync(new("CODEX TEST – Independent", Status: HealthActionStatus.Inactive));
         Assert(independent.HealthTopicId is null && action.Title == "CODEX TEST – Action", "Optional topic/title failed.");
         foreach (var type in Enum.GetValues<HealthActionType>())
             await service.CreateActionAsync(new("CODEX TEST – Category", type, Origin: (HealthActionOrigin)(int)type));
         var archivedTopic = new HealthTopic { Id = topicId, Title = "CODEX TEST – Archived current title", Status = HealthTopicStatus.Archived };
-        var archived = new HealthActionService(new JsonHealthActionRepository(), new TopicSnapshot(new[] { archivedTopic }));
+        var archived = new HealthActionService(new JsonHealthActionRepository(), new TopicSnapshot(new[] { archivedTopic }), new JsonSourceRepository(), new JsonSessionRepository());
         var archivedAction = await archived.CreateActionAsync(new("CODEX TEST – Archived reference", HealthTopicId: topicId));
+        Assert((await service.GetActionsAsync()).Single(item => item.Action.Id == action.Id).SourceTitle is not null
+            && (await service.GetActionsAsync()).Single(item => item.Action.Id == action.Id).SessionTitle is not null, "Origin link titles not resolved.");
         Assert((await archived.GetActionsAsync()).Single(item => item.Action.Id == action.Id).HealthTopicTitle == archivedTopic.Title, "Current archived topic title not resolved.");
-        var missing = new HealthActionService(new JsonHealthActionRepository(), new TopicSnapshot(Array.Empty<HealthTopic>()));
+        var missing = new HealthActionService(new JsonHealthActionRepository(), new TopicSnapshot(Array.Empty<HealthTopic>()), new JsonSourceRepository(), new JsonSessionRepository());
         Assert((await missing.GetActionsAsync()).Single(item => item.Action.Id == action.Id).HealthTopicTitle is null, "Missing topic lost action.");
         var routine = await service.CreateRoutineAsync(new(action.Id, "CODEX TEST – Routine", "Synthetic routine description.", "Synthetic selected days"));
         var otherRoutine = await service.CreateRoutineAsync(new(independent.Id, "CODEX TEST – Other routine", Status: RoutineStatus.Paused));
-        var entry = await service.CreateProgressEntryAsync(new(routine.Id, time, ProgressCompletion.Performed, "Synthetic exact note.\r\nSecond line."));
+        var entry = await service.CreateProgressEntryAsync(new(routine.Id, time, ProgressCompletion.Performed, "Synthetic exact note.\r\nSecond line.", Count: 2));
         await service.CreateProgressEntryAsync(new(routine.Id, time.AddDays(-1), ProgressCompletion.NotPerformed));
         await service.CreateProgressEntryAsync(new(routine.Id, time.AddHours(1), ProgressCompletion.Skipped, "Synthetic skip note."));
         // Offset ordering compares instants, not the wall-clock component.
@@ -65,11 +69,15 @@ internal static class HealthActionTests
         await Fails<ArgumentException>(() => service.CreateActionAsync(new("CODEX TEST", HealthTopicId: Guid.NewGuid())));
         await Fails<ArgumentException>(() => service.CreateActionAsync(new("CODEX TEST", ActionType: (HealthActionType)999)));
         await Fails<ArgumentException>(() => service.CreateActionAsync(new("CODEX TEST", Origin: (HealthActionOrigin)999)));
+        await Fails<ArgumentException>(() => service.CreateActionAsync(new("CODEX TEST", SourceId: Guid.NewGuid())));
+        await Fails<ArgumentException>(() => service.CreateActionAsync(new("CODEX TEST", SessionId: Guid.NewGuid())));
         await Fails<ArgumentException>(() => service.CreateRoutineAsync(new(Guid.NewGuid(), "Synthetic orphan")));
         await Fails<ArgumentException>(() => service.CreateRoutineAsync(new(action.Id, " ")));
         await Fails<ArgumentException>(() => service.CreateRoutineAsync(new(action.Id, "CODEX TEST", ScheduleText: new string('x', 161))));
         await Fails<ArgumentException>(() => service.CreateProgressEntryAsync(new(Guid.NewGuid(), time)));
         await Fails<ArgumentException>(() => service.CreateProgressEntryAsync(new(routine.Id, default)));
+        await Fails<ArgumentException>(() => service.CreateProgressEntryAsync(new(routine.Id, time, Count: -1)));
+        Assert(details.ProgressEntries.Any(item => item.Count is null) && details.ProgressEntries.Single(item => item.Id == entry.Id).Count == 2, "Optional execution count roundtrip failed.");
         await Fails<ArgumentException>(() => service.CreateProgressEntryAsync(new(routine.Id, time, (ProgressCompletion)999)));
         await Fails<ArgumentException>(() => service.CreateProgressEntryAsync(new(routine.Id, time, Note: new string('x', 4001))));
         await Fails<ArgumentException>(() => service.SetRoutineStatusAsync(routine.Id, (RoutineStatus)999));
@@ -121,7 +129,7 @@ internal static class HealthActionTests
         finally { Environment.SetEnvironmentVariable(LocalHealthNotebookPaths.DataPathEnvironmentVariable, root); }
         Console.WriteLine("HealthAction/Routine/Progress domain, application, persistence and overview checks passed.");
     }
-    private static HealthActionService Service() => new(new JsonHealthActionRepository(), new JsonHealthTopicRepository());
+    private static HealthActionService Service() => new(new JsonHealthActionRepository(), new JsonHealthTopicRepository(), new JsonSourceRepository(), new JsonSessionRepository());
     private static async Task RejectStore(string root, string contents)
     {
         string child = Path.Combine(root, "action-invalid-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(child);

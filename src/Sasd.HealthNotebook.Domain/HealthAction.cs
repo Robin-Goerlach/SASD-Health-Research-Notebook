@@ -20,6 +20,10 @@ public sealed record HealthAction
     public required string Title { get; init; }
     /// <summary>Optional topic reference; no copied title or cascade.</summary>
     public Guid? HealthTopicId { get; init; }
+    /// <summary>Optional reported source reference; content is not copied.</summary>
+    public Guid? SourceId { get; init; }
+    /// <summary>Optional reported conversation reference; content is not copied.</summary>
+    public Guid? SessionId { get; init; }
     /// <summary>Personal organization category.</summary>
     public required HealthActionType ActionType { get; init; }
     /// <summary>Origin as reported by the user.</summary>
@@ -37,18 +41,18 @@ public sealed record HealthAction
     /// <summary>Creates documentation without deriving any action from health data.</summary>
     public static HealthAction Create(string title, HealthActionType type = HealthActionType.Other,
         HealthActionStatus status = HealthActionStatus.Active, Guid? healthTopicId = null,
-        string? description = null, HealthActionOrigin origin = HealthActionOrigin.SelfDefined, string? originNote = null)
+        string? description = null, HealthActionOrigin origin = HealthActionOrigin.SelfDefined, string? originNote = null, Guid? sourceId = null, Guid? sessionId = null)
     {
         var now = DateTimeOffset.Now;
         var action = new HealthAction { Id = Guid.NewGuid(), Title = title?.Trim() ?? string.Empty,
             ActionType = type, Status = status, HealthTopicId = healthTopicId, Description = description,
-            Origin = origin, OriginNote = originNote, CreatedAt = now, ModifiedAt = now };
+            Origin = origin, OriginNote = originNote, SourceId = sourceId, SessionId = sessionId, CreatedAt = now, ModifiedAt = now };
         action.Validate(); return action;
     }
     /// <summary>Checks structural rules with content-free errors.</summary>
     public void Validate()
     {
-        if (Id == Guid.Empty || HealthTopicId == Guid.Empty || CreatedAt == default || ModifiedAt < CreatedAt
+        if (Id == Guid.Empty || HealthTopicId == Guid.Empty || SourceId == Guid.Empty || SessionId == Guid.Empty || CreatedAt == default || ModifiedAt < CreatedAt
             || !Enum.IsDefined(ActionType) || !Enum.IsDefined(Status) || !Enum.IsDefined(Origin)
             || string.IsNullOrWhiteSpace(Title) || Title.Length > MaximumTitleLength
             || Description?.Length > MaximumTextLength || OriginNote?.Length > MaximumTextLength)

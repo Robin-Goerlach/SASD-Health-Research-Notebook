@@ -582,3 +582,19 @@ Die aktuelle JSON-Persistenz wird nicht durch Dokumentationsarbeit voreilig erse
 - Backup/Restore vor Schemaänderungen geklärt ist.
 
 Damit wird vermieden, dass ein vorschnelles relationales Schema die neuen Module unnötig einschränkt.
+
+## 17. HealthAction + Routine + Progress Slice 1 (2026-10-02)
+
+Aktuelle Umsetzung: ein atomarer versionierter health-actions.json-Store mit Actions,
+Routines und ProgressEntries, Kennung SASD.HealthNotebook.HealthActions, Version 1.
+HealthAction enthält optionale HealthTopicId, persönliche Kategorie, Active/Inactive,
+Beschreibung und berichtete Herkunft samt Notiz, optionale SourceId/SessionId;
+aktuelle Titel werden nur zur Anzeige aufgelöst, Inhalt/Herkunft create-only.
+Routine hat genau eine HealthActionId, Titel/Beschreibung, optionalen ScheduleText,
+Active/Paused. ProgressEntry hat genau eine RoutineId, Zeitpunkt mit Offset,
+Performed/NotPerformed/Skipped, optionale ganzzahlige Anzahl und eigene Notiz. Keine generische Elternreferenz,
+keine redundanten Topic-/Action-/Routinetitel und keine Timeline-Kopie.
+Statusänderung erhält Historie; doppelte IDs/verwaiste Kinder werden abgewiesen.
+Backup/Temp/Lock wie Sessions; keine stille Recovery und keine Migration der fünf
+bestehenden Stores. Das größere RoutineProgress-Zielmodell (Zähler, Ziele, Perioden)
+bleibt offen. Details: Dokument 152. Keine SQLite-Vorwegnahme.

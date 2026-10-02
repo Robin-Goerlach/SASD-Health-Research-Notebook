@@ -51,7 +51,7 @@ Vor jeder größeren Änderung:
 
 Keine Architektur aus älteren Chats erraten, wenn der Repository-Stand etwas anderes zeigt.
 
-## 4. Aktueller Codex-Auftrag: Session + Questions + Follow-up Slice 1
+## 4. Aktueller Codex-Auftrag: HealthAction + Routine + Progress Slice 1
 
 WinForms UI Baseline 2 ist abgeschlossen: Release-/Smoke-Prüfungen erfolgreich,
 manuelle Nutzerakzeptanz bestätigt, PR #11 gemergt. Details stehen in Dokument 147.
@@ -94,10 +94,18 @@ FR-MEA-001/002/004/005/007 sowie der Themenbezug aus FR-MEA-006 werden abgedeckt
 weitere Verknüpfungen bleiben offen. Details und manuelle Prüfliste: Dokument 150.
 
 WPF bleibt buildbar und erhält weder Sources- noch Measurement-Oberfläche.
-Aktuell: **Session + Questions + Follow-up Slice 1**, Branch
-`feat/session-questions-followup-slice-1`. Domain/Application/JSON und WinForms werden
-als kohärente Checkpoints über PR #16 gesichert. Manuelle Nutzerakzeptanz ist bestätigt (2026-10-01);
-der Slice ist implementiert und manuell akzeptiert. Merge bleibt separat freizugeben. Details und Abgrenzungen stehen in Dokument 151.
+Session + Questions + Follow-up Slice 1 ist abgeschlossen und manuell akzeptiert
+(2026-10-01), PR #16 gemergt und auf aktuellem main enthalten. Dokument 151 bleibt
+Nachweis des abgeschlossenen Slices.
+
+Aktuell: **HealthAction + Routine + Progress Slice 1**, Branch
+`feat/health-action-routine-progress-slice-1`, Draft PR #17. Backend-Checkpoint
+`8b700321389372d4a2f4f960464b65f503c012ea` wurde nach vollständigem grünem Safe-Lauf
+früh gepusht. Persönliche Maßnahmen mit Herkunft, getrennte Routinen und historische
+Durchführungseinträge; atomarer health-actions.json-Store. WinForms erhält eine
+proportionale neue Seite, kompakte Karten und Dashboard-Dokumentationszahlen.
+Anforderungen/Abgrenzungen, Tests und manuelle Prüfliste: Dokument 152.
+Manuelle Abnahme steht aus; PR bleibt Draft, kein Merge und kein nächster Slice.
 
 ## 5. Frontend-Regel
 

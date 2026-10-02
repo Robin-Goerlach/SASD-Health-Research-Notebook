@@ -23,7 +23,7 @@ internal static class Program
 
         HealthTopicService healthTopicService = Bootstrapper.CreateHealthTopicService();
 
-        using var mainForm = new Forms.MainForm(healthTopicService, Bootstrapper.CreateHealthEntryService(), Bootstrapper.CreateSourceService(), Bootstrapper.CreateMeasurementService(), Bootstrapper.CreateSessionService());
+        using var mainForm = new Forms.MainForm(healthTopicService, Bootstrapper.CreateHealthEntryService(), Bootstrapper.CreateSourceService(), Bootstrapper.CreateMeasurementService(), Bootstrapper.CreateSessionService(), Bootstrapper.CreateHealthActionService());
         System.Windows.Forms.Application.Run(mainForm);
     }
 }

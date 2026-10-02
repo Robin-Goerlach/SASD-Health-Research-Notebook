@@ -47,12 +47,13 @@ public sealed partial class MainForm : Form
     /// <summary>
     /// Initializes a new instance of the <see cref="MainForm" /> class.
     /// </summary>
-    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService, MeasurementService measurementService, SessionService sessionService)
+    public MainForm(HealthTopicService healthTopicService, HealthEntryService healthEntryService, SourceService sourceService, MeasurementService measurementService, SessionService sessionService, HealthActionService healthActionService)
     {
         _healthTopicService = healthTopicService ?? throw new ArgumentNullException(nameof(healthTopicService));
         _healthEntryService = healthEntryService ?? throw new ArgumentNullException(nameof(healthEntryService));
         _sourceService = sourceService ?? throw new ArgumentNullException(nameof(sourceService));
         _measurementService = measurementService ?? throw new ArgumentNullException(nameof(measurementService));
+        _healthActionService = healthActionService ?? throw new ArgumentNullException(nameof(healthActionService));
         _sessionService = sessionService ?? throw new ArgumentNullException(nameof(sessionService));
 
         AutoScaleDimensions = new SizeF(96, 96);
@@ -114,6 +115,7 @@ public sealed partial class MainForm : Form
             else if (_currentPage == NavigationPage.Sources) await ShowCreateSourceAsync();
             else if (_currentPage == NavigationPage.Measurements) await ShowCreateMeasurementAsync();
             else if (_currentPage == NavigationPage.Sessions) await ShowCreateSessionAsync();
+            else if (_currentPage == NavigationPage.Actions) await ShowCreateActionAsync();
             else await ShowCreateHealthTopicWizardAsync();
         };
 
@@ -246,6 +248,7 @@ public sealed partial class MainForm : Form
         _sourcesView.NewNoteRequested += async (_, _) => await ShowCreateSourceNoteAsync();
 
         InitializeSessions();
+        InitializeActions();
         ApplyTexts();
 
         Shown += async (_, _) =>
@@ -273,6 +276,7 @@ public sealed partial class MainForm : Form
             _sourcesView.Dispose();
             _measurementsView.Dispose();
             _sessionsView.Dispose();
+            _actionsView.Dispose();
         }
         base.Dispose(disposing);
     }
@@ -305,6 +309,8 @@ public sealed partial class MainForm : Form
         _sourcesView.ApplyTexts();
         _measurementsView.ApplyTexts();
         _sessionsView.ApplyTexts();
+        _actionsView.ApplyTexts();
+        _dashboardActionsOverview.ApplyTexts();
 
         ShowPage(_currentPage);
         _statusLabel.Text = _lastLoadedTopicCount.HasValue
@@ -339,9 +345,11 @@ public sealed partial class MainForm : Form
 
     private void ShowPage(NavigationPage page)
     {
+        bool changingPage = _currentPage != page;
         _currentPage = page;
         _navigation.SelectPage(page);
-        _contentPanel.Controls.Clear();
+        // Keep the active view attached when localizing; reparenting resets inherited binding managers.
+        if (changingPage) _contentPanel.Controls.Clear();
 
         if (page == NavigationPage.Dashboard)
         {
@@ -380,7 +388,14 @@ public sealed partial class MainForm : Form
             _pageDescriptionLabel.Text = AppStrings.SessionsDescription;
             _contentPanel.Controls.Add(_sessionsView);
         }
-        _newTopicButton.Text = page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry
+        if (page == NavigationPage.Actions)
+        {
+            _pageTitleLabel.UseMnemonic = false;
+            _pageTitleLabel.Text = AppStrings.Actions;
+            _pageDescriptionLabel.Text = AppStrings.ActionsDescription;
+            _contentPanel.Controls.Add(_actionsView);
+        }
+        _newTopicButton.Text = page == NavigationPage.Actions ? AppStrings.NewAction : page == NavigationPage.Timeline ? AppStrings.NewTimelineEntry
             : page == NavigationPage.Sources ? AppStrings.NewSource
             : page == NavigationPage.Measurements ? AppStrings.NewMeasurement
             : page == NavigationPage.Sessions ? AppStrings.NewSession : AppStrings.NewHealthTopic;
@@ -392,17 +407,20 @@ public sealed partial class MainForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 2,
+            RowCount = 3,
             Margin = Padding.Empty,
             BackColor = UiColors.WindowBackground
         };
 
         // Reuse this page when navigating/localizing; do not accumulate abandoned containers.
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, UiMetrics.DashboardOverviewHeight));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, UiMetrics.CompactOverviewHeight));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
         layout.Controls.Add(_dashboardView, 0, 0);
-        layout.Controls.Add(_dashboardTopicsView, 0, 1);
+        _dashboardActionsOverview.Margin = new Padding(0, 0, 0, UiMetrics.StandardSpacing);
+        layout.Controls.Add(_dashboardActionsOverview, 0, 1);
+        layout.Controls.Add(_dashboardTopicsView, 0, 2);
 
         return layout;
     }
@@ -411,6 +429,11 @@ public sealed partial class MainForm : Form
     {
         try
         {
+            if (_currentPage == NavigationPage.Actions)
+            {
+                _statusLabel.Text = AppStrings.LoadedActions(await _actionsPresenter.LoadAsync());
+                return;
+            }
             if (_currentPage == NavigationPage.Sessions)
             {
                 _statusLabel.Text = AppStrings.FormatLoadedSessions(await _sessionsPresenter.LoadAsync());
@@ -440,6 +463,8 @@ public sealed partial class MainForm : Form
                 : topicPageTopics.Count;
 
             _statusLabel.Text = AppStrings.FormatLoadedHealthTopics(_lastLoadedTopicCount.Value);
+            if (_currentPage == NavigationPage.Dashboard)
+                _dashboardActionsOverview.SetOverview(await _healthActionService.GetOverviewAsync(DateOnly.FromDateTime(DateTime.Now)));
         }
         catch
         {

@@ -14,6 +14,8 @@ public sealed record ProgressEntry
     public required DateTimeOffset OccurredAt { get; init; }
     /// <summary>User-selected execution state.</summary>
     public required ProgressCompletion Completion { get; init; }
+    /// <summary>Optional user-entered nonnegative execution count; no target or dose calculation.</summary>
+    public int? Count { get; init; }
     /// <summary>Optional personal note, without interpretation.</summary>
     public string? Note { get; init; }
     /// <summary>Technical creation instant.</summary>
@@ -21,18 +23,18 @@ public sealed record ProgressEntry
     /// <summary>Technical modification instant.</summary>
     public required DateTimeOffset ModifiedAt { get; init; }
     /// <summary>Appends a documented execution, without changing other entries.</summary>
-    public static ProgressEntry Create(Guid routineId, DateTimeOffset occurredAt, ProgressCompletion completion, string? note = null)
+    public static ProgressEntry Create(Guid routineId, DateTimeOffset occurredAt, ProgressCompletion completion, string? note = null, int? count = null)
     {
         var now = DateTimeOffset.Now;
         var entry = new ProgressEntry { Id = Guid.NewGuid(), RoutineId = routineId, OccurredAt = occurredAt,
-            Completion = completion, Note = note, CreatedAt = now, ModifiedAt = now };
+            Completion = completion, Note = note, Count = count, CreatedAt = now, ModifiedAt = now };
         entry.Validate(); return entry;
     }
     /// <summary>Validates structure and bounds only.</summary>
     public void Validate()
     {
         if (Id == Guid.Empty || RoutineId == Guid.Empty || OccurredAt == default || CreatedAt == default
-            || ModifiedAt < CreatedAt || !Enum.IsDefined(Completion) || Note?.Length > HealthAction.MaximumTextLength)
+            || ModifiedAt < CreatedAt || Count < 0 || !Enum.IsDefined(Completion) || Note?.Length > HealthAction.MaximumTextLength)
             throw new ArgumentException("Invalid progress metadata or text length.");
     }
 }

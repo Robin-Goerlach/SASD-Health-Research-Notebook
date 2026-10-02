@@ -9,7 +9,7 @@ public static class UiMetrics
     public const int SidebarWidth = 240;
 
     /// <summary>Height of the page header.</summary>
-    public const int HeaderHeight = 156;
+    public const int HeaderHeight = 144;
 
     /// <summary>Default distance between related controls.</summary>
     public const int StandardSpacing = 12;
@@ -28,6 +28,9 @@ public static class UiMetrics
 
     /// <summary>Height of the dashboard overview including its boundary note.</summary>
     public const int DashboardOverviewHeight = 224;
+
+    /// <summary>Compact three-card strip including section spacing.</summary>
+    public const int CompactOverviewHeight = 108;
 
     /// <summary>Minimum height of primary and secondary command buttons.</summary>
     public const int ActionHeight = 38;
