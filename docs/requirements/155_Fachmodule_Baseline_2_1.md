@@ -111,6 +111,26 @@ Timeline-Integration und benutzerdefinierte Typen bleiben spÃ¤tere Slices.
 | FR-ROU-006 | Tagesfortschritt wird historisch gespeichert und nicht nur als aktueller Zustand Ã¼berschrieben. |
 | FR-ROU-007 | Routine kann pausiert oder fÃ¼r einen Tag Ã¼bersprungen werden, ohne die Historie zu lÃ¶schen. |
 
+### Akzeptanz: HealthAction + Routine + Progress Slice 1
+
+FR-ACT-001/002/005, Teilumfang FR-ACT-004 und FR-ROU-001/002/003/004/006/007:
+Eine selbst erfasste Maßnahme mit Titel, persönlicher Kategorie, Status, Beschreibung
+und berichteter Herkunft kann mit/ohne ein vorhandenes Gesundheitsthema gespeichert
+werden. Herkunft und Maßnahmeninhalt sind im Slice create-only (keine Änderung
+professioneller Anweisungen). Fehlende/archivierte Themen verlieren keine Maßnahme.
+Eine getrennte Routine gehört genau einer vorhandenen Maßnahme; persönlicher Rhythmus
+ist optionaler Freitext (auch täglich/wöchentlich/ausgewählte Tage), ohne Scheduler.
+Pausieren/Reaktivieren erhält alle historischen Einträge. Fortschritt gehört genau
+einer Routine und dokumentiert Zeitpunkt mit Offset, durchgeführt/nicht durchgeführt/
+übersprungen und eigene Notiz; neueste tatsächliche Zeitpunkte zuerst. Deutsch/English,
+Neustart und Referenzintegrität sind abgesichert. Aktive Maßnahmen/Routinen und
+heutige Einträge sind reine Dokumentationszahlen, keine medizinische Bewertung.
+Session-/Source-IDs (FR-ACT-003), Zeiträume, Maßnahmenbearbeitung/Audit (FR-ACT-006),
+strukturierte Tagesplanung, Zähler/Menge/Dauer/Mess-/Dokumentationsaufgaben und
+Zielquoten (Rest FR-ROU-003/004/005), eigenständige Routinen ohne Action, Reminder,
+allgemeine Timeline und weitere Modulbeziehungen bleiben spätere Slices.
+Details und manuelles Gate: Dokument 152.
+
 ## 9. Notification Service
 
 | ID | Anforderung |

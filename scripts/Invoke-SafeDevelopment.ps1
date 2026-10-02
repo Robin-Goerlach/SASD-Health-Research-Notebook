@@ -78,7 +78,8 @@ try {
         'health-entries.json', 'health-entries.json.tmp', 'health-entries.backup.json', 'health-entries.json.lock',
         'sources.json', 'sources.json.tmp', 'sources.backup.json', 'sources.json.lock',
         'measurements.json', 'measurements.json.tmp', 'measurements.backup.json', 'measurements.json.lock',
-        'sessions.json', 'sessions.json.tmp', 'sessions.backup.json', 'sessions.json.lock')) {
+        'sessions.json', 'sessions.json.tmp', 'sessions.backup.json', 'sessions.json.lock',
+        'health-actions.json', 'health-actions.json.tmp', 'health-actions.backup.json', 'health-actions.json.lock')) {
         $file = Get-Item -LiteralPath (Join-Path $dataDirectory.FullName $fileName) -Force -ErrorAction SilentlyContinue
         if ($null -ne $file -and ($file.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
             throw 'A development persistence file is a junction or symbolic link.'
