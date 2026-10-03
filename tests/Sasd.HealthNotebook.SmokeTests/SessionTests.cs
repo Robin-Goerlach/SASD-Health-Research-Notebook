@@ -75,11 +75,11 @@ internal static class SessionTests
         Assert(LocalHealthNotebookPaths.SessionsFilePath == Path.Combine(root, "sessions.json"), "Shared session path ignored.");
         byte[] valid = await File.ReadAllBytesAsync(LocalHealthNotebookPaths.SessionsFilePath);
         var json = JsonNode.Parse(valid)!.AsObject();
-        Assert(json["Store"]!.GetValue<string>() == "SASD.HealthNotebook.Sessions" && json["Version"]!.GetValue<int>() == 1, "Store contract wrong.");
+        Assert(json["Store"]!.GetValue<string>() == "SASD.HealthNotebook.Sessions" && json["Version"]!.GetValue<int>() == 2, "Store contract wrong.");
         Assert(json["Sessions"]!.AsArray().All(item => item!["HealthTopicTitle"] is null), "Redundant topic title.");
         var backup = await File.ReadAllBytesAsync(Path.Combine(root, "sessions.backup.json"));
         Assert(JsonNode.Parse(backup)!["Questions"]!.AsArray().Single(item => item!["Id"]!.GetValue<Guid>() == question.Id)!["IsAnswered"]!.GetValue<bool>() == false, "Last-good backup incorrect.");
-        foreach (string bad in new[] { "{", "", "{}", json.ToJsonString().Replace("SASD.HealthNotebook.Sessions", "Foreign.Store"), json.ToJsonString().Replace("\"Version\":1", "\"Version\":2") })
+        foreach (string bad in new[] { "{", "", "{}", json.ToJsonString().Replace("SASD.HealthNotebook.Sessions", "Foreign.Store"), json.ToJsonString().Replace("\"Version\":2", "\"Version\":99") })
             await RejectStore(root, bad, time);
         var orphan = json.DeepClone(); orphan["Questions"]![0]!["SessionId"] = Guid.NewGuid();
         await RejectStore(root, orphan.ToJsonString(), time);

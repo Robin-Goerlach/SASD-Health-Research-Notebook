@@ -14,6 +14,8 @@ public sealed record HealthAction
     public const int MaximumTitleLength = 160;
     /// <summary>Maximum free-text length.</summary>
     public const int MaximumTextLength = 4000;
+    /// <summary>Separate archive flag; absent in v1 stores means false. Business status is preserved.</summary>
+    public bool IsArchived { get; init; }
     /// <summary>Stable identity.</summary>
     public required Guid Id { get; init; }
     /// <summary>User-entered title.</summary>

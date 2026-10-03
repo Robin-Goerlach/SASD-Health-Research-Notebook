@@ -22,25 +22,25 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
     public async Task<HealthActionNotebook> LoadAsync(CancellationToken cancellationToken = default)
     {
         var store = await LoadPrimaryAsync(cancellationToken).ConfigureAwait(false);
-        return new HealthActionNotebook(store.Actions.AsReadOnly(), store.Routines.AsReadOnly(), store.ProgressEntries.AsReadOnly());
+        return new HealthActionNotebook(store.Actions.AsReadOnly(), store.Routines.AsReadOnly(), store.ProgressEntries.AsReadOnly()) { Revisions = store.Revisions!.AsReadOnly() };
     }
     /// <inheritdoc />
     public Task AddActionAsync(HealthAction action, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(action); action.Validate();
-        return WriteAsync(store => store.Actions.Add(action), cancellationToken);
+        return WriteAsync(store => { store.Actions.Add(action); return true; }, cancellationToken);
     }
     /// <inheritdoc />
     public Task AddRoutineAsync(Routine routine, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(routine); routine.Validate();
-        return WriteAsync(store => store.Routines.Add(routine), cancellationToken);
+        return WriteAsync(store => { store.Routines.Add(routine); return true; }, cancellationToken);
     }
     /// <inheritdoc />
     public Task AddProgressEntryAsync(ProgressEntry entry, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(entry); entry.Validate();
-        return WriteAsync(store => store.ProgressEntries.Add(entry), cancellationToken);
+        return WriteAsync(store => { store.ProgressEntries.Add(entry); return true; }, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -50,10 +50,11 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
             int index = store.Routines.FindIndex(routine => routine.Id == id);
             if (index < 0) throw new ArgumentException("The selected routine does not exist.");
             // Apply only status to the latest record, preserving provenance and history.
-            store.Routines[index] = store.Routines[index].WithStatus(status);
+            if (store.Routines[index].Status == status) return false;
+            store.Routines[index] = store.Routines[index].WithStatus(status); return true;
         }, cancellationToken);
 
-    private async Task WriteAsync(Action<HealthActionStore> append, CancellationToken cancellationToken)
+    private async Task WriteAsync(Func<HealthActionStore, bool> append, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         string directory = Path.GetDirectoryName(_path)!;
@@ -68,7 +69,8 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
         RejectLink(backupPath);
         if (Directory.Exists(backupPath)) throw new InvalidDataException("Action backup is unavailable; existing files retained.");
         if (File.Exists(backupPath)) await LoadStoreAsync(backupPath, cancellationToken).ConfigureAwait(false);
-        append(store);
+        if (!append(store)) return;
+        store.Version = 2;
         // Direct repository clients must also preserve IDs and parent references.
         ValidateStore(store);
         string temporaryPath = _path + ".tmp";
@@ -105,13 +107,14 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
     private static async Task<HealthActionStore> LoadStoreAsync(string path, CancellationToken cancellationToken)
     {
         RejectLink(path);
-        if (!File.Exists(path)) return new HealthActionStore { Store = StoreKind, Version = 1, Actions = new(), Routines = new(), ProgressEntries = new() };
+        if (!File.Exists(path)) return new HealthActionStore { Store = StoreKind, Version = 1, Actions = new(), Routines = new(), ProgressEntries = new(), Revisions = new() };
         try
         {
             await using var stream = File.OpenRead(path);
             var store = await JsonSerializer.DeserializeAsync<HealthActionStore>(stream, Options, cancellationToken).ConfigureAwait(false);
-            if (store is null || store.Store != StoreKind || store.Version != 1)
+            if (store is null || store.Store != StoreKind || store.Version is not (1 or 2))
                 throw new InvalidDataException("The action store is not a supported HealthNotebook store.");
+            if (store.Version == 1) store.Revisions ??= new();
             ValidateStore(store);
             return store;
         }
@@ -121,7 +124,7 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
     }
     private static void ValidateStore(HealthActionStore store)
     {
-        if (store.Actions is null || store.Routines is null || store.ProgressEntries is null)
+        if (store.Actions is null || store.Routines is null || store.ProgressEntries is null || store.Revisions is null)
             throw new InvalidDataException("Invalid action store collections.");
         foreach (var action in store.Actions)
         {
@@ -138,6 +141,15 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
             if (entry is null) throw new InvalidDataException("Invalid entry record.");
             entry.Validate();
         }
+        foreach (var revision in store.Revisions)
+        {
+            if (revision is null) throw new InvalidDataException("Invalid revision record.");
+            revision.Validate();
+            if (!store.Actions.Any(action => action.Id == revision.HealthActionId && action.ModifiedAt >= revision.ChangedAt))
+                throw new InvalidDataException("Invalid revision parent or chronology.");
+        }
+        if (store.Revisions.Select(item => item.Id).Distinct().Count() != store.Revisions.Count)
+            throw new InvalidDataException("Duplicate revision identifiers.");
         var actionIds = store.Actions.Select(action => action.Id).ToHashSet();
         var routineIds = store.Routines.Select(routine => routine.Id).ToHashSet();
         if (actionIds.Count != store.Actions.Count || routineIds.Count != store.Routines.Count
@@ -155,9 +167,98 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
     private sealed class HealthActionStore
     {
         public required string Store { get; init; }
-        public required int Version { get; init; }
+        public required int Version { get; set; }
         public required List<HealthAction> Actions { get; init; }
         public required List<Routine> Routines { get; init; }
         public required List<ProgressEntry> ProgressEntries { get; init; }
+        public List<HealthActionRevision>? Revisions { get; set; }
     }
+
+    /// <inheritdoc />
+    public Task UpdateActionAsync(HealthAction replacement, DateTimeOffset expectedModifiedAt, string? changeReason = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(replacement); replacement.Validate();
+        return WriteAsync(store =>
+        {
+            int index = store.Actions.FindIndex(item => item.Id == replacement.Id);
+            if (index < 0) throw new LifecycleConflictException();
+            var current = store.Actions[index];
+            if (current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            var changed = replacement with { IsArchived = current.IsArchived, CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+            if (changed == current) return false;
+            changed = changed with { ModifiedAt = NextTime(current.ModifiedAt) };
+            changed.Validate();
+            if (changeReason?.Length > HealthAction.MaximumTextLength) throw new ArgumentException("Change reason too long.");
+            // Auditing occurs under the same lock and replacement as the corrected instruction.
+            // Entering or leaving professional provenance cannot erase the previous content.
+            if (IsProfessional(current.Origin) || IsProfessional(changed.Origin))
+                store.Revisions!.Add(new HealthActionRevision { Id = Guid.NewGuid(), HealthActionId = current.Id,
+                    ChangedAt = changed.ModifiedAt, Previous = current, ChangeReason = changeReason });
+            store.Actions[index] = changed; return true;
+        }, cancellationToken);
+    }
+
+
+    /// <inheritdoc />
+    public Task UpdateRoutineAsync(Routine replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(replacement); replacement.Validate();
+        return WriteAsync(store =>
+        {
+            int index = store.Routines.FindIndex(item => item.Id == replacement.Id);
+            if (index < 0) throw new LifecycleConflictException();
+            var current = store.Routines[index];
+            if (current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            if (replacement.HealthActionId != current.HealthActionId) throw new ArgumentException("Parent cannot change.");
+            var changed = replacement with { CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+            if (changed == current) return false;
+            changed = changed with { ModifiedAt = NextTime(current.ModifiedAt) };
+            changed.Validate();
+            store.Routines[index] = changed; return true;
+        }, cancellationToken);
+    }
+
+
+    /// <inheritdoc />
+    public Task UpdateProgressEntryAsync(ProgressEntry replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(replacement); replacement.Validate();
+        return WriteAsync(store =>
+        {
+            int index = store.ProgressEntries.FindIndex(item => item.Id == replacement.Id);
+            if (index < 0) throw new LifecycleConflictException();
+            var current = store.ProgressEntries[index];
+            if (current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            if (replacement.RoutineId != current.RoutineId) throw new ArgumentException("Parent cannot change.");
+            var changed = replacement with { CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+            if (changed == current && changed.OccurredAt.EqualsExact(current.OccurredAt)) return false;
+            changed = changed with { ModifiedAt = NextTime(current.ModifiedAt) };
+            changed.Validate();
+            store.ProgressEntries[index] = changed; return true;
+        }, cancellationToken);
+    }
+
+
+    /// <inheritdoc />
+    public Task SetActionArchivedAsync(Guid id, bool archived, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) =>
+        WriteAsync(store =>
+        {
+            int index = store.Actions.FindIndex(item => item.Id == id);
+            if (index < 0 || store.Actions[index].ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            var current = store.Actions[index]; if (current.IsArchived == archived) return false;
+            store.Actions[index] = current with { IsArchived = archived, ModifiedAt = NextTime(current.ModifiedAt) }; return true;
+        }, cancellationToken);
+    private static DateTimeOffset NextTime(DateTimeOffset previous) => DateTimeOffset.Now > previous ? DateTimeOffset.Now : previous.AddTicks(1);
+
+
+    private static bool IsProfessional(HealthActionOrigin origin) => origin is HealthActionOrigin.Doctor or HealthActionOrigin.Therapist or HealthActionOrigin.Coach;
+    /// <inheritdoc />
+    public Task DeleteProgressEntryAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) =>
+        WriteAsync(store =>
+        {
+            var current = store.ProgressEntries.SingleOrDefault(item => item.Id == id);
+            if (current is null || current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            store.ProgressEntries.Remove(current); return true;
+        }, cancellationToken);
+
 }

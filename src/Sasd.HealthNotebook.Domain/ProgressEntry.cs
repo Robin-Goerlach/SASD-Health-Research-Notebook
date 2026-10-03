@@ -3,7 +3,7 @@ namespace Sasd.HealthNotebook.Domain;
 /// <summary>Recorded execution, never a health or effectiveness assessment.</summary>
 public enum ProgressCompletion { Performed, NotPerformed, Skipped }
 
-/// <summary>An append-only personal routine history entry.</summary>
+/// <summary>A personal execution history entry, explicitly correctable or deletable by its owner.</summary>
 public sealed record ProgressEntry
 {
     /// <summary>Stable identity.</summary>

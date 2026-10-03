@@ -1,7 +1,7 @@
 namespace Sasd.HealthNotebook.Domain;
 
 /// <summary>A manually documented numeric measurement, without medical interpretation.</summary>
-public sealed class Measurement
+public sealed record Measurement
 {
     /// <summary>Maximum personal note length, matching notebook entries.</summary>
     public const int MaximumNoteLength = 4000;
@@ -35,7 +35,7 @@ public sealed class Measurement
     public string? Note { get; init; }
     /// <summary>Technical creation time.</summary>
     public required DateTimeOffset CreatedAt { get; init; }
-    /// <summary>Technical modification time; equal to CreatedAt in this create-only slice.</summary>
+    /// <summary>Technical modification time; updates preserve the creation time.</summary>
     public required DateTimeOffset ModifiedAt { get; init; }
 
     /// <summary>Creates a measurement with fixed units and no truncation or clinical thresholds.</summary>

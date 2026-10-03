@@ -1,7 +1,7 @@
 namespace Sasd.HealthNotebook.Domain;
 
 /// <summary>A time-related notebook entry. Content is stored without medical evaluation.</summary>
-public sealed class HealthEntry
+public sealed record HealthEntry
 {
     /// <summary>Maximum title length, matching HealthTopic.</summary>
     public const int MaximumTitleLength = 160;
@@ -21,7 +21,7 @@ public sealed class HealthEntry
     public required string Content { get; init; }
     /// <summary>Technical creation time.</summary>
     public required DateTimeOffset CreatedAt { get; init; }
-    /// <summary>Technical modification time (equal to creation time in this create-only slice).</summary>
+    /// <summary>Technical modification time; updates preserve the creation time.</summary>
     public required DateTimeOffset ModifiedAt { get; init; }
 
     /// <summary>Creates a validated entry without truncating user content.</summary>
