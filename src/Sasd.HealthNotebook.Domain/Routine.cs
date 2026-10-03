@@ -35,7 +35,7 @@ public sealed record Routine
     public Routine WithStatus(RoutineStatus status)
     {
         var now = DateTimeOffset.Now;
-        var changed = this with { Status = status, ModifiedAt = now > ModifiedAt ? now : ModifiedAt };
+        var changed = this with { Status = status, ModifiedAt = now > ModifiedAt ? now : ModifiedAt.AddTicks(1) };
         changed.Validate(); return changed;
     }
     /// <summary>Validates structural rules, not medical suitability.</summary>

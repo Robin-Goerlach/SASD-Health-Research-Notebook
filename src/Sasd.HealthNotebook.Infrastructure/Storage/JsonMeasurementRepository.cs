@@ -1,3 +1,4 @@
+using Sasd.HealthNotebook.Application.Contracts;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Sasd.HealthNotebook.Application.Repositories;
@@ -26,8 +27,17 @@ public sealed class JsonMeasurementRepository : IMeasurementRepository
     /// <inheritdoc />
     public async Task AddAsync(Measurement measurement, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(measurement);
-        measurement.Validate();
+        ArgumentNullException.ThrowIfNull(measurement); measurement.Validate();
+        await WriteAsync(store =>
+        {
+            if (store.Measurements.Any(existing => existing.Id == measurement.Id))
+                throw new InvalidOperationException("Duplicate identifier.");
+            store.Measurements.Add(measurement); return true;
+        }, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task WriteAsync(Func<MeasurementStore, bool> mutate, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
         string directory = Path.GetDirectoryName(_path)!;
         RejectLink(directory);
@@ -39,13 +49,12 @@ public sealed class JsonMeasurementRepository : IMeasurementRepository
         await using var writeLock = new FileStream(lockPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
             4096, FileOptions.DeleteOnClose);
         var store = await LoadPrimaryAsync(cancellationToken).ConfigureAwait(false);
-        if (store.Measurements.Any(existing => existing.Id == measurement.Id))
-            throw new InvalidOperationException("A measurement with this identifier already exists.");
+        if (!mutate(store)) return;
+        foreach (var item in store.Measurements) item.Validate();
         string backupPath = Path.Combine(directory, "measurements.backup.json");
         if (Directory.Exists(backupPath)) throw new InvalidDataException("Measurement backup unavailable; existing files retained.");
         if (File.Exists(backupPath)) await LoadAsync(backupPath, cancellationToken).ConfigureAwait(false);
         RejectLink(backupPath);
-        store.Measurements.Add(measurement);
         string temporaryPath = _path + ".tmp";
         RejectLink(temporaryPath);
         bool temporaryCreated = false;
@@ -124,4 +133,31 @@ public sealed class JsonMeasurementRepository : IMeasurementRepository
         public required int Version { get; init; }
         public required List<Measurement> Measurements { get; init; }
     }
+
+    /// <inheritdoc />
+    public Task UpdateAsync(Measurement replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(replacement); replacement.Validate();
+        return WriteAsync(store =>
+        {
+            int index = store.Measurements.FindIndex(item => item.Id == replacement.Id);
+            if (index < 0) throw new LifecycleConflictException();
+            var current = store.Measurements[index];
+            if (current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            var changed = replacement with { CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+            if (changed == current && changed.OccurredAt.EqualsExact(current.OccurredAt)) return false;
+            changed = changed with { ModifiedAt = NextTime(current.ModifiedAt) };
+            changed.Validate(); store.Measurements[index] = changed; return true;
+        }, cancellationToken);
+    }
+    /// <inheritdoc />
+    public Task DeleteAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) =>
+        WriteAsync(store =>
+        {
+            var current = store.Measurements.SingleOrDefault(item => item.Id == id);
+            if (current is null || current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            store.Measurements.Remove(current); return true;
+        }, cancellationToken);
+    private static DateTimeOffset NextTime(DateTimeOffset previous) => DateTimeOffset.Now > previous ? DateTimeOffset.Now : previous.AddTicks(1);
+
 }

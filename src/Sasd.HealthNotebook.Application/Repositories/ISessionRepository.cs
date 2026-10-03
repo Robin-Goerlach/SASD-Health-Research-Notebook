@@ -18,4 +18,10 @@ public interface ISessionRepository
     Task SetQuestionAnswerAsync(Guid id, bool answered, string? note, CancellationToken cancellationToken = default);
     /// <summary>Updates an existing next step's status only, under the writer lock.</summary>
     Task SetFollowUpStatusAsync(Guid id, SessionFollowUpStatus status, CancellationToken cancellationToken = default);
+
+    /// <summary>Updates one session, preserving children and rejecting stale editors.</summary>
+    Task UpdateSessionAsync(Session replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Changes archive state only; does not change the business status or children.</summary>
+    Task SetSessionArchivedAsync(Guid id, bool archived, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+
 }

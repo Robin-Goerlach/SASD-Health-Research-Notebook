@@ -4,7 +4,11 @@ namespace Sasd.HealthNotebook.Application.Contracts;
 
 /// <summary>Coherent snapshot of the action/routine/history store.</summary>
 public sealed record HealthActionNotebook(IReadOnlyList<HealthAction> Actions, IReadOnlyList<Routine> Routines,
-    IReadOnlyList<ProgressEntry> ProgressEntries);
+    IReadOnlyList<ProgressEntry> ProgressEntries)
+{
+    /// <summary>Immutable previous instruction snapshots, oldest first.</summary>
+    public IReadOnlyList<HealthActionRevision> Revisions { get; init; } = Array.Empty<HealthActionRevision>();
+}
 /// <summary>Current topic title resolved for presentation only.</summary>
 public sealed record HealthActionSummary(HealthAction Action, string? HealthTopicTitle, string? SourceTitle = null, string? SessionTitle = null);
 /// <summary>User-entered action and reported provenance.</summary>
