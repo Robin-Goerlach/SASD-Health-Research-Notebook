@@ -99,7 +99,7 @@ Session + Questions + Follow-up Slice 1 ist abgeschlossen und manuell akzeptiert
 Nachweis des abgeschlossenen Slices.
 
 Aktuell: **HealthAction + Routine + Progress Slice 1**, Branch
-`feat/health-action-routine-progress-slice-1`, Draft PR #17. Backend-Checkpoint
+`feat/health-action-routine-progress-slice-1`, PR #17. Backend-Checkpoint
 `8b700321389372d4a2f4f960464b65f503c012ea` wurde nach vollständigem grünem Safe-Lauf
 früh gepusht. Persönliche Maßnahmen mit Herkunft, getrennte Routinen und historische
 Durchführungseinträge; atomarer health-actions.json-Store. WinForms erhält eine
@@ -108,7 +108,7 @@ Anforderungen/Abgrenzungen, Tests und manuelle Prüfliste: Dokument 152.
 Die dort ergänzten Lebenszyklusregeln erlauben Bearbeiten mit ModifiedAt und
 Referenzerhalt, bevorzugen Archivieren und verlangen explizite Bestätigung sowie
 Abhängigkeitsschutz beim Löschen. Diese Funktionen sind derzeit noch offen.
-Manuelle Abnahme steht aus; PR bleibt Draft, kein Merge und kein nächster Slice.
+Slice 1 ist implementiert und manuell akzeptiert (2026-10-03). Bearbeiten/Archivieren/Löschen bleiben bewusste Folgearbeit und sind kein Blocker dieses Slices. Nach grüner Abschlussprüfung/CI und synchronem Branch: PR #17 Ready for review; kein Merge und kein nächster Slice.
 
 ## 5. Frontend-Regel
 

@@ -1,6 +1,6 @@
 # 152 – HealthAction + Routine + Progress Slice 1
 
-Stand: 2026-10-02. Implementiert und automatisiert geprüft; manuelle Nutzerabnahme offen. Start von main
+Stand: 2026-10-03. Implementiert, automatisiert geprüft und manuell akzeptiert. Start von main
 `6bd99137f4d529568bedb1c9e3ad004bc8df28e6`.
 
 ## Modell und begrenzter Umfang
@@ -140,32 +140,28 @@ Konzept-Dashboard bleibt weitere Arbeit. Nur synthetische Daten; Bilder bleiben
 wie bisher unter ignoriertem .codex und werden nicht versioniert. Die frühe Dokumentationskodierung wurde auf UTF-8 normalisiert.
 Die geschützte Wizard-resx bleibt unverändert/untracked; .codex ist ignoriert.
 
-## Manuelle Abnahme – offen
+## Manuelle Abnahme – erfolgreich
 
-Native Desktopsteuerung steht in dieser Sitzung nicht zur Verfügung. Echte Control-
-Tests und synthetische Renderbilder ersetzen keine manuelle Nutzerakzeptanz.
-Nach dem grünen Safe-Lauf vom Repository aus starten:
+Die manuelle Nutzerakzeptanz wurde am 2026-10-03 bestätigt. Oberfläche und
+aktueller Funktionsumfang von Slice 1 sind implementiert und manuell akzeptiert.
+Bestätigt wurden:
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
-```
+- Maßnahmen & Routinen / Actions & Routines sowie Maßnahmen mit und ohne Gesundheitsthema;
+- Routinenanlage, Pausieren und Reaktivieren;
+- Progress-/Durchführungseinträge mit Notiz und optionaler Anzahl;
+- Auswahlwechsel, Refresh und Persistenz nach Neustart;
+- Deutsch/English und plausible Dashboard-Dokumentationszahlen;
+- Mindestgröße und sauberes Layout sowie der visuelle Schritt Richtung README-Zielbild.
 
-1. Maßnahmen & Routinen öffnen; Empty State / ausschließlich synthetische Daten prüfen.
-2. `CODEX TEST – Action` mit Kategorie, Beschreibung, Status und berichteter Herkunft
-   erfassen, mit/ohne synthetisches Thema; optional vorhandene synthetische Quelle/Session.
-3. `CODEX TEST – Routine` mit eigener Beschreibung und Rhythmus anlegen; pausieren und
-   reaktivieren. Eine zweite Routine anlegen; Auswahlwechsel muss den richtigen Verlauf zeigen.
-4. Durchführung mit Zeitpunkt, durchgeführt/nicht durchgeführt/übersprungen und
-   eigener synthetischer Notiz sowie optionaler Anzahl dokumentieren. Keine Empfehlung oder Wirkungsbewertung.
-5. Zwischen zwei Actions wechseln, Refresh und DE/EN prüfen; nur passende Kinder sichtbar.
-6. Schließen und über denselben Launcher neu starten; ältere Action ohne extra Refresh
-   wählen und Routine/History/Notiz/Herkunft wiederfinden. Dashboardzahlen vergleichen.
-7. Normale Größe und Mindestgröße 1120×740, sichtbare Haupt-/Kindaktionen, sinnvolle
-   Oberkanten/Abstände, Tab/Enter/Escape, Navigation Up/Down/Home/End und Feldhilfen prüfen.
+Bearbeiten, Archivieren und Löschen wurden als spätere Ergänzungen zur Korrektur
+von Tippfehlern festgehalten. Sie sind ausdrücklich nicht erforderlich für Slice 1
+und kein Abnahmeblocker. Die verbindlichen Lebenszyklusregeln oben bleiben gültig,
+einschließlich ModifiedAt, Audit professioneller Anweisungen gemäß FR-ACT-006,
+bevorzugter Archivierung, Abhängigkeitsschutz und Verbot stiller Cascading Deletes.
+Diese Funktionen sind weiterhin nicht implementiert.
 
-Entwicklungsdaten ausschließlich unter .codex/synthetic-development-data. Session
-Slice 1 bleibt abgeschlossen. PR #17 bleibt Draft; kein Ready, kein Merge, kein
-nächster Slice vor gesondertem Auftrag.
+PR #17 kann nach erneut grünem Safe-Development, grüner CI und synchronem Branch
+auf Ready for review gesetzt werden. Kein Merge und kein nächster Slice in diesem Auftrag.
 
 Interpretation FR-UI-001: Der Satz „keine zusätzlichen Fachmodule“ begrenzte den
 abgeschlossenen UI-Baseline-2-Auftrag. Dieser ausdrücklich beauftragte fachliche
