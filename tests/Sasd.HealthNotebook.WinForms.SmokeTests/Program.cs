@@ -60,6 +60,7 @@ internal static partial class Program
                         CheckSourceLocationRestart(testPath, language);
                         CheckMeasurements(service, testPath, language);
                         CheckSessions(service, testPath, language);
+                        CheckHealthActions(testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }
@@ -84,7 +85,7 @@ internal static partial class Program
     // UI-LAYOUT-001: header/cards/grid at start and minimum sizes, in both languages.
     private static void CheckShell(HealthTopicService service, string testPath, UiLanguage language)
     {
-        using var form = new MainForm(service, CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
+        using var form = new MainForm(service, CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(form);
         PumpUntil(() => Field<ToolStripStatusLabel>(form, "_statusLabel").Text != AppStrings.Ready, "initial shell load");
         foreach (Size size in new[] { new Size(1280, 820), form.MinimumSize })
@@ -163,7 +164,7 @@ internal static partial class Program
         PumpUntil(() => wizard.IsDisposed || wizard.DialogResult == DialogResult.OK, "wizard save");
         var reloaded = new HealthTopicService(new JsonHealthTopicRepository()).GetTopicSummariesAsync().GetAwaiter().GetResult();
         Assert(reloaded.Any(topic => topic.Title == syntheticTitle), "Wizard topic did not survive repository recreation.");
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(restarted);
         WaitForReload(restarted);
         var reloadedGrid = Field<DataGridView>(Field<HealthTopicsView>(restarted, "_dashboardTopicsView"), "_grid");
@@ -186,7 +187,7 @@ internal static partial class Program
     {
         var entries = CreateEntryService();
         int beforeCount = entries.GetEntriesAsync().GetAwaiter().GetResult().Count;
-        using var form = new MainForm(topics, entries, CreateSourceService(), CreateMeasurementService(), CreateSessionService());
+        using var form = new MainForm(topics, entries, CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(form);
         form.Size = form.MinimumSize;
         var navigation = Field<NavigationControl>(form, "_navigation");
@@ -258,7 +259,7 @@ internal static partial class Program
         WaitForReload(form);
         Capture(form, Path.Combine(testPath, $"timeline-{language}-after.png"));
         form.Close();
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(restarted);
         Field<NavigationButton>(Field<NavigationControl>(restarted, "_navigation"), "_timelineButton").PerformClick();
         WaitForReload(restarted);
@@ -307,7 +308,7 @@ internal static partial class Program
             Math.Max(1, control.ClientSize.Height - control.Padding.Vertical));
         Size measured = TextRenderer.MeasureText(control.Text, control.Font,
             new Size(available.Width, int.MaxValue), TextFormatFlags.WordBreak);
-        Assert(measured.Height <= available.Height, $"Text is clipped in {control.GetType().Name}.");
+        Assert(measured.Height <= available.Height, $"Text is clipped in {control.GetType().Name}: available={available}, measured={measured}.");
     }
 
     private static void Capture(Form form, string path)

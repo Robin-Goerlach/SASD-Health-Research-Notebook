@@ -99,7 +99,7 @@ internal static partial class Program
         }
         finally { Environment.SetEnvironmentVariable(LocalHealthNotebookPaths.DataPathEnvironmentVariable, testPath); }
     }
-    private static MainForm NewSessionShell() => new(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
+    private static MainForm NewSessionShell() => new(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
     private static void OpenSessions(MainForm form)
     {
         var button = Field<NavigationButton>(Field<NavigationControl>(form, "_navigation"), "_sessionsButton");

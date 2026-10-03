@@ -309,3 +309,22 @@ UI-SES-001 nutzt echte Session-/Frage-/Follow-up-Dialoge, Antwortänderung,
 Statuswechsel, Themenbezug, Neustart mit frischen Services und Wiederauswahl ohne
 Refresh, DE/EN sowie Mindestgröße. Alle vorhandenen Regressionen bleiben aktiv.
 Manuelle Desktopakzeptanz als eigenes Gate am 2026-10-01 vom Nutzer bestätigt; Prüfumfang und Grenzen in Dokument 151.
+
+## 23. HealthAction + Routine + Progress Slice 1
+
+UT/IT/SEC-ACT-001 (`HealthActionTests`) prüft Pflicht-/Längenregeln, Kategorien,
+berichtete Herkunft, optionale/archivierte/fehlende Themen, getrennte Routinen,
+Active/Paused-Roundtrip und unveränderte Historie. Progress-Identität, Offset,
+Completion, optionale Anzahl, exakter Text, unabhängiges Reload und chronologische Sortierung sind
+abgesichert. Verwaiste Routine/History wird in Application und Repository abgewiesen.
+Kennung/Version, beschädigte/fremde/zukünftige Stores, Pflicht-/unbekannte Felder,
+Duplikate/null-Kinder, Backup, Temp/Lock und bytegenauer Erhalt aller fünf bestehenden
+Stores werden geprüft. SEC-ACT-002: vier echte PowerShell-5.1-Dateiguards.
+UI-ACT-001/002: echte Dialoge, Navigation DE/EN, Leerzustände, mit/ohne Thema,
+Auswahlwechsel von Actions/Routinen, Refresh, neue Shell/Services und Wiederauswahl
+OHNE Refresh. Kompakte Karten, Header/Button-Clipping, proportionale Panels,
+Oberkanten, TabOrder/Feldhilfe und keine Workspace-Scrollbars bei Normal-/Mindestgröße.
+DASH-ACT-001: Dashboardzahlen aus synthetischen Datensätzen.
+Renderbilder für beide Sprachen, Normal-/Mindestgröße, leer/gefüllt und Dialoge unter
+frischen .codex-Laufverzeichnissen. Manuelle Desktopakzeptanz bleibt separates Gate;
+Prüfliste in Dokument 152. Keine neuen Pakete/Projekte, alle Regressionen bleiben aktiv.

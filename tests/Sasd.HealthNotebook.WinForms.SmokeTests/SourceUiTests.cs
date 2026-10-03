@@ -18,7 +18,7 @@ internal static partial class Program
         int before = service.GetSourcesAsync().GetAwaiter().GetResult().Count;
         byte[] topicsBefore = File.ReadAllBytes(LocalHealthNotebookPaths.HealthTopicsFilePath);
         byte[] entriesBefore = File.ReadAllBytes(LocalHealthNotebookPaths.HealthEntriesFilePath);
-        using var form = new MainForm(topics, CreateEntryService(), service, CreateMeasurementService(), CreateSessionService());
+        using var form = new MainForm(topics, CreateEntryService(), service, CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(form); form.Size = form.MinimumSize;
         var navigation = Field<NavigationControl>(form, "_navigation");
         var sourcesButton = Field<NavigationButton>(navigation, "_sourcesButton");
@@ -111,7 +111,7 @@ internal static partial class Program
         Capture(form, Path.Combine(testPath, $"sources-locations-{language}-minimum.png"));
         CheckSourceDetailLayout(form, view, testPath, language);
         form.Close();
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService());
+        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(restarted);
         Field<NavigationButton>(Field<NavigationControl>(restarted, "_navigation"), "_sourcesButton").PerformClick(); WaitForReload(restarted);
         var reloadedView = Field<SourcesView>(restarted, "_sourcesView");

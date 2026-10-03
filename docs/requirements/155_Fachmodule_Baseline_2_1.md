@@ -21,7 +21,7 @@ Dieses Dokument gibt den seit der ersten Baseline konkretisierten Fachmodulen st
 | FR-GEN-006 | Alle Kernfunktionen müssen lokal ohne Cloud nutzbar bleiben. |
 | FR-GEN-007 | Sensible Freitexte und Gesundheitswerte dürfen nicht in technische Logs geschrieben werden. |
 | FR-DEV-001 | Entwicklungs- und Testläufe müssen einen expliziten isolierten Datenordner verwenden können. Beide Frontends respektieren denselben Override; ohne Override bleibt der Produktpfad unverändert. Ungültige gesetzte Overrides dürfen nicht auf persönliche Daten zurückfallen. Smoke-Tests schreiben ausschließlich synthetische Daten in neue Lauf-Unterordner innerhalb des Repositorys. |
-| FR-UI-001 | Die bestehende WinForms-Schale, Dashboardkarten, Themenliste und Grunddaten-Wizard müssen bei dokumentierter Mindestgröße in Deutsch/Englisch ohne abgeschnittene Hauptaktionen bedienbar bleiben. Navigation besitzt unterscheidbare Auswahl-, Hover- und Fokuszustände; Refresh erhält die Themenauswahl und leere Listen zeigen einen lesbaren Hinweis. Keine zusätzlichen Fachmodule. |
+| FR-UI-001 | Die bestehende WinForms-Schale, Dashboardkarten, Themenliste und Grunddaten-Wizard müssen bei dokumentierter Mindestgröße in Deutsch/Englisch ohne abgeschnittene Hauptaktionen bedienbar bleiben. Navigation besitzt unterscheidbare Auswahl-, Hover- und Fokuszustände; Refresh erhält die Themenauswahl und leere Listen zeigen einen lesbaren Hinweis. Der reine UI-Baseline-2-Auftrag umfasste keine zusätzlichen Fachmodule; spätere fachliche Slices übernehmen dieselben UI-Qualitätsregeln. |
 
 ## 3. Beobachtungen und Kontext
 
@@ -110,6 +110,36 @@ Timeline-Integration und benutzerdefinierte Typen bleiben spätere Slices.
 | FR-ROU-005 | Beispiel Zähler: 2 von 4 erledigt, 2 offen. |
 | FR-ROU-006 | Tagesfortschritt wird historisch gespeichert und nicht nur als aktueller Zustand überschrieben. |
 | FR-ROU-007 | Routine kann pausiert oder für einen Tag übersprungen werden, ohne die Historie zu löschen. |
+
+### Akzeptanz: HealthAction + Routine + Progress Slice 1
+
+FR-ACT-001/002/003/005, Teilumfang FR-ACT-004 und FR-ROU-001/002/003/004/006/007:
+Eine selbst erfasste Maßnahme mit Titel, persönlicher Kategorie, Status, Beschreibung
+und berichteter Herkunft kann mit/ohne ein vorhandenes Gesundheitsthema gespeichert
+werden. Optionale Source-/Session-IDs verweisen auf vorhandene Herkunftsdatensätze;
+aktuelle Titel werden nur angezeigt, ohne Inhalte zu kopieren. Herkunft und Maßnahmeninhalt sind im Slice create-only (keine Änderung
+professioneller Anweisungen implementiert). Dies ist eine aktuelle Funktionsgrenze,
+kein fachliches Bearbeitungsverbot. Fehlende/archivierte Themen verlieren keine Maßnahme.
+Eine getrennte Routine gehört genau einer vorhandenen Maßnahme; persönlicher Rhythmus
+ist optionaler Freitext (auch täglich/wöchentlich/ausgewählte Tage), ohne Scheduler.
+Pausieren/Reaktivieren erhält alle historischen Einträge. Fortschritt gehört genau
+einer Routine und dokumentiert Zeitpunkt mit Offset, durchgeführt/nicht durchgeführt/
+übersprungen, optionaler nichtnegativer eigener Anzahl und eigene Notiz; neueste tatsächliche Zeitpunkte zuerst. Deutsch/English,
+Neustart und Referenzintegrität sind abgesichert. Aktive Maßnahmen/Routinen und
+heutige Einträge sind reine Dokumentationszahlen, keine medizinische Bewertung.
+Zeiträume, Maßnahmenbearbeitung/Audit (FR-ACT-006),
+strukturierte Tagesplanung, Zielzähler/Menge/Dauer/Mess-/Dokumentationsaufgaben und
+Zielquoten (Rest FR-ROU-003/004/005), eigenständige Routinen ohne Action, Reminder,
+allgemeine Timeline und weitere Modulbeziehungen bleiben spätere Slices.
+Verbindliche Lebenszyklusregeln: Bearbeiten ist zulässig, setzt ModifiedAt und erhält
+Identität und Referenzen, ohne medizinische Neubewertung. FR-ACT-006 bleibt gültig.
+Archivieren ist für langlebige Objekte die bevorzugte Standardaktion; die Datensätze
+bleiben technisch vorhanden und können in normalen Listen optional ausgeblendet
+werden. Löschen erfordert fachliche Sicherheit und explizite Bestätigung, ohne stille
+Cascades. Abhängige Datensätze blockieren das Löschen oder benötigen einen eigenen
+späteren Lösch-Workflow. Bearbeiten, Archivieren und Löschen sind im aktuellen Slice
+noch nicht implementiert; Pausieren/Reaktivieren ist keine Archivierung.
+Details und manuelles Gate: Dokument 152.
 
 ## 9. Notification Service
 

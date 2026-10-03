@@ -190,3 +190,22 @@ Deshalb soll die Professionalisierung nicht als ein einziger "Optimierungslauf a
 6. Release-Review gegen Requirements und Traceability.
 
 Ein High-effort-Review kann einfachen oder mittelreifen Code deutlich verbessern. Er ersetzt aber keine fehlenden Akzeptanzkriterien und keine Tests, die das gewünschte Verhalten objektiv festhalten.
+
+## 11. Traceability – HealthAction/Routine/Progress Slice 1
+
+| Anforderungen | Akzeptanz und Nachweis | Stand / Grenzen |
+|---|---|---|
+| FR-ACT-001/002/003/005, FR-GEN-001/002/003/005/006/007 | Manuelle Action mit optionalem Thema und berichteter Herkunft; UT/IT/SEC-ACT-001, UI-ACT-001 | Implementiert und manuell akzeptiert (Slice 1); keine automatisch abgeleitete Maßnahme oder medizinische Bewertung. |
+| FR-ACT-004 (Teil) | Titel, Status, Beschreibung, eigene Historie; UT/IT-ACT-001 | Zeitraum/Action-Bearbeitung offen; Herkunft und Inhalt create-only. |
+| FR-ROU-001/002 | Getrennte Routine zu bestehender Action, geprüfte Elternbeziehungen; UT/IT/SEC-ACT-001, UI-ACT-001 | Eigenständige Routine ohne Action offen. |
+| FR-ROU-003/004 (Teil) | Persönlicher Rhythmus als Text, explizite Durchführung/optionale Anzahl; UT/IT-ACT-001, UI-ACT-001 | Strukturierte Planung/Menge/Dauer/Zielquoten offen. |
+| FR-ROU-006/007 | Historie, Pausieren/Reaktivieren und Skipped-Eintrag ohne Löschung; UT/IT-ACT-001, UI-ACT-001 | Keine automatische Tagesaggregation oder Reminder. |
+| FR-DEV-001 | Isolierte synthetische Daten, vier Dateiguards; SEC-ACT-001/002 | Windows PowerShell 5.1; vorhandene Stores bytegenau erhalten. |
+| FR-UI-001 (erweiterter Teilumfang) | Neue Seite DE/EN, gleiche Oberkanten, proportionale Panels, kompakte Karten, sichtbare Buttons bei Mindestgröße; UI-ACT-002 | Renderprüfung plus bestehende Regressionen; manuelle Nutzerakzeptanz am 2026-10-03 bestätigt (Dokument 152). |
+| Dokumentative Dashboardzählung | Aktive Actions/Routinen, alle heutigen Einträge; UT-ACT-001, DASH-ACT-001 | Keine Gesundheits-/Wirksamkeitsbewertung. |
+
+FR-ACT-006 und übrige FR-ROU-003/004/005 sind nicht als vollständig umgesetzt
+markiert. Die Lebenszyklusregeln in Dokument 152 sind verbindliche Vorgaben;
+Bearbeiten/Archivieren/Löschen sind noch nicht implementiert oder durch Tests als
+erfüllt nachgewiesen. Pausieren/Reaktivieren ist keine Archivierung.
+Slice 1 ist implementiert und manuell akzeptiert (2026-10-03); genaue manuelle Abdeckung in Dokument 152. Bearbeiten/Archivieren/Löschen sind ausdrücklich Folgearbeit und kein Blocker dieses Slices. Ready for review nach grüner Abschlussprüfung/CI und synchronem Branch; die allgemeinen Release-Quality-Gates bleiben verbindlich.

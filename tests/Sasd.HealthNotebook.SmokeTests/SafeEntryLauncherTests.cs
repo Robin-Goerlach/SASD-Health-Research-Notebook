@@ -13,7 +13,8 @@ internal static class SafeEntryLauncherTests
             "health-entries.backup.json", "health-entries.json.lock",
             "sources.json", "sources.json.tmp", "sources.backup.json", "sources.json.lock",
             "measurements.json", "measurements.json.tmp", "measurements.backup.json", "measurements.json.lock",
-            "sessions.json", "sessions.json.tmp", "sessions.backup.json", "sessions.json.lock" })
+            "sessions.json", "sessions.json.tmp", "sessions.backup.json", "sessions.json.lock",
+        "health-actions.json", "health-actions.json.tmp", "health-actions.backup.json", "health-actions.json.lock" })
         {
             // Keep fixtures near .codex: deeply nested GUID roots can exceed the
             // ordinary path limit of Windows PowerShell 5.1 / .NET Framework.

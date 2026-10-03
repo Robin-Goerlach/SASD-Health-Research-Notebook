@@ -16,19 +16,19 @@ public sealed class DashboardCardControl : UserControl
     /// <summary>
     /// Initializes a new instance of the <see cref="DashboardCardControl" /> class.
     /// </summary>
-    public DashboardCardControl()
+    public DashboardCardControl(bool compact = false)
     {
         BackColor = UiColors.CardBackground;
         Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
-        Padding = new Padding(UiMetrics.Padding);
+        Padding = new Padding(compact ? UiMetrics.StandardSpacing : UiMetrics.Padding);
         Width = 250;
-        Height = UiMetrics.DashboardCardHeight;
+        Height = compact ? UiMetrics.CompactOverviewHeight - UiMetrics.StandardSpacing : UiMetrics.DashboardCardHeight;
         TabStop = false;
 
         _titleLabel = new Label
         {
             Dock = DockStyle.Top,
-            Height = 36,
+            Height = compact ? 22 : 36,
             Font = UiFonts.CardTitle,
             ForeColor = UiColors.SecondaryText,
             AutoEllipsis = false
@@ -37,8 +37,8 @@ public sealed class DashboardCardControl : UserControl
         _valueLabel = new Label
         {
             Dock = DockStyle.Top,
-            Height = 44,
-            Font = UiFonts.CardValue,
+            Height = compact ? 30 : 44,
+            Font = compact ? UiFonts.CompactCardValue : UiFonts.CardValue,
             ForeColor = UiColors.PrimaryText
         };
 

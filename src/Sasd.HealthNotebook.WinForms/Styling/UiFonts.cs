@@ -19,6 +19,9 @@ public static class UiFonts
     /// <summary>Dashboard card value font.</summary>
     public static Font CardValue => new("Segoe UI", 20F, FontStyle.Bold, GraphicsUnit.Point);
 
+    /// <summary>Compact documentative count font.</summary>
+    public static Font CompactCardValue => new("Segoe UI", 16F, FontStyle.Bold, GraphicsUnit.Point);
+
     /// <summary>Dashboard card title font.</summary>
     public static Font CardTitle => new("Segoe UI Semibold", 9.5F, FontStyle.Regular, GraphicsUnit.Point);
 

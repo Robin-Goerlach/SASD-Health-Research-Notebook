@@ -13,6 +13,8 @@ namespace Sasd.HealthNotebook.WinForms;
 /// </remarks>
 public static class Bootstrapper
 {
+    /// <summary>Creates personal action documentation with the shared data resolver.</summary>
+    public static HealthActionService CreateHealthActionService() => new(new JsonHealthActionRepository(), new JsonHealthTopicRepository(), new JsonSourceRepository(), new JsonSessionRepository());
     /// <summary>Creates session documentation using the shared resolver.</summary>
     public static SessionService CreateSessionService() => new(new JsonSessionRepository(), new JsonHealthTopicRepository());
     /// <summary>Creates manual measurement documentation with the shared data resolver.</summary>

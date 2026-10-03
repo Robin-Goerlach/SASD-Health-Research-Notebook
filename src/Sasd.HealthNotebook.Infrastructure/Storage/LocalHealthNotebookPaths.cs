@@ -119,4 +119,7 @@ public static class LocalHealthNotebookPaths
 
     /// <summary>Shared versioned session store path.</summary>
     public static string SessionsFilePath => Path.Combine(DataDirectory, "sessions.json");
+
+    /// <summary>Shared action/routine/history store beside existing data.</summary>
+    public static string HealthActionsFilePath => Path.Combine(DataDirectory, "health-actions.json");
 }
