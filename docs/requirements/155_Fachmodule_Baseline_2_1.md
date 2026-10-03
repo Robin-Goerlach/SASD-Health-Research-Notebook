@@ -118,7 +118,8 @@ Eine selbst erfasste Maßnahme mit Titel, persönlicher Kategorie, Status, Besch
 und berichteter Herkunft kann mit/ohne ein vorhandenes Gesundheitsthema gespeichert
 werden. Optionale Source-/Session-IDs verweisen auf vorhandene Herkunftsdatensätze;
 aktuelle Titel werden nur angezeigt, ohne Inhalte zu kopieren. Herkunft und Maßnahmeninhalt sind im Slice create-only (keine Änderung
-professioneller Anweisungen). Fehlende/archivierte Themen verlieren keine Maßnahme.
+professioneller Anweisungen implementiert). Dies ist eine aktuelle Funktionsgrenze,
+kein fachliches Bearbeitungsverbot. Fehlende/archivierte Themen verlieren keine Maßnahme.
 Eine getrennte Routine gehört genau einer vorhandenen Maßnahme; persönlicher Rhythmus
 ist optionaler Freitext (auch täglich/wöchentlich/ausgewählte Tage), ohne Scheduler.
 Pausieren/Reaktivieren erhält alle historischen Einträge. Fortschritt gehört genau
@@ -130,6 +131,14 @@ Zeiträume, Maßnahmenbearbeitung/Audit (FR-ACT-006),
 strukturierte Tagesplanung, Zielzähler/Menge/Dauer/Mess-/Dokumentationsaufgaben und
 Zielquoten (Rest FR-ROU-003/004/005), eigenständige Routinen ohne Action, Reminder,
 allgemeine Timeline und weitere Modulbeziehungen bleiben spätere Slices.
+Verbindliche Lebenszyklusregeln: Bearbeiten ist zulässig, setzt ModifiedAt und erhält
+Identität und Referenzen, ohne medizinische Neubewertung. FR-ACT-006 bleibt gültig.
+Archivieren ist für langlebige Objekte die bevorzugte Standardaktion; die Datensätze
+bleiben technisch vorhanden und können in normalen Listen optional ausgeblendet
+werden. Löschen erfordert fachliche Sicherheit und explizite Bestätigung, ohne stille
+Cascades. Abhängige Datensätze blockieren das Löschen oder benötigen einen eigenen
+späteren Lösch-Workflow. Bearbeiten, Archivieren und Löschen sind im aktuellen Slice
+noch nicht implementiert; Pausieren/Reaktivieren ist keine Archivierung.
 Details und manuelles Gate: Dokument 152.
 
 ## 9. Notification Service

@@ -10,7 +10,8 @@ ActionType (Movement, Nutrition, Sleep, Relaxation, Organization, Other), Active
 Beschreibung (4000), berichtete Herkunft (SelfDefined, Doctor, Therapist, Coach, Source,
 Other), optionale Herkunftsnotiz (4000), SourceId/SessionId, Id und technische Zeitstempel.
 Herkunft ist Nutzerdokumentation, keine professionelle Bestätigung. Inhalt/Herkunft
-sind create-only; keine Bearbeitung professioneller Anweisungen ohne Auditkonzept.
+sind aktuell nur bei Anlage erfassbar. Bearbeiten ist fachlich zulässig; die
+Bearbeitungsfunktion und die Nachvollziehbarkeit nach FR-ACT-006 sind noch offen.
 Routine ist ein getrenntes Objekt mit genau einer HealthActionId, Titel (160),
 Beschreibung (4000), optionalem ScheduleText (160), Active/Paused und Zeitstempeln.
 ProgressEntry gehört genau einer Routine: OccurredAt mit Offset, Completion
@@ -27,6 +28,27 @@ Export und allgemeine Timeline bleiben spätere Arbeit. Keine Habit-/Workflow-En
 kein Medication-/Treatment-Typ, keine Dosislogik oder Wirksamkeits-/Kausalitätsaussage.
 Die engeren Slice-Akzeptanzkriterien werden in Dokument 155 konkretisiert; damit
 werden die langfristigen Anforderungen nicht als vollständig umgesetzt behauptet.
+
+## Verbindliche Lebenszyklusregeln
+
+Bearbeiten ist zulässig: ModifiedAt wird gesetzt, Identität und vorhandene
+Referenzen bleiben erhalten. Änderungen sind persönliche Dokumentation und lösen
+keine medizinische Neubewertung aus. Änderungen an dokumentierten professionellen
+Anweisungen müssen gemäß FR-ACT-006 nachvollziehbar bleiben.
+
+Archivieren ist die bevorzugte Standardaktion für langlebige Objekte. Der Datensatz
+bleibt technisch vorhanden, einschließlich seiner Referenzen und Historie. Normale
+Listen können archivierte Datensätze ausblenden; eine Anzeigeoption macht sie wieder
+zugänglich. Active/Inactive und Active/Paused ersetzen keinen Archivierungsstatus.
+
+Löschen ist nur fachlich sicher und nach expliziter Bestätigung zulässig. Es gibt
+keine stillen Cascades. Bei abhängigen Datensätzen wird das Löschen blockiert oder
+als eigener späterer Lösch-Workflow behandelt. Für diesen Slice bleibt ein solcher
+Workflow spätere Arbeit; es gibt derzeit keine Löschfunktion.
+
+Implementierungsstand: Bearbeitungs- und Archivierungsfunktionen fehlen derzeit;
+vorhanden ist nur das Pausieren/Reaktivieren einer Routine. Diese Regeln beschreiben
+die verbindliche fachliche Richtung, keine bereits implementierten Funktionen.
 
 ## Application und JSON
 

@@ -205,4 +205,7 @@ Ein High-effort-Review kann einfachen oder mittelreifen Code deutlich verbessern
 | Dokumentative Dashboardzählung | Aktive Actions/Routinen, alle heutigen Einträge; UT-ACT-001, DASH-ACT-001 | Keine Gesundheits-/Wirksamkeitsbewertung. |
 
 FR-ACT-006 und übrige FR-ROU-003/004/005 sind nicht als vollständig umgesetzt
-markiert. Kein Release Candidate; Draft PR #17 bleibt bis manueller Abnahme Draft.
+markiert. Die Lebenszyklusregeln in Dokument 152 sind verbindliche Vorgaben;
+Bearbeiten/Archivieren/Löschen sind noch nicht implementiert oder durch Tests als
+erfüllt nachgewiesen. Pausieren/Reaktivieren ist keine Archivierung.
+Kein Release Candidate; Draft PR #17 bleibt bis manueller Abnahme Draft.

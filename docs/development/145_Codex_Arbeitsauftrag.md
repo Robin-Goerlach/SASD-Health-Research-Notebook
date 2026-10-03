@@ -105,6 +105,9 @@ früh gepusht. Persönliche Maßnahmen mit Herkunft, getrennte Routinen und hist
 Durchführungseinträge; atomarer health-actions.json-Store. WinForms erhält eine
 proportionale neue Seite, kompakte Karten und Dashboard-Dokumentationszahlen.
 Anforderungen/Abgrenzungen, Tests und manuelle Prüfliste: Dokument 152.
+Die dort ergänzten Lebenszyklusregeln erlauben Bearbeiten mit ModifiedAt und
+Referenzerhalt, bevorzugen Archivieren und verlangen explizite Bestätigung sowie
+Abhängigkeitsschutz beim Löschen. Diese Funktionen sind derzeit noch offen.
 Manuelle Abnahme steht aus; PR bleibt Draft, kein Merge und kein nächster Slice.
 
 ## 5. Frontend-Regel
