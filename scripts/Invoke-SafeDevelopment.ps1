@@ -74,7 +74,7 @@ try {
         throw 'The development data directory is a junction or symbolic link.'
     }
     [IO.Directory]::CreateDirectory($dataDirectory.FullName) | Out-Null
-    foreach ($fileName in @('health-topics.json', 'health-topics.json.tmp', 'health-topics.backup.json',
+    foreach ($fileName in @('health-topics.json', 'health-topics.json.tmp', 'health-topics.backup.json', 'health-topics.json.lock',
         'health-entries.json', 'health-entries.json.tmp', 'health-entries.backup.json', 'health-entries.json.lock',
         'sources.json', 'sources.json.tmp', 'sources.backup.json', 'sources.json.lock',
         'measurements.json', 'measurements.json.tmp', 'measurements.backup.json', 'measurements.json.lock',

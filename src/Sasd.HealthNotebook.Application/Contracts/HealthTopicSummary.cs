@@ -37,6 +37,9 @@ public sealed class HealthTopicSummary
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; }
 
+    /// <summary>Displayed optimistic concurrency token.</summary>
+    public DateTimeOffset ModifiedAt { get; set; }
+
     /// <summary>
     /// Creates a list summary from a domain entity.
     /// </summary>
@@ -51,7 +54,7 @@ public sealed class HealthTopicSummary
             Status = topic.Status,
             Priority = topic.Priority,
             ShortDescription = topic.ShortDescription,
-            CreatedAt = topic.CreatedAt
+            CreatedAt = topic.CreatedAt, ModifiedAt = topic.ModifiedAt
         };
     }
 }

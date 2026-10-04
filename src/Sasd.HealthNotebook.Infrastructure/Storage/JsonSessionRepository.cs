@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.Application.Repositories;
+using Sasd.HealthNotebook.Application.Services;
 using Sasd.HealthNotebook.Domain;
 
 namespace Sasd.HealthNotebook.Infrastructure.Storage;
@@ -17,7 +18,7 @@ public sealed class JsonSessionRepository : ISessionRepository
     };
     private readonly string _path;
     /// <summary>Resolves the same shared data directory as topics and entries.</summary>
-    public JsonSessionRepository() => _path = LocalHealthNotebookPaths.SessionsFilePath;
+    public JsonSessionRepository(string? filePath = null) => _path = Path.GetFullPath(filePath ?? LocalHealthNotebookPaths.SessionsFilePath);
     /// <inheritdoc />
     public async Task<SessionNotebook> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -79,7 +80,9 @@ public sealed class JsonSessionRepository : ISessionRepository
         RejectLink(backupPath);
         if (Directory.Exists(backupPath)) throw new InvalidDataException("Session backup is unavailable; existing files retained.");
         if (File.Exists(backupPath)) await LoadStoreAsync(backupPath, cancellationToken).ConfigureAwait(false);
+        var previousTopics = store.Sessions.ToDictionary(item => item.Id, item => item.HealthTopicId);
         if (!append(store)) return;
+        await TopicReferenceGuard.ValidateAsync(_path, previousTopics, store.Sessions.Select(item => (item.Id, item.HealthTopicId)), cancellationToken).ConfigureAwait(false);
         store.Version = 2;
         // Direct repository clients must also preserve IDs and parent references.
         ValidateStore(store);
@@ -206,5 +209,46 @@ public sealed class JsonSessionRepository : ISessionRepository
         var now = DateTimeOffset.Now;
         return now > previous ? now : previous.AddTicks(1);
     }
+
+
+    /// <inheritdoc />
+    public Task UpdateQuestionAsync(SessionQuestion replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(store =>
+    {
+        int index = store.Questions.FindIndex(item => item.Id == replacement.Id);
+        if (index < 0 || store.Questions[index].ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+        var current = store.Questions[index];
+        if (current.SessionId != replacement.SessionId) throw new ArgumentException("Question parent cannot change.");
+        var changed = replacement with { CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt, Text = replacement.Text.Trim() };
+        changed.Validate(); if (changed == current) return false;
+        store.Questions[index] = changed with { ModifiedAt = NextTime(current.ModifiedAt) }; return true;
+    }, cancellationToken);
+    /// <inheritdoc />
+    public Task DeleteQuestionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(store =>
+    {
+        var current = store.Questions.SingleOrDefault(item => item.Id == id);
+        if (current is null || current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+        // A saved answer note remains documentation even if the checkbox is unchecked.
+        // Delete cannot silently erase it; explicit correction of the answer is separate.
+        if (current.IsAnswered || !string.IsNullOrWhiteSpace(current.AnswerNote)) throw new LifecycleDeleteBlockedException();
+        store.Questions.Remove(current); return true;
+    }, cancellationToken);
+    /// <inheritdoc />
+    public Task UpdateFollowUpAsync(SessionFollowUp replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(store =>
+    {
+        int index = store.FollowUps.FindIndex(item => item.Id == replacement.Id);
+        if (index < 0 || store.FollowUps[index].ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+        var current = store.FollowUps[index];
+        if (current.SessionId != replacement.SessionId) throw new ArgumentException("Follow-up parent cannot change.");
+        var changed = replacement with { CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt, Text = replacement.Text.Trim() };
+        changed.Validate(); if (changed == current) return false;
+        store.FollowUps[index] = changed with { ModifiedAt = NextTime(current.ModifiedAt) }; return true;
+    }, cancellationToken);
+    /// <inheritdoc />
+    public Task DeleteFollowUpAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(store =>
+    {
+        var current = store.FollowUps.SingleOrDefault(item => item.Id == id);
+        if (current is null || current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+        store.FollowUps.Remove(current); return true;
+    }, cancellationToken);
 
 }

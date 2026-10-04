@@ -24,4 +24,14 @@ public interface ISessionRepository
     /// <summary>Changes archive state only; does not change the business status or children.</summary>
     Task SetSessionArchivedAsync(Guid id, bool archived, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
 
+
+    /// <summary>Updates question text/order and explicitly recorded answer, preserving identity.</summary>
+    Task UpdateQuestionAsync(SessionQuestion replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Deletes only a question with no recorded answer, checked under the writer lock.</summary>
+    Task DeleteQuestionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Updates a next step without reparenting.</summary>
+    Task UpdateFollowUpAsync(SessionFollowUp replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Deletes exactly one explicitly selected next step.</summary>
+    Task DeleteFollowUpAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+
 }

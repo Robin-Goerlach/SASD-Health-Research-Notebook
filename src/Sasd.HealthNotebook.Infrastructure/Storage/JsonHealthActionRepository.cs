@@ -17,7 +17,7 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
     };
     private readonly string _path;
     /// <summary>Resolves the same shared data directory as topics and entries.</summary>
-    public JsonHealthActionRepository() => _path = LocalHealthNotebookPaths.HealthActionsFilePath;
+    public JsonHealthActionRepository(string? filePath = null) => _path = Path.GetFullPath(filePath ?? LocalHealthNotebookPaths.HealthActionsFilePath);
     /// <inheritdoc />
     public async Task<HealthActionNotebook> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -69,7 +69,9 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
         RejectLink(backupPath);
         if (Directory.Exists(backupPath)) throw new InvalidDataException("Action backup is unavailable; existing files retained.");
         if (File.Exists(backupPath)) await LoadStoreAsync(backupPath, cancellationToken).ConfigureAwait(false);
+        var previousTopics = store.Actions.ToDictionary(item => item.Id, item => item.HealthTopicId);
         if (!append(store)) return;
+        await TopicReferenceGuard.ValidateAsync(_path, previousTopics, store.Actions.Select(item => (item.Id, item.HealthTopicId)), cancellationToken).ConfigureAwait(false);
         store.Version = 2;
         // Direct repository clients must also preserve IDs and parent references.
         ValidateStore(store);

@@ -37,6 +37,9 @@ public sealed class HealthTopic
     /// </summary>
     public HealthTopicStatus Status { get; set; }
 
+    /// <summary>Previous status for explicit reactivation; absent in legacy stores.</summary>
+    public HealthTopicStatus? StatusBeforeArchive { get; set; }
+
     /// <summary>
     /// Gets or sets the personal organization priority selected by the user.
     /// </summary>
@@ -99,7 +102,7 @@ public sealed class HealthTopic
 
     /// <summary>
     /// Updates the editable fields of the topic.
-    /// This method is prepared for later milestones even though Milestone 1 only creates topics.
+    /// Validates all inputs before changing fields; no partial correction or text truncation.
     /// </summary>
     public void UpdateDocumentation(
         string title,
@@ -108,12 +111,14 @@ public sealed class HealthTopic
         string? shortDescription,
         string? notes)
     {
-        Title = NormalizeRequiredTitle(title);
-        Status = status;
-        Priority = priority;
-        ShortDescription = NormalizeOptionalText(shortDescription, 500);
-        Notes = NormalizeOptionalText(notes, 4000);
-        ModifiedAt = DateTimeOffset.Now;
+        string normalizedTitle = NormalizeRequiredTitle(title);
+        if (!Enum.IsDefined(status) || !Enum.IsDefined(priority) || shortDescription?.Length > 500 || notes?.Length > 4000)
+            throw new ArgumentException("Invalid topic documentation fields.");
+        string description = NormalizeOptionalText(shortDescription, 500), normalizedNotes = NormalizeOptionalText(notes, 4000);
+        if (Title == normalizedTitle && Status == status && Priority == priority && ShortDescription == description && Notes == normalizedNotes) return;
+        Title = normalizedTitle; Status = status; Priority = priority;
+        ShortDescription = description; Notes = normalizedNotes;
+        var now = DateTimeOffset.Now; ModifiedAt = now > ModifiedAt ? now : ModifiedAt.AddTicks(1);
     }
 
     private static string NormalizeRequiredTitle(string title)

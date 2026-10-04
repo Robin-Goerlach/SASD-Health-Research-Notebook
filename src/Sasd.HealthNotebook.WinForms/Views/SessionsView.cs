@@ -29,6 +29,10 @@ public sealed class SessionsView : UserControl
     private readonly CheckBox _showArchivedCheckBox = new() { AutoSize = true, Dock = DockStyle.Top, Height = 28 };
     private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(90, UiMetrics.ActionHeight) };
     private readonly Button _archiveButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
+    private readonly Button _editQuestionButton = Action();
+    private readonly Button _deleteQuestionButton = Action();
+    private readonly Button _editFollowUpButton = Action();
+    private readonly Button _deleteFollowUpButton = Action();
     private bool _binding;
     /// <summary>Creates proportional lists/details, keeping both lower detail fields aligned.</summary>
     public SessionsView()
@@ -40,8 +44,8 @@ public sealed class SessionsView : UserControl
         var left = Pane(_sessionsGrid, _emptyStateLabel, _editButton, _archiveButton); left.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
         layout.Controls.Add(left, 0, 0);
         var tabs = new TabControl { Dock = DockStyle.Fill, Margin = Padding.Empty, TabIndex = 1 };
-        _questionsTab.Controls.Add(Pane(_questionsGrid, _questionsEmpty, _newQuestionButton, _answerButton));
-        _followUpsTab.Controls.Add(Pane(_followUpsGrid, _followUpsEmpty, _newFollowUpButton, _statusButton));
+        _questionsTab.Controls.Add(Pane(_questionsGrid, _questionsEmpty, _newQuestionButton, _answerButton, _editQuestionButton, _deleteQuestionButton));
+        _followUpsTab.Controls.Add(Pane(_followUpsGrid, _followUpsEmpty, _newFollowUpButton, _statusButton, _editFollowUpButton, _deleteFollowUpButton));
         tabs.TabPages.Add(_questionsTab); tabs.TabPages.Add(_followUpsTab); layout.Controls.Add(tabs, 1, 0);
         _sessionDetails.Margin = new Padding(0, 3, UiMetrics.StandardSpacing, 3); layout.Controls.Add(_sessionDetails, 0, 1);
         var right = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0, 3, 0, 3), TabIndex = 2 };
@@ -59,6 +63,10 @@ public sealed class SessionsView : UserControl
         _showArchivedCheckBox.CheckedChanged += (_, _) => ArchiveFilterChanged?.Invoke(this, EventArgs.Empty);
         _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
         _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
+        _editQuestionButton.Click += (_, _) => EditQuestionRequested?.Invoke(this, EventArgs.Empty);
+        _deleteQuestionButton.Click += (_, _) => DeleteQuestionRequested?.Invoke(this, EventArgs.Empty);
+        _editFollowUpButton.Click += (_, _) => EditFollowUpRequested?.Invoke(this, EventArgs.Empty);
+        _deleteFollowUpButton.Click += (_, _) => DeleteFollowUpRequested?.Invoke(this, EventArgs.Empty);
         ApplyTexts(); SetSessions(Array.Empty<SessionSummary>()); SetDependents(Array.Empty<SessionQuestion>(), Array.Empty<SessionFollowUp>());
     }
     /// <summary>Selection now refers to the new current session.</summary>
@@ -104,6 +112,8 @@ public sealed class SessionsView : UserControl
     /// <summary>Updates headings; presenter refreshes localized row projections.</summary>
     public void ApplyTexts()
     {
+        _editQuestionButton.Text = _editFollowUpButton.Text = AppStrings.Edit;
+        _deleteQuestionButton.Text = _deleteFollowUpButton.Text = AppStrings.Delete;
         _showArchivedCheckBox.Text = AppStrings.ShowArchived; _editButton.Text = AppStrings.Edit;
         _emptyStateLabel.Text = AppStrings.SessionsEmpty; _questionsTab.Text = AppStrings.SessionQuestions; _followUpsTab.Text = AppStrings.SessionFollowUps;
         _newQuestionButton.Text = AppStrings.NewSessionQuestion; _answerButton.Text = AppStrings.EditSessionAnswer;
@@ -129,7 +139,8 @@ public sealed class SessionsView : UserControl
         _questionDetails.Text = question is null ? string.Empty : AppStrings.SessionQuestionText + ":\r\n" + question.Text + "\r\n\r\n" + AppStrings.SessionAnswerNote + ":\r\n" + question.AnswerNote;
         _followUpDetails.Text = followUp is null ? string.Empty : AppStrings.SessionNextStep + ":\r\n" + followUp.Text + "\r\n" + AppStrings.SessionDueDate + ": " + Date(followUp.DueDate);
         _newQuestionButton.Enabled = _newFollowUpButton.Enabled = session is not null;
-        _answerButton.Enabled = question is not null; _statusButton.Enabled = followUp is not null;
+        _answerButton.Enabled = _editQuestionButton.Enabled = _deleteQuestionButton.Enabled = question is not null;
+        _editFollowUpButton.Enabled = _deleteFollowUpButton.Enabled = followUp is not null; _statusButton.Enabled = followUp is not null;
         _questionsEmpty.Text = session is null ? AppStrings.SessionSelectionEmpty : AppStrings.SessionQuestionsEmpty;
         _followUpsEmpty.Text = session is null ? AppStrings.SessionSelectionEmpty : AppStrings.SessionFollowUpsEmpty;
     }
@@ -178,4 +189,12 @@ public sealed class SessionsView : UserControl
     /// <summary>Selected-parent archive/reactivate command.</summary>
     public event EventHandler? ArchiveRequested;
 
+    /// <summary>Question correction command.</summary>
+    public event EventHandler? EditQuestionRequested;
+    /// <summary>Explicit question delete command; recorded answers are protected.</summary>
+    public event EventHandler? DeleteQuestionRequested;
+    /// <summary>Follow-up correction command.</summary>
+    public event EventHandler? EditFollowUpRequested;
+    /// <summary>Explicit follow-up delete command.</summary>
+    public event EventHandler? DeleteFollowUpRequested;
 }

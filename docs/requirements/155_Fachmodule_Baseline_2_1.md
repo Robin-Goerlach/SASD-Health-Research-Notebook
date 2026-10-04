@@ -256,6 +256,14 @@ Diese Anforderungen sind ein Zielbild. Implementiert wird in kleinen vertikalen 
 
 ## 18. Edit / Archive / Delete Baseline Slice 1
 
+Explizite Erweiterung: **FR-LIF-004** – HealthTopic ist editierbar, archivierbar und
+reaktivierbar; Delete ausschließlich bestätigt ohne aktuelle/historische Store-Referenz.
+**FR-LIF-005** – SessionQuestion ist editierbar; Delete nur ohne beantworteten Status und
+Antwortnotiz. SessionFollowUp ist editierbar und bestätigt einzeln löschbar.
+Akzeptanz: kein Cascade, Identität/Eltern/übrige Kinder erhalten, stale/concurrent Writer
+abgewiesen, klare DE/EN-Sperrmeldung und Cancel-default. Dokument 153 enthält Nachweise.
+FR-LIF-004 ersetzt die frühere pauschale Topic-Hard-Delete-Sperre dieses Teilumfangs.
+
 | ID | Anforderung / konkrete Akzeptanz |
 |---|---|
 | FR-LIF-001 | Measurement, HealthEntry, Session, HealthAction, Routine und ProgressEntry sind korrigierbar. Id/CreatedAt und Kinder bleiben erhalten, ModifiedAt steigt bei Änderung. Unverändertes Speichern schreibt nicht; veraltete Editoren werden abgewiesen. |

@@ -114,7 +114,7 @@ internal static class LifecycleTests
             Check((await Actions().GetActionDetailsAsync(sourced.Id)).Revisions.Single().Previous == sourced, "Professional source removal lost prior instruction.");
             foreach (var file in untouched) Check(file.Value.SequenceEqual(File.ReadAllBytes(Path.Combine(root, file.Key))), "Other store changed.");
             // Parent Hard Delete is deliberately unavailable, even for direct repository clients.
-            foreach (Type type in new[] { typeof(SessionService), typeof(JsonSessionRepository), typeof(HealthActionService), typeof(JsonHealthActionRepository), typeof(SourceService), typeof(HealthTopicService) })
+            foreach (Type type in new[] { typeof(SessionService), typeof(JsonSessionRepository), typeof(HealthActionService), typeof(JsonHealthActionRepository), typeof(SourceService) })
                 Check(!type.GetMethods().Any(method => method.Name is "DeleteSessionAsync" or "DeleteHealthActionAsync" or "DeleteRoutineAsync" or "DeleteSourceAsync" or "DeleteHealthTopicAsync"), "Parent delete unexpectedly available.");
             await OffsetCorrections(time);
             await VersionCompatibility(root);

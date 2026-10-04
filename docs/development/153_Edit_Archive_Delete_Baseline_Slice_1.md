@@ -222,3 +222,49 @@ Release WinForms/WPF ohne Warnungen/Fehler, Backend und alle WinForms-Regression
 UI-MEA-002/003, Lifecycle, Dashboard, Sessions, Sources, HealthAction und SourceLocation.
 DE/EN-Renderbilder des Filters bei 1120×740 und des Empty States visuell geprüft.
 `git diff --check` erfolgreich; geschützte `.gitignore`/`.resx` unverändert.
+
+## Erweiterung: HealthTopic und Session-Kinder
+
+Der explizite Folgeauftrag ersetzt die frühere pauschale Topic-Hard-Delete-Sperre:
+HealthTopic erhält Edit, Archive/Reactivate und bestätigtes Delete nur ohne Referenzen.
+Session-, Action-, Routine- und Source-Hard-Delete bleiben nicht verfügbar.
+FR-LIF-004/005; IT-LIF-002 / UI-LIF-002 (`ParentLifecycleTests` / `ParentLifecycleUiTests`).
+
+Topic-Delete hält fail-fast alle sechs Store-Writer-Locks in fester Reihenfolge. Es prüft
+Entry, Measurement, Source, Session, Action und `HealthActionRevision.Previous` auf
+Topic-Verweise, einschließlich archivierter Eltern und rein historischer Referenzen.
+Alle referenzierenden Writer prüfen neue/gewechselte Topic-IDs erneut unter ihrem eigenen
+Lock. Somit erzeugt ein früher geladener Service-Snapshot nach Delete keinen verwaisten
+neuen Verweis. Kein Cascade, keine Veränderung der anderen Stores. Korrupte/unbekannte
+Stores sowie Backup-/Temp-/Lock-Probleme brechen sicher ab. Alte Legacy-Schreiber dürfen
+nicht parallel mit dieser Version schreiben.
+
+Topic-JSON bleibt die vorhandene nackte Liste. Optionales `StatusBeforeArchive` erhält
+bei neuen Archivierungen den vorherigen Status; Legacy-Archive ohne dieses Feld werden
+als Observation reaktiviert. Lesen migriert nichts. Unbekannte Felder werden abgewiesen,
+um stillen Datenverlust beim Rewrite zu verhindern. Topic-Schreiben nutzt nun ebenfalls
+CreateNew-Lock/Temp und atomaren File.Replace mit validiertem Backup. `SaveAllAsync` ist
+nur Initialisierung einer leeren Sammlung, kein Bulk-Delete-Ausweg. Der sichere Launcher
+prüft zusätzlich `health-topics.json.lock`; Windows PowerShell 5.1 bleibt unterstützt.
+
+SessionQuestion-Edit erlaubt Text, Reihenfolge und explizite Antwortkorrektur. Hard Delete
+ist nur bei IsAnswered=false UND ohne nichtleere AnswerNote möglich. Eine vorhandene
+Antwortnotiz bleibt auch bei unmarkiertem Checkbox-Status geschützt. Edit beantworteter
+Fragen ist erlaubt; eine bewusste Antwortkorrektur ist getrennt von Delete. Verständliche
+DE/EN-Meldungen erklären die Sperre. Kein globales Audit. SessionFollowUp erhält Edit
+von Text/Status/Fälligkeit und einzeln bestätigtes Delete. IDs, CreatedAt, Eltern und
+übrige Kinder bleiben erhalten; ModifiedAt steigt, veraltete Tokens werden abgewiesen.
+
+WinForms bietet Topic-Commands/Archivfilter sowohl im Arbeitsbereich als auch in der
+Dashboard-Liste. Fragen-/Follow-up-Tabs ergänzen Edit/Delete. Der Bestätigungsdialog
+bleibt Cancel-default. Tests prüfen Referenzarten einzeln, nur historische Links,
+Writer-/Delete-Reihenfolgen, partielle Locks, Corruption, Unknown Fields/Legacy-Bytes,
+Stale-Tokens, Antworten-/Kindererhalt, DE/EN-Dialoge, Cancel/Confirm und Restart.
+
+Manuell prüfen: Topic Edit; Archive/Ausblenden/Anzeigen/Reactivate mit vorherigem Status;
+unreferenziertes Topic Delete Cancel/Confirm; referenziertes Topic verständlich blockiert.
+Frage Edit; unbeantwortete Frage Delete Cancel/Confirm; beantwortete Frage bleibt bei
+Delete erhalten. Follow-up Text/Status/Fälligkeit Edit und Delete Cancel/Confirm.
+Neustart, DE/EN, Tab und Mindestgröße 1120×740 prüfen. PR #18 bleibt Draft; kein Merge.
+
+Abschlussprüfung der Erweiterung (2026-10-04): vollständiger Windows-PowerShell-5.1-Safe-Lauf grün, Release WinForms/WPF ohne Warnungen/Fehler, Backend und alle DE/EN-UI-Smoke-Tests einschließlich bestehender Measurement-/SourceLocation-/Session-/HealthAction-/Dashboard-Regressionen. Beide Frontends isoliert gestartet und geordnet beendet. Neue DE/EN-Renderbilder bei Mindestgröße visuell geprüft. Unabhängige CRITICAL-Prüfung abgeschlossen; Reload-Generationen schützen auch den letzten Dashboard-Await. Manuelle Nutzerabnahme dieser Erweiterung bleibt offen.

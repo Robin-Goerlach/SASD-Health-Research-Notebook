@@ -30,7 +30,8 @@ public sealed record SessionQuestion
     /// <summary>Updates only the user-recorded answer state and note.</summary>
     public SessionQuestion WithAnswer(bool answered, string? note)
     {
-        var updated = this with { IsAnswered = answered, AnswerNote = note, ModifiedAt = DateTimeOffset.Now };
+        var now = DateTimeOffset.Now;
+        var updated = this with { IsAnswered = answered, AnswerNote = note, ModifiedAt = now > ModifiedAt ? now : ModifiedAt.AddTicks(1) };
         updated.Validate(); return updated;
     }
     /// <summary>Validates structure; owning session existence is checked by Application/storage.</summary>

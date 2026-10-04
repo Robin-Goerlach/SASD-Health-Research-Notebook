@@ -94,4 +94,16 @@ public sealed class SessionService
     /// <summary>Reactivates a session with its original business status and children.</summary>
     public Task ReactivateSessionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.SetSessionArchivedAsync(id, false, expectedModifiedAt, cancellationToken);
 
+
+    /// <summary>Corrects a question, with optimistic concurrency and no parent change.</summary>
+    public Task UpdateQuestionAsync(SessionQuestion replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    { ArgumentNullException.ThrowIfNull(replacement); replacement.Validate(); return _sessions.UpdateQuestionAsync(replacement, expectedModifiedAt, cancellationToken); }
+    /// <summary>Deletes an unanswered question only; recorded answers block deletion.</summary>
+    public Task DeleteQuestionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.DeleteQuestionAsync(id, expectedModifiedAt, cancellationToken);
+    /// <summary>Corrects a next step without changing its session.</summary>
+    public Task UpdateFollowUpAsync(SessionFollowUp replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    { ArgumentNullException.ThrowIfNull(replacement); replacement.Validate(); return _sessions.UpdateFollowUpAsync(replacement, expectedModifiedAt, cancellationToken); }
+    /// <summary>Deletes one explicitly selected next step.</summary>
+    public Task DeleteFollowUpAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.DeleteFollowUpAsync(id, expectedModifiedAt, cancellationToken);
+
 }

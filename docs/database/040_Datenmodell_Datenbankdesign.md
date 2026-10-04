@@ -1,5 +1,13 @@
 # 040 - Datenmodell und Datenbankdesign
 
+Aktuelle Lifecycle-Ergänzung (FR-LIF-004/005, Dokument 153): Topic-JSON bleibt eine nackte
+Liste mit optionalem `StatusBeforeArchive` (Legacy null). Topic-Delete prüft aktuelle
+und historische Referenzen unter allen sechs Writer-Locks; neue Topic-Verweise werden
+unter dem jeweiligen Writer-Lock erneut validiert. Topic-Updates bleiben atomar mit
+last-good Backup und fail-fast Temp/Lock; unbekannte JSON-Felder werden abgewiesen.
+SessionQuestion/FollowUp-Edit und begrenztes Delete ändern das Session-Storeformat nicht.
+Keine Migration, keine Kaskaden, keine stillen Änderungen beim Lesen.
+
 Projekt: SASD Health Research Notebook  
 Stand: 2026-05-25  
 Dokumenttyp: Datenmodell / Datenbankdesign  

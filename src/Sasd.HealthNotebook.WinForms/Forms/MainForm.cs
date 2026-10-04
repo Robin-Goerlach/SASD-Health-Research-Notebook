@@ -250,6 +250,7 @@ public sealed partial class MainForm : Form
         InitializeSessions();
         InitializeActions();
         InitializeLifecycle();
+        InitializeParentLifecycle();
         ApplyTexts();
 
         Shown += async (_, _) =>
@@ -426,51 +427,66 @@ public sealed partial class MainForm : Form
         return layout;
     }
 
+    private int _reloadGeneration;
     private async Task ReloadSafeAsync()
     {
+        int generation = ++_reloadGeneration;
+        var page = _currentPage;
+        void SetStatus(string text)
+        {
+            // Older page loads must not overwrite the status of a later navigation/refresh.
+            if (!IsDisposed && generation == _reloadGeneration && page == _currentPage) _statusLabel.Text = text;
+        }
         try
         {
             if (_currentPage == NavigationPage.Actions)
             {
-                _statusLabel.Text = AppStrings.LoadedActions(await _actionsPresenter.LoadAsync());
+                SetStatus(AppStrings.LoadedActions(await _actionsPresenter.LoadAsync()));
                 return;
             }
             if (_currentPage == NavigationPage.Sessions)
             {
-                _statusLabel.Text = AppStrings.FormatLoadedSessions(await _sessionsPresenter.LoadAsync());
+                SetStatus(AppStrings.FormatLoadedSessions(await _sessionsPresenter.LoadAsync()));
                 return;
             }
             if (_currentPage == NavigationPage.Measurements)
             {
-                _statusLabel.Text = AppStrings.FormatLoadedMeasurements(await _measurementsPresenter.LoadAsync());
+                SetStatus(AppStrings.FormatLoadedMeasurements(await _measurementsPresenter.LoadAsync()));
                 return;
             }
             if (_currentPage == NavigationPage.Sources)
             {
-                _statusLabel.Text = AppStrings.FormatLoadedSources(await _sourcesPresenter.LoadAsync());
+                SetStatus(AppStrings.FormatLoadedSources(await _sourcesPresenter.LoadAsync()));
                 return;
             }
             if (_currentPage == NavigationPage.Timeline)
             {
-                _statusLabel.Text = AppStrings.FormatLoadedEntries(await _timelinePresenter.LoadAsync());
+                SetStatus(AppStrings.FormatLoadedEntries(await _timelinePresenter.LoadAsync()));
                 return;
             }
             await _dashboardPresenter.LoadAsync().ConfigureAwait(true);
+            if (IsDisposed || generation != _reloadGeneration) return;
             var dashboardTopics = await _dashboardTopicsPresenter.LoadAsync().ConfigureAwait(true);
             var topicPageTopics = await _topicsPresenter.LoadAsync().ConfigureAwait(true);
+            if (IsDisposed || generation != _reloadGeneration) return;
 
             _lastLoadedTopicCount = _currentPage == NavigationPage.Dashboard
                 ? dashboardTopics.Count
                 : topicPageTopics.Count;
 
-            _statusLabel.Text = AppStrings.FormatLoadedHealthTopics(_lastLoadedTopicCount.Value);
+            SetStatus(AppStrings.FormatLoadedHealthTopics(_lastLoadedTopicCount.Value));
             if (_currentPage == NavigationPage.Dashboard)
-                _dashboardActionsOverview.SetOverview(await _healthActionService.GetOverviewAsync(DateOnly.FromDateTime(DateTime.Now)));
+            {
+                var overview = await _healthActionService.GetOverviewAsync(DateOnly.FromDateTime(DateTime.Now));
+                if (!IsDisposed && generation == _reloadGeneration && page == _currentPage)
+                    _dashboardActionsOverview.SetOverview(overview);
+            }
         }
         catch
         {
+            if (IsDisposed || generation != _reloadGeneration) return;
             UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData);
-            _statusLabel.Text = AppStrings.LoadingFailed;
+            SetStatus(AppStrings.LoadingFailed);
         }
     }
 

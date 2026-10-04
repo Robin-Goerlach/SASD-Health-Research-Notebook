@@ -1,146 +1,99 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Sasd.HealthNotebook.Application.Repositories;
+using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.Application.Services;
 using Sasd.HealthNotebook.Domain;
 
 namespace Sasd.HealthNotebook.Infrastructure.Storage;
 
-/// <summary>
-/// JSON-based repository for health topics.
-///
-/// This repository is intentionally simple and transparent for Milestone 1.
-/// It writes all topics to one local JSON file and creates a backup copy before
-/// overwriting an existing file. This reduces the risk of silent data loss while
-/// keeping the implementation easy to inspect.
-///
-/// Important privacy rule: this class must not log health data. Exceptions should
-/// remain technical and should not include user-entered medical content.
-/// </summary>
+/// <summary>Compatible bare-list topic store with atomic, conflict-checked lifecycle writes.</summary>
 public sealed class JsonHealthTopicRepository : IHealthTopicRepository
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        WriteIndented = true,
-        PropertyNameCaseInsensitive = true,
-        Converters = { new JsonStringEnumConverter() }
-    };
-
-    private readonly string _filePath;
-    private readonly SemaphoreSlim _gate = new(1, 1);
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="JsonHealthTopicRepository" /> class.
-    /// </summary>
-    /// <param name="filePath">
-    /// Optional JSON file path. When omitted, the shared configured data path is used.
-    /// Tests can pass an isolated file path to avoid touching real user data.
-    /// </param>
-    public JsonHealthTopicRepository(string? filePath = null)
-    {
-        _filePath = string.IsNullOrWhiteSpace(filePath)
-            ? LocalHealthNotebookPaths.HealthTopicsFilePath
-            : filePath;
-    }
-
+    private static readonly JsonSerializerOptions Options = new() { WriteIndented = true, PropertyNameCaseInsensitive = true, UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
+        Converters = { new JsonStringEnumConverter() } };
+    private readonly string _path;
+    /// <summary>Captures one directory; optional paths keep synthetic tests isolated.</summary>
+    public JsonHealthTopicRepository(string? filePath = null) => _path = Path.GetFullPath(filePath ?? LocalHealthNotebookPaths.HealthTopicsFilePath);
     /// <inheritdoc />
-    public async Task<IReadOnlyList<HealthTopic>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<HealthTopic>> GetAllAsync(CancellationToken cancellationToken = default) => await LoadAsync(_path, cancellationToken).ConfigureAwait(false);
+    /// <inheritdoc />
+    public Task AddAsync(HealthTopic topic, CancellationToken cancellationToken = default) => WriteAsync(topics =>
+    { Validate(topic); if (topics.Any(item => item.Id == topic.Id)) throw new ArgumentException("Duplicate topic identifier."); topics.Add(topic); return Task.FromResult(true); }, false, cancellationToken);
+    /// <summary>Initialization only; bulk replacement cannot bypass reference integrity.</summary>
+    public Task SaveAllAsync(IReadOnlyList<HealthTopic> topics, CancellationToken cancellationToken = default) => WriteAsync(current =>
+    { if (current.Count != 0) throw new InvalidOperationException("Bulk replacement of existing topics is not supported."); current.AddRange(topics); return Task.FromResult(current.Count != 0); }, false, cancellationToken);
+    /// <inheritdoc />
+    public Task UpdateAsync(HealthTopic replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(topics =>
     {
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-
+        var current = Require(topics, replacement.Id, expectedModifiedAt); Validate(replacement);
+        if (current.Title == replacement.Title && current.Status == replacement.Status && current.Priority == replacement.Priority && current.ShortDescription == replacement.ShortDescription && current.Notes == replacement.Notes) return Task.FromResult(false);
+        replacement.CreatedAt = current.CreatedAt; replacement.ModifiedAt = NextTime(current.ModifiedAt);
+        replacement.StatusBeforeArchive = replacement.Status == HealthTopicStatus.Archived ? (current.Status == HealthTopicStatus.Archived ? current.StatusBeforeArchive : current.Status) : null;
+        topics[topics.IndexOf(current)] = replacement; return Task.FromResult(true);
+    }, false, cancellationToken);
+    /// <inheritdoc />
+    public Task SetArchivedAsync(Guid id, bool archived, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(topics =>
+    {
+        var current = Require(topics, id, expectedModifiedAt); if ((current.Status == HealthTopicStatus.Archived) == archived) return Task.FromResult(false);
+        if (archived) { current.StatusBeforeArchive = current.Status; current.Status = HealthTopicStatus.Archived; }
+        else { current.Status = current.StatusBeforeArchive ?? HealthTopicStatus.Observation; current.StatusBeforeArchive = null; }
+        current.ModifiedAt = NextTime(current.ModifiedAt); return Task.FromResult(true);
+    }, false, cancellationToken);
+    /// <inheritdoc />
+    public Task DeleteIfUnreferencedAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => WriteAsync(async topics =>
+    {
+        var current = Require(topics, id, expectedModifiedAt); string directory = Path.GetDirectoryName(_path)!;
+        // Hold all related writer locks through the complete check and atomic deletion.
+        // Archived parents and historical instruction snapshots remain real references.
+        var entries = await new JsonHealthEntryRepository(Path.Combine(directory, "health-entries.json")).GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var measurements = await new JsonMeasurementRepository(Path.Combine(directory, "measurements.json")).GetAllAsync(cancellationToken).ConfigureAwait(false);
+        var sources = await new JsonSourceRepository(Path.Combine(directory, "sources.json")).LoadAsync(cancellationToken).ConfigureAwait(false);
+        var sessions = await new JsonSessionRepository(Path.Combine(directory, "sessions.json")).LoadAsync(cancellationToken).ConfigureAwait(false);
+        var actions = await new JsonHealthActionRepository(Path.Combine(directory, "health-actions.json")).LoadAsync(cancellationToken).ConfigureAwait(false);
+        if (entries.Any(item => item.HealthTopicId == id) || measurements.Any(item => item.HealthTopicId == id) || sources.Sources.Any(item => item.HealthTopicId == id)
+            || sessions.Sessions.Any(item => item.HealthTopicId == id) || actions.Actions.Any(item => item.HealthTopicId == id) || actions.Revisions.Any(item => item.Previous.HealthTopicId == id)) throw new LifecycleDeleteBlockedException();
+        topics.Remove(current); return true;
+    }, true, cancellationToken);
+    private async Task WriteAsync(Func<List<HealthTopic>, Task<bool>> change, bool allLocks, CancellationToken cancellationToken)
+    {
+        string directory = Path.GetDirectoryName(_path)!; TopicReferenceGuard.RejectLink(directory); Directory.CreateDirectory(directory); var locks = new List<FileStream>();
         try
         {
-            return await LoadInternalAsync(cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _gate.Release();
-        }
-    }
-
-    /// <inheritdoc />
-    public async Task AddAsync(HealthTopic topic, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(topic);
-
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-        try
-        {
-            List<HealthTopic> topics = await LoadInternalAsync(cancellationToken).ConfigureAwait(false);
-
-            if (topics.Any(existing => existing.Id == topic.Id))
+            // Fixed order, fail-fast CreateNew; partial acquisition never changes data.
+            string[] files = allLocks ? new[] { Path.GetFileName(_path), "health-entries.json", "measurements.json", "sources.json", "sessions.json", "health-actions.json" } : new[] { Path.GetFileName(_path) };
+            foreach (string file in files)
+            { cancellationToken.ThrowIfCancellationRequested(); string path = Path.Combine(directory, file + ".lock"); TopicReferenceGuard.RejectLink(path); locks.Add(new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.DeleteOnClose)); }
+            var topics = await LoadAsync(_path, cancellationToken).ConfigureAwait(false);
+            string backup = Path.Combine(directory, Path.GetFileNameWithoutExtension(_path) + ".backup.json"); TopicReferenceGuard.RejectLink(backup);
+            if (Directory.Exists(backup)) throw new InvalidDataException("Topic backup unavailable.");
+            if (File.Exists(backup)) await LoadAsync(backup, cancellationToken).ConfigureAwait(false);
+            if (!await change(topics).ConfigureAwait(false)) return;
+            ValidateList(topics); string temp = _path + ".tmp"; TopicReferenceGuard.RejectLink(temp); bool created = false;
+            try
             {
-                throw new InvalidOperationException("A health topic with the same identifier already exists.");
+                await using (var stream = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                { created = true; await JsonSerializer.SerializeAsync(stream, topics, Options, cancellationToken).ConfigureAwait(false); await stream.FlushAsync(cancellationToken).ConfigureAwait(false); stream.Flush(true); }
+                cancellationToken.ThrowIfCancellationRequested(); TopicReferenceGuard.RejectLink(_path);
+                if (File.Exists(_path)) File.Replace(temp, _path, backup); else File.Move(temp, _path);
             }
-
-            topics.Add(topic);
-            await SaveInternalAsync(topics, cancellationToken).ConfigureAwait(false);
+            finally { if (created && File.Exists(temp)) File.Delete(temp); }
         }
-        finally
-        {
-            _gate.Release();
-        }
+        finally { foreach (var held in Enumerable.Reverse(locks)) held.Dispose(); }
     }
-
-    /// <inheritdoc />
-    public async Task SaveAllAsync(IReadOnlyList<HealthTopic> topics, CancellationToken cancellationToken = default)
+    private static async Task<List<HealthTopic>> LoadAsync(string path, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(topics);
-
-        await _gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-
+        TopicReferenceGuard.RejectLink(path);
+        if (!File.Exists(path))
+        { string backup = Path.Combine(Path.GetDirectoryName(path)!, Path.GetFileNameWithoutExtension(path) + ".backup.json"); TopicReferenceGuard.RejectLink(backup); if (Directory.Exists(path) || File.Exists(backup) || Directory.Exists(backup)) throw new InvalidDataException("Topic store unavailable; existing data retained."); return new(); }
         try
-        {
-            await SaveInternalAsync(topics, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _gate.Release();
-        }
+        { await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete); var topics = await JsonSerializer.DeserializeAsync<List<HealthTopic>>(stream, Options, cancellationToken).ConfigureAwait(false); if (topics is null) throw new InvalidDataException("Invalid topic collection."); ValidateList(topics); return topics; }
+        catch (JsonException) { throw new InvalidDataException("Cannot read topic store; existing data retained."); }
+        catch (ArgumentException) { throw new InvalidDataException("Invalid topic metadata; existing data retained."); }
     }
-
-    private async Task<List<HealthTopic>> LoadInternalAsync(CancellationToken cancellationToken)
-    {
-        if (!File.Exists(_filePath))
-        {
-            return new List<HealthTopic>();
-        }
-
-        await using FileStream stream = File.OpenRead(_filePath);
-
-        List<HealthTopic>? topics = await JsonSerializer
-            .DeserializeAsync<List<HealthTopic>>(stream, SerializerOptions, cancellationToken)
-            .ConfigureAwait(false);
-
-        return topics ?? new List<HealthTopic>();
-    }
-
-    private async Task SaveInternalAsync(IReadOnlyList<HealthTopic> topics, CancellationToken cancellationToken)
-    {
-        string? directory = Path.GetDirectoryName(_filePath);
-
-        if (!string.IsNullOrWhiteSpace(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
-
-        string tempFilePath = _filePath + ".tmp";
-        string backupFilePath = Path.Combine(
-            Path.GetDirectoryName(_filePath) ?? string.Empty,
-            Path.GetFileNameWithoutExtension(_filePath) + ".backup" + Path.GetExtension(_filePath));
-
-        await using (FileStream stream = File.Create(tempFilePath))
-        {
-            await JsonSerializer.SerializeAsync(stream, topics, SerializerOptions, cancellationToken).ConfigureAwait(false);
-        }
-
-        // Keep a small last-good backup before replacing the active JSON file.
-        // This is not a complete backup strategy, but it is a useful safety net for Milestone 1.
-        if (File.Exists(_filePath))
-        {
-            File.Copy(_filePath, backupFilePath, overwrite: true);
-        }
-
-        File.Move(tempFilePath, _filePath, overwrite: true);
-    }
+    private static void ValidateList(List<HealthTopic> topics) { foreach (var topic in topics) Validate(topic); if (topics.Select(item => item.Id).Distinct().Count() != topics.Count) throw new InvalidDataException("Duplicate topics."); }
+    private static void Validate(HealthTopic topic)
+    { if (topic is null || topic.Id == Guid.Empty || string.IsNullOrWhiteSpace(topic.Title) || topic.Title.Length > 160 || topic.ShortDescription is null || topic.ShortDescription.Length > 500 || topic.Notes is null || topic.Notes.Length > 4000 || !Enum.IsDefined(topic.Status) || !Enum.IsDefined(topic.Priority) || topic.CreatedAt == default || topic.ModifiedAt < topic.CreatedAt || (topic.StatusBeforeArchive.HasValue && (!Enum.IsDefined(topic.StatusBeforeArchive.Value) || topic.StatusBeforeArchive == HealthTopicStatus.Archived))) throw new ArgumentException("Invalid topic fields."); }
+    private static HealthTopic Require(List<HealthTopic> topics, Guid id, DateTimeOffset expected) { var topic = topics.SingleOrDefault(item => item.Id == id); if (topic is null || topic.ModifiedAt != expected) throw new LifecycleConflictException(); return topic; }
+    private static DateTimeOffset NextTime(DateTimeOffset previous) { var now = DateTimeOffset.Now; return now > previous ? now : previous.AddTicks(1); }
 }

@@ -18,7 +18,7 @@ public sealed class JsonHealthEntryRepository : IHealthEntryRepository
     private readonly string _path;
 
     /// <summary>Resolves the shared data directory; no alternate arbitrary filename is accepted.</summary>
-    public JsonHealthEntryRepository() => _path = LocalHealthNotebookPaths.HealthEntriesFilePath;
+    public JsonHealthEntryRepository(string? filePath = null) => _path = Path.GetFullPath(filePath ?? LocalHealthNotebookPaths.HealthEntriesFilePath);
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<HealthEntry>> GetAllAsync(CancellationToken cancellationToken = default) =>
@@ -48,7 +48,9 @@ public sealed class JsonHealthEntryRepository : IHealthEntryRepository
         await using var writeLock = new FileStream(lockPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
             4096, FileOptions.DeleteOnClose);
         var store = await LoadPrimaryAsync(cancellationToken).ConfigureAwait(false);
+        var previousTopics = store.Entries.ToDictionary(item => item.Id, item => item.HealthTopicId);
         if (!mutate(store)) return;
+        await TopicReferenceGuard.ValidateAsync(_path, previousTopics, store.Entries.Select(item => (item.Id, item.HealthTopicId)), cancellationToken).ConfigureAwait(false);
         foreach (var item in store.Entries) item.Validate();
         string backupPath = Path.Combine(directory, "health-entries.backup.json");
         if (Directory.Exists(backupPath)) throw new InvalidDataException("Entry backup unavailable; existing files retained.");

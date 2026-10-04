@@ -10,6 +10,7 @@ namespace Sasd.HealthNotebook.WinForms.Presentation;
 public sealed class HealthTopicPresenter
 {
     private readonly HealthTopicService _healthTopicService;
+    private int _loadGeneration;
     private readonly HealthTopicsView _view;
 
     /// <summary>
@@ -26,11 +27,12 @@ public sealed class HealthTopicPresenter
     /// </summary>
     public async Task<IReadOnlyList<HealthTopicSummary>> LoadAsync(CancellationToken cancellationToken = default)
     {
+        int generation = ++_loadGeneration;
         IReadOnlyList<HealthTopicSummary> summaries = await _healthTopicService
             .GetTopicSummariesAsync(cancellationToken)
             .ConfigureAwait(true);
 
-        _view.SetTopics(summaries);
+        if (!_view.IsDisposed && generation == _loadGeneration) _view.SetTopics(summaries);
         return summaries;
     }
 }
