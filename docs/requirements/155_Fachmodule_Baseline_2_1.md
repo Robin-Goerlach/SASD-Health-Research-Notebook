@@ -64,6 +64,7 @@ FR-OBS-005 bleiben außerhalb dieses Slices.
 | FR-MEA-005 | Rohwert und persönliche Notiz/Interpretation werden getrennt gespeichert. |
 | FR-MEA-006 | Messwerte können mit Dokument, Gesundheitsthema, Beobachtung und Session verknüpft werden. |
 | FR-MEA-007 | Die Anwendung darf Messwerte nicht automatisch diagnostisch bewerten. |
+| FR-MEA-008 | Die Messwertliste kann rein darstellend nach bestehender Messart gefiltert werden; vollständige Daten bleiben erhalten. |
 
 Akzeptanz für FR-MEA-001/002/004/005/007, Measurement/Vitalwerte Slice 1:
 Der Nutzer dokumentiert Blutdruck mit getrennten systolischen/diastolischen Zahlen

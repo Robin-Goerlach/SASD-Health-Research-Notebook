@@ -53,6 +53,7 @@ internal static partial class Program
                     {
                         AppLanguage.SetLanguage(language);
                         CheckMeasurementFields(testPath, language);
+                        CheckMeasurementTypeFilter(testPath, language);
                         CheckLifecycle(testPath, language);
                         var service = new HealthTopicService(new JsonHealthTopicRepository());
                         CheckShell(service, testPath, language);

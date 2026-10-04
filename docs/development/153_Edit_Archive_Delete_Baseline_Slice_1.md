@@ -193,3 +193,32 @@ und WPF ohne Warnungen/Fehler, Backend- und alle WinForms-Smoke-Tests in DE/EN i
 UI-MEA-002, Lifecycle, SourceLocation, Session, HealthAction und Dashboardcounts.
 BloodPressure-Create-/Edit-Renderbilder in beiden Sprachen bei Mindestgröße visuell
 geprüft: exakt drei korrekt beschriftete Felder, kein sichtbares Einzelwertfeld.
+
+## Measurement-Type-Filter aus manueller Abnahme
+
+Die korrigierte Blutdruckerfassung ist vom Nutzer manuell akzeptiert. FR-MEA-008 und
+UI-MEA-003 ergänzen einen kompakten ComboBox-Filter direkt neben Edit/Delete über der
+Measurement-Liste: Messart / Measurement type, Alle / All und die fünf bekannten Typen.
+`MeasurementsView` behält die vollständige vom Presenter geladene Liste und projiziert
+nur die sichtbaren Zeilen. Keine Domain-/Service-/JSON-Filterlogik, keine Schreiboperation,
+keine neue Datei oder Settings-Persistenz; Neustart beginnt mit Alle.
+
+Bei Filterwechsel bleibt eine noch sichtbare ID ausgewählt; andernfalls folgt die erste
+sichtbare Zeile oder „Keine Messwerte dieser Art vorhanden.“ / „No measurements of this
+type.“ mit deaktiviertem Edit/Delete. Edit, Delete und Refresh erhalten den Filter.
+Ändert Edit die Messart, kann der Datensatz aus der aktuellen Ansicht verschwinden,
+bleibt aber in der vollständigen Liste. Der Filter speichert den Enum-Wert; Sprachwechsel
+erneuert ausschließlich die Beschriftungen, ohne zwischenzeitlichen All-Filter.
+
+UI-MEA-003 prüft in DE/EN Default/alle fünf Typen, vollständige Daten nach Rückkehr zu
+Alle, Auswahl, Edit inklusive Typänderung, Delete Cancel/Confirm, Refresh, Sprachwechsel,
+Empty State, Neustart, Mindestgröße, Tab-Reihenfolge und Clipping. Store-Dateien bleiben
+bei reinen Filter-/Refresh-/Sprachaktionen bytegenau erhalten; keine neue Store-Datei.
+Manuell noch prüfen: Filter im Alltag wechseln, Empty State und Auswahl nach Edit/Delete
+beobachten, DE/EN bei Mindestgröße prüfen. PR bleibt Draft, kein Merge.
+
+Filterprüfung: vollständiger Safe-Development-Lauf unter Windows PowerShell 5.1 grün;
+Release WinForms/WPF ohne Warnungen/Fehler, Backend und alle WinForms-Regressionen samt
+UI-MEA-002/003, Lifecycle, Dashboard, Sessions, Sources, HealthAction und SourceLocation.
+DE/EN-Renderbilder des Filters bei 1120×740 und des Empty States visuell geprüft.
+`git diff --check` erfolgreich; geschützte `.gitignore`/`.resx` unverändert.
