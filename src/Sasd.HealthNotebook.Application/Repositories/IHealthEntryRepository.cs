@@ -2,7 +2,7 @@ using Sasd.HealthNotebook.Domain;
 
 namespace Sasd.HealthNotebook.Application.Repositories;
 
-/// <summary>Storage contract for create-only notebook entries.</summary>
+/// <summary>Storage contract for notebook entries and explicit corrections/deletions.</summary>
 public interface IHealthEntryRepository
 {
     /// <summary>Loads all entries without interpreting their content.</summary>

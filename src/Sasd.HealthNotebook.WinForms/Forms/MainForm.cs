@@ -249,6 +249,7 @@ public sealed partial class MainForm : Form
 
         InitializeSessions();
         InitializeActions();
+        InitializeLifecycle();
         ApplyTexts();
 
         Shown += async (_, _) =>

@@ -1,3 +1,4 @@
+using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
 
@@ -14,6 +15,7 @@ public abstract class SourceRecordForm : Form
     /// <summary>Creates the common dialog chrome; derived forms add only their editors.</summary>
     protected SourceRecordForm(string title, string guidance, Size minimumSize)
     {
+        BindingContext = new BindingContext();
         AutoScaleDimensions = new SizeF(96, 96); AutoScaleMode = AutoScaleMode.Dpi;
         Text = title; StartPosition = FormStartPosition.CenterParent;
         MinimumSize = minimumSize; Size = new Size(minimumSize.Width + 40, minimumSize.Height + 40);
@@ -43,6 +45,8 @@ public abstract class SourceRecordForm : Form
         _saveButton.Click += async (_, _) => await SaveAsync();
         FormClosing += (_, args) => { if (_saving) args.Cancel = true; };
     }
+    /// <summary>Uses explicit edit save text on the existing dialog layout.</summary>
+    protected void SetEditMode() => _saveButton.Text = AppStrings.SaveChanges;
     /// <summary>Adds a localized accessible editor in natural tab order.</summary>
     protected void AddField(string labelText, Control editor, string help, bool stretch = false, float weight = 100)
     {
@@ -67,6 +71,7 @@ public abstract class SourceRecordForm : Form
         _saving = true; _saveButton.Enabled = false; _validationLabel.Text = string.Empty;
         bool saved = false;
         try { await SaveRecordAsync(); saved = true; }
+        catch (LifecycleConflictException) { _validationLabel.Text = AppStrings.LifecycleConflict; }
         catch (ArgumentException) { _validationLabel.Text = ValidationMessage; }
         catch { UiErrorHandler.ShowSafeError(this, SaveOperation); }
         finally { _saving = false; _saveButton.Enabled = true; }

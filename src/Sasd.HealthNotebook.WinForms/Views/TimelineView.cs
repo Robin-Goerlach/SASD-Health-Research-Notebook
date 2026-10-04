@@ -4,11 +4,14 @@ using Sasd.HealthNotebook.WinForms.Styling;
 
 namespace Sasd.HealthNotebook.WinForms.Views;
 
-/// <summary>Read-only timeline using Application projections.</summary>
+/// <summary>Timeline using Application projections with explicit selected-record lifecycle commands.</summary>
 public sealed class TimelineView : UserControl
 {
+    private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(110, UiMetrics.ActionHeight) };
+    private readonly Button _deleteButton = new() { AutoSize = true, MinimumSize = new(110, UiMetrics.ActionHeight) };
     private readonly DataGridView _grid;
     private readonly Label _emptyStateLabel;
+    private IReadOnlyList<HealthEntrySummary> _entries = Array.Empty<HealthEntrySummary>();
     /// <summary>Creates a responsive timeline with a readable empty state.</summary>
     public TimelineView()
     {
@@ -40,14 +43,20 @@ public sealed class TimelineView : UserControl
         for (int index = 0; index < properties.Length; index++)
             _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = properties[index],
                 MinimumWidth = widths[index], FillWeight = index == 2 || index == 4 ? 25 : 16, SortMode = DataGridViewColumnSortMode.NotSortable });
-        Controls.Add(_grid);
-        Controls.Add(_emptyStateLabel);
+        var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
+        var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
+        _editButton.TabIndex = 0; _deleteButton.TabIndex = 1; buttons.Controls.Add(_editButton); buttons.Controls.Add(_deleteButton);
+        Controls.Add(list); Controls.Add(buttons);
+        _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
+        _deleteButton.Click += (_, _) => DeleteRequested?.Invoke(this, EventArgs.Empty);
+        _grid.CurrentCellChanged += (_, _) => _editButton.Enabled = _deleteButton.Enabled = _grid.CurrentRow is not null;
         ApplyTexts();
         SetEntries(Array.Empty<HealthEntrySummary>());
     }
     /// <summary>Updates labels after changing the UI language.</summary>
     public void ApplyTexts()
     {
+        _editButton.Text = AppStrings.Edit; _deleteButton.Text = AppStrings.Delete;
         _emptyStateLabel.Text = AppStrings.TimelineEmpty;
         string[] headers = { AppStrings.EntryTime, AppStrings.EntryType, AppStrings.ColumnTitle,
             AppStrings.HealthTopics, AppStrings.EntryContent };
@@ -56,11 +65,13 @@ public sealed class TimelineView : UserControl
     /// <summary>Displays chronologically ordered application summaries; retains selection by ID.</summary>
     public void SetEntries(IReadOnlyList<HealthEntrySummary> entries)
     {
+        _entries = entries;
         Guid? selected = (_grid.CurrentRow?.DataBoundItem as TimelineRow)?.Id;
         _grid.DataSource = entries.Select(entry => new TimelineRow(entry.Id, AppStrings.FormatDateTime(entry.OccurredAt),
             AppStrings.HealthEntryTypeText(entry.EntryType), entry.Title,
             entry.HealthTopicTitle ?? (entry.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic),
             entry.Content.Length <= 160 ? entry.Content : entry.Content[..160] + "…")).ToList();
+        _editButton.Enabled = _deleteButton.Enabled = entries.Count > 0;
         _grid.Visible = entries.Count > 0;
         _grid.TabStop = _grid.Visible;
         _emptyStateLabel.Visible = !_grid.Visible;
@@ -68,4 +79,13 @@ public sealed class TimelineView : UserControl
             if (row.DataBoundItem is TimelineRow item && item.Id == selected) _grid.CurrentCell = row.Cells[0];
     }
     private sealed record TimelineRow(Guid Id, string Time, string Type, string Title, string Topic, string Preview);
+    /// <summary>Explicit selected-record edit command.</summary>
+    public event EventHandler? EditRequested;
+    /// <summary>Explicit selected-record delete command; shell confirms before the use case.</summary>
+    public event EventHandler? DeleteRequested;
+    /// <summary>Selected timeline identity.</summary>
+    public Guid? SelectedEntryId => (_grid.CurrentRow?.DataBoundItem as TimelineRow)?.Id;
+    /// <summary>Exact displayed record and conflict token for deletion.</summary>
+    public HealthEntrySummary? SelectedEntry => _entries.SingleOrDefault(item => item.Id == SelectedEntryId);
+
 }

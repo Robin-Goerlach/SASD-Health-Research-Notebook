@@ -16,7 +16,7 @@ public sealed class HealthActionsPresenter(HealthActionService service, HealthAc
     public async Task<int> LoadAsync(Guid? preferredId = null)
     {
         int loadGeneration = ++_loadGeneration;
-        var actions = await service.GetActionsAsync();
+        var actions = (await service.GetActionsAsync()).Where(item => view.IncludeArchived || !item.Action.IsArchived).ToList();
         var overview = await service.GetOverviewAsync(DateOnly.FromDateTime(DateTime.Now));
         if (view.IsDisposed || loadGeneration != _loadGeneration) return actions.Count;
         view.SetActions(actions, preferredId); view.SetOverview(overview); await LoadSelectionAsync(); return actions.Count;

@@ -205,3 +205,13 @@ The preferred near-term sequence is:
 ## License
 
 See [LICENSE](LICENSE).
+
+
+## Edit / Archive / Delete Baseline
+
+The WinForms lifecycle baseline adds correction dialogs for measurements, timeline
+entries, sessions, actions, routines and execution entries. Sessions/actions have a
+separate archive filter; deletion is restricted to measurements, timeline entries and
+execution entries with explicit confirmation. Professional/source-backed action
+corrections retain local revisions. See [Slice 153](docs/development/153_Edit_Archive_Delete_Baseline_Slice_1.md)
+for JSON v1/v2 compatibility and the pending manual acceptance checklist. PR #18 remains Draft.

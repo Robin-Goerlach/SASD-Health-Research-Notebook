@@ -18,9 +18,9 @@ internal static class LifecycleTests
         try
         {
             var topics = new JsonHealthTopicRepository();
-            var topic = HealthTopic.Create("CODEX TEST â€“ lifecycle topic", HealthTopicStatus.Archived, HealthTopicPriority.Normal, null, null);
+            var topic = HealthTopic.Create("CODEX TEST – lifecycle topic", HealthTopicStatus.Archived, HealthTopicPriority.Normal, null, null);
             await topics.AddAsync(topic);
-            var source = Source.Create(SourceType.Book, "CODEX TEST â€“ lifecycle source", null, null, null, null, null, null);
+            var source = Source.Create(SourceType.ProfessionalStatement, "CODEX TEST – lifecycle source", null, null, null, null, null, null);
             await new JsonSourceRepository().AddSourceAsync(source);
             var untouched = new[] { "health-topics.json", "sources.json" }.ToDictionary(name => name, name => File.ReadAllBytes(Path.Combine(root, name)));
             var measurements = new MeasurementService(new JsonMeasurementRepository(), topics);
@@ -47,20 +47,20 @@ internal static class LifecycleTests
             Check((await new JsonMeasurementRepository().GetAllAsync()).Count == 0, "Deleted measurement reloaded.");
             Check(beforeDelete.SequenceEqual(File.ReadAllBytes(Path.Combine(root, "measurements.backup.json"))), "Delete backup is not last-good bytes.");
 
-            await entries.CreateEntryAsync(new() { Title = "CODEX TEST â€“ entry", Content = "Synthetic original", EntryType = HealthEntryType.Note, OccurredAt = time, HealthTopicId = topic.Id });
+            await entries.CreateEntryAsync(new() { Title = "CODEX TEST – entry", Content = "Synthetic original", EntryType = HealthEntryType.Note, OccurredAt = time, HealthTopicId = topic.Id });
             var e = (await new JsonHealthEntryRepository().GetAllAsync()).Single();
-            await entries.UpdateHealthEntryAsync(e.Id, new() { Title = "CODEX TEST â€“ corrected", Content = "Synthetic corrected", EntryType = e.EntryType, OccurredAt = time, HealthTopicId = e.HealthTopicId }, e.ModifiedAt);
+            await entries.UpdateHealthEntryAsync(e.Id, new() { Title = "CODEX TEST – corrected", Content = "Synthetic corrected", EntryType = e.EntryType, OccurredAt = time, HealthTopicId = e.HealthTopicId }, e.ModifiedAt);
             var updatedE = await entries.GetByIdAsync(e.Id);
             Check(updatedE.Id == e.Id && updatedE.CreatedAt == e.CreatedAt && updatedE.ModifiedAt > e.ModifiedAt
-                && updatedE.Content == "Synthetic corrected" && updatedE.Title == "CODEX TEST â€“ corrected" && updatedE.HealthTopicId == topic.Id, "Entry correction metadata.");
+                && updatedE.Content == "Synthetic corrected" && updatedE.Title == "CODEX TEST – corrected" && updatedE.HealthTopicId == topic.Id, "Entry correction metadata.");
             await Guards("health-entries.json", () => entries.DeleteHealthEntryAsync(e.Id, updatedE.ModifiedAt));
             await entries.DeleteHealthEntryAsync(e.Id, updatedE.ModifiedAt);
             Check((await new JsonHealthEntryRepository().GetAllAsync()).Count == 0, "Deleted entry reloaded.");
 
-            var s = await sessions.CreateSessionAsync(new(time, "CODEX TEST â€“ session", Status: SessionStatus.Completed, HealthTopicId: topic.Id));
+            var s = await sessions.CreateSessionAsync(new(time, "CODEX TEST – session", Status: SessionStatus.Completed, HealthTopicId: topic.Id));
             var q = await sessions.CreateQuestionAsync(new(s.Id, "Synthetic question", AnswerNote: "Synthetic answer"));
             var f = await sessions.CreateFollowUpAsync(new(s.Id, "Synthetic next step"));
-            await sessions.UpdateSessionAsync(s.Id, new(time.AddHours(1), "CODEX TEST â€“ corrected session", Status: s.Status, HealthTopicId: topic.Id, Notes: "Synthetic notes"), s.ModifiedAt);
+            await sessions.UpdateSessionAsync(s.Id, new(time.AddHours(1), "CODEX TEST – corrected session", Status: s.Status, HealthTopicId: topic.Id, Notes: "Synthetic notes"), s.ModifiedAt);
             var updatedS = (await sessions.GetSessionDetailsAsync(s.Id)).Sessions.Single();
             Check(updatedS.CreatedAt == s.CreatedAt && updatedS.ModifiedAt > s.ModifiedAt && updatedS.ScheduledAt == time.AddHours(1), "Session edit metadata.");
             await sessions.ArchiveSessionAsync(s.Id, updatedS.ModifiedAt);
@@ -70,17 +70,17 @@ internal static class LifecycleTests
             var sessionDetails = await new SessionService(new JsonSessionRepository(), topics).GetSessionDetailsAsync(s.Id);
             Check(!sessionDetails.Sessions.Single().IsArchived && sessionDetails.Questions.Single() == q && sessionDetails.FollowUps.Single() == f, "Session children lost.");
 
-            var a = await actions.CreateActionAsync(new("CODEX TEST â€“ professional instruction", Origin: HealthActionOrigin.Doctor, Description: "Synthetic previous instruction", SourceId: source.Id, SessionId: s.Id));
-            var r = await actions.CreateRoutineAsync(new(a.Id, "CODEX TEST â€“ routine", ScheduleText: "Synthetic rhythm"));
+            var a = await actions.CreateActionAsync(new("CODEX TEST – professional instruction", Origin: HealthActionOrigin.Doctor, Description: "Synthetic previous instruction", SourceId: source.Id, SessionId: s.Id));
+            var r = await actions.CreateRoutineAsync(new(a.Id, "CODEX TEST – routine", ScheduleText: "Synthetic rhythm"));
             var p = await actions.CreateProgressEntryAsync(new(r.Id, time, Note: "Synthetic progress", Count: 1));
-            await actions.UpdateHealthActionAsync(a.Id, new("CODEX TEST â€“ corrected instruction", Origin: HealthActionOrigin.SelfDefined, Description: "Synthetic corrected instruction", SourceId: source.Id, SessionId: s.Id), a.ModifiedAt, "Synthetic typo correction");
+            await actions.UpdateHealthActionAsync(a.Id, new("CODEX TEST – corrected instruction", Origin: HealthActionOrigin.SelfDefined, Description: "Synthetic corrected instruction", SourceId: source.Id, SessionId: s.Id), a.ModifiedAt, "Synthetic typo correction");
             var details = await Actions().GetActionDetailsAsync(a.Id);
             var updatedA = details.Actions.Single();
             Check(updatedA.Id == a.Id && updatedA.CreatedAt == a.CreatedAt && updatedA.ModifiedAt > a.ModifiedAt && updatedA.SourceId == source.Id && updatedA.SessionId == s.Id, "Action correction metadata.");
             var revision = details.Revisions.Single();
             Check(revision.Previous == a && revision.HealthActionId == a.Id && revision.ChangedAt == updatedA.ModifiedAt && revision.ChangeReason == "Synthetic typo correction", "Professional previous content/provenance lost.");
             await NoRewrite("health-actions.json", () => actions.UpdateHealthActionAsync(a.Id, new(updatedA.Title, Origin: updatedA.Origin, Description: updatedA.Description, SourceId: source.Id, SessionId: s.Id), updatedA.ModifiedAt));
-            await Fails<LifecycleConflictException>(() => actions.UpdateHealthActionAsync(a.Id, new("CODEX TEST â€“ stale"), a.ModifiedAt));
+            await Fails<LifecycleConflictException>(() => actions.UpdateHealthActionAsync(a.Id, new("CODEX TEST – stale"), a.ModifiedAt));
             await actions.ArchiveHealthActionAsync(a.Id, updatedA.ModifiedAt);
             updatedA = (await Actions().GetActionDetailsAsync(a.Id)).Actions.Single();
             Check(updatedA.IsArchived && (await actions.GetOverviewAsync(DateOnly.FromDateTime(time.LocalDateTime))).ActiveActions == 0, "Archived action counted as active.");
@@ -89,7 +89,7 @@ internal static class LifecycleTests
             details = await Actions().GetActionDetailsAsync(a.Id);
             Check(!details.Actions.Single().IsArchived && details.Revisions.Single() == revision && details.Routines.Single() == r && details.ProgressEntries.Single() == p, "Archive/reactivation changed children or audit.");
 
-            await actions.UpdateRoutineAsync(r.Id, new(a.Id, "CODEX TEST â€“ corrected routine", "Synthetic description", "Synthetic changed rhythm", RoutineStatus.Paused), r.ModifiedAt);
+            await actions.UpdateRoutineAsync(r.Id, new(a.Id, "CODEX TEST – corrected routine", "Synthetic description", "Synthetic changed rhythm", RoutineStatus.Paused), r.ModifiedAt);
             var updatedR = (await Actions().GetActionDetailsAsync(a.Id)).Routines.Single();
             Check(updatedR.CreatedAt == r.CreatedAt && updatedR.ModifiedAt > r.ModifiedAt && updatedR.ScheduleText == "Synthetic changed rhythm", "Routine correction.");
             Check((await actions.GetOverviewAsync(DateOnly.FromDateTime(time.LocalDateTime))).ActiveRoutines == 0, "Paused routine counted active.");
@@ -97,7 +97,7 @@ internal static class LifecycleTests
             await actions.SetRoutineStatusAsync(r.Id, RoutineStatus.Paused);
             Check((await Actions().GetActionDetailsAsync(a.Id)).ProgressEntries.Single() == p, "Pause lost history.");
             updatedR = (await Actions().GetActionDetailsAsync(a.Id)).Routines.Single();
-            await Fails<ArgumentException>(() => actions.UpdateRoutineAsync(r.Id, new(Guid.NewGuid(), "CODEX TEST â€“ moved"), updatedR.ModifiedAt));
+            await Fails<ArgumentException>(() => actions.UpdateRoutineAsync(r.Id, new(Guid.NewGuid(), "CODEX TEST – moved"), updatedR.ModifiedAt));
             await actions.UpdateProgressEntryAsync(p.Id, new(r.Id, time.AddDays(1), ProgressCompletion.Skipped, "Synthetic corrected progress", 2), p.ModifiedAt);
             var updatedP = (await Actions().GetActionDetailsAsync(a.Id)).ProgressEntries.Single();
             Check(updatedP.Id == p.Id && updatedP.CreatedAt == p.CreatedAt && updatedP.ModifiedAt > p.ModifiedAt && updatedP.Count == 2 && updatedP.Completion == ProgressCompletion.Skipped, "Progress correction metadata.");
@@ -106,9 +106,12 @@ internal static class LifecycleTests
             await actions.DeleteProgressEntryAsync(p.Id, updatedP.ModifiedAt);
             Check((await Actions().GetActionDetailsAsync(a.Id)).ProgressEntries.Count == 0, "Deleted progress reloaded.");
             Check((await actions.GetOverviewAsync(DateOnly.FromDateTime(updatedP.OccurredAt.LocalDateTime))).EntriesToday == 0, "Deleted progress counted.");
-            var normal = await actions.CreateActionAsync(new("CODEX TEST â€“ normal"));
-            await actions.UpdateHealthActionAsync(normal.Id, new("CODEX TEST â€“ normal correction"), normal.ModifiedAt);
+            var normal = await actions.CreateActionAsync(new("CODEX TEST – normal"));
+            await actions.UpdateHealthActionAsync(normal.Id, new("CODEX TEST – normal correction"), normal.ModifiedAt);
             Check((await Actions().GetActionDetailsAsync(normal.Id)).Revisions.Count == 0, "Global audit was introduced.");
+            var sourced = await actions.CreateActionAsync(new("CODEX TEST – source instruction", Origin: HealthActionOrigin.Source, SourceId: source.Id, Description: "Synthetic sourced original"));
+            await actions.UpdateHealthActionAsync(sourced.Id, new("CODEX TEST – corrected source instruction", Description: "Synthetic sourced correction"), sourced.ModifiedAt);
+            Check((await Actions().GetActionDetailsAsync(sourced.Id)).Revisions.Single().Previous == sourced, "Professional source removal lost prior instruction.");
             foreach (var file in untouched) Check(file.Value.SequenceEqual(File.ReadAllBytes(Path.Combine(root, file.Key))), "Other store changed.");
             // Parent Hard Delete is deliberately unavailable, even for direct repository clients.
             foreach (Type type in new[] { typeof(SessionService), typeof(JsonSessionRepository), typeof(HealthActionService), typeof(JsonHealthActionRepository), typeof(SourceService), typeof(HealthTopicService) })

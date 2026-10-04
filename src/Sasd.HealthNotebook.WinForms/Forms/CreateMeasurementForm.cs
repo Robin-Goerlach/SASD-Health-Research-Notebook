@@ -29,10 +29,14 @@ public sealed class CreateMeasurementForm : Form
     private readonly Label _validationLabel;
     private readonly ToolTip _toolTip = new() { AutoPopDelay = 15000 };
     private bool _saving;
+    private readonly Measurement? _existing;
     /// <summary>Uses shared Application summaries for optional linkage.</summary>
-    public CreateMeasurementForm(MeasurementService service, IReadOnlyList<HealthTopicSummary> topics)
+    public CreateMeasurementForm(MeasurementService service, IReadOnlyList<HealthTopicSummary> topics, Measurement? existing = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service)); ArgumentNullException.ThrowIfNull(topics);
+        _existing = existing;
+        // Establish binding before selecting prefilled choices; otherwise Items is still empty.
+        BindingContext = new BindingContext();
         AutoScaleDimensions = new SizeF(96, 96); AutoScaleMode = AutoScaleMode.Dpi;
         Text = AppStrings.NewMeasurement; StartPosition = FormStartPosition.CenterParent;
         MinimumSize = new Size(800, 720); Size = new Size(840, 760); Font = UiFonts.Body; BackColor = UiColors.WindowBackground;
@@ -74,7 +78,26 @@ public sealed class CreateMeasurementForm : Form
         Controls.Add(_root); AcceptButton = _saveButton; CancelButton = cancel;
         _saveButton.Click += async (_, _) => await SaveAsync();
         FormClosing += (_, args) => { if (_saving) args.Cancel = true; };
-        ApplyMeasurementType(); Shown += (_, _) => _valueTextBox.Focus();
+        // Data-bound Items are ready at Load, before users can interact with the editor.
+        Load += (_, _) =>
+        {
+            if (existing is not null)
+            {
+                Text = AppStrings.EditMeasurement; _saveButton.Text = AppStrings.SaveChanges;
+                _datePicker.Value = _timePicker.Value = existing.OccurredAt.LocalDateTime;
+                _typeComboBox.SelectedIndex = _typeComboBox.Items.Cast<TypeChoice>().ToList().FindIndex(item => item.Type == existing.MeasurementType);
+                ApplyMeasurementType();
+                _valueTextBox.Text = (existing.Value ?? existing.Systolic)?.ToString("R", AppStrings.MeasurementCulture) ?? "";
+                _diastolicTextBox.Text = existing.Diastolic?.ToString("R", AppStrings.MeasurementCulture) ?? "";
+                _pulseTextBox.Text = existing.Pulse?.ToString("R", AppStrings.MeasurementCulture) ?? "";
+                _contextTextBox.Text = existing.Context; _noteTextBox.Text = existing.Note;
+                var choices = (List<TopicChoice>)_topicComboBox.DataSource!;
+                if (existing.HealthTopicId.HasValue && !choices.Any(item => item.Id == existing.HealthTopicId))
+                    _topicComboBox.DataSource = choices.Concat(new[] { new TopicChoice(existing.HealthTopicId, AppStrings.MissingEntryTopic) }).ToList();
+                _topicComboBox.SelectedIndex = _topicComboBox.Items.Cast<TopicChoice>().ToList().FindIndex(item => item.Id == existing.HealthTopicId);
+            }
+        };
+        if (existing is null) ApplyMeasurementType(); Shown += (_, _) => _valueTextBox.Focus();
     }
     private void ApplyMeasurementType()
     {
@@ -98,17 +121,18 @@ public sealed class CreateMeasurementForm : Form
         {
             var type = ((TypeChoice)_typeComboBox.SelectedItem!).Type;
             bool pressure = type == MeasurementType.BloodPressure;
-            DateTime localTime = DateTime.SpecifyKind(_datePicker.Value.Date.AddHours(_timePicker.Value.Hour).AddMinutes(_timePicker.Value.Minute), DateTimeKind.Unspecified);
-            if (TimeZoneInfo.Local.IsInvalidTime(localTime) || TimeZoneInfo.Local.IsAmbiguousTime(localTime))
-                throw new ArgumentException("Local time is ambiguous or invalid.");
-            await _service.CreateMeasurementAsync(new CreateMeasurementRequest { MeasurementType = type,
-                OccurredAt = new DateTimeOffset(localTime, TimeZoneInfo.Local.GetUtcOffset(localTime)),
+            var instant = EditSupport.Instant(_datePicker.Value, _timePicker.Value, _existing?.OccurredAt);
+            var request = new CreateMeasurementRequest { MeasurementType = type,
+                OccurredAt = instant,
                 Value = pressure ? null : ParseNumber(_valueTextBox.Text), Systolic = pressure ? ParseNumber(_valueTextBox.Text) : null,
                 Diastolic = pressure ? ParseNumber(_diastolicTextBox.Text) : null,
                 Pulse = pressure && !string.IsNullOrWhiteSpace(_pulseTextBox.Text) ? ParseNumber(_pulseTextBox.Text) : null,
-                HealthTopicId = ((TopicChoice)_topicComboBox.SelectedItem!).Id, Note = _noteTextBox.Text, Context = _contextTextBox.Text });
+                HealthTopicId = ((TopicChoice)_topicComboBox.SelectedItem!).Id, Note = EditSupport.Optional(_noteTextBox.Text, _existing?.Note), Context = EditSupport.Optional(_contextTextBox.Text, _existing?.Context) };
+            if (_existing is null) await _service.CreateMeasurementAsync(request);
+            else await _service.UpdateMeasurementAsync(_existing.Id, request, _existing.ModifiedAt);
             saved = true;
         }
+        catch (LifecycleConflictException) { _validationLabel.Text = AppStrings.LifecycleConflict; }
         catch (ArgumentException) { _validationLabel.Text = AppStrings.MeasurementValidationFailed; }
         catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationSaveMeasurement); }
         finally { _saving = false; _saveButton.Enabled = true; }

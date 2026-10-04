@@ -4,7 +4,7 @@ using Sasd.HealthNotebook.Domain;
 
 namespace Sasd.HealthNotebook.Application.Services;
 
-/// <summary>Creates notebook entries and derives their timeline without duplicated events.</summary>
+/// <summary>Creates, corrects and deletes notebook entries; derives their timeline without duplicated events.</summary>
 public sealed class HealthEntryService
 {
     private readonly IHealthEntryRepository _entries;
@@ -37,7 +37,7 @@ public sealed class HealthEntryService
             .OrderByDescending(entry => entry.OccurredAt).ThenByDescending(entry => entry.CreatedAt).ThenBy(entry => entry.Id)
             .Select(entry => new HealthEntrySummary(entry.Id, entry.HealthTopicId,
                 entry.HealthTopicId.HasValue && topics.TryGetValue(entry.HealthTopicId.Value, out var topic) ? topic.Title : null,
-                entry.EntryType, entry.OccurredAt, entry.Title, entry.Content)).ToList();
+                entry.EntryType, entry.OccurredAt, entry.Title, entry.Content) { ModifiedAt = entry.ModifiedAt }).ToList();
     }
 
     /// <summary>Loads an exact selected record for editing, including technical timestamps.</summary>

@@ -328,3 +328,16 @@ DASH-ACT-001: Dashboardzahlen aus synthetischen Datensätzen.
 Renderbilder für beide Sprachen, Normal-/Mindestgröße, leer/gefüllt und Dialoge unter
 frischen .codex-Laufverzeichnissen. Manuelle Desktopakzeptanz bleibt separates Gate;
 Prüfliste in Dokument 152. Keine neuen Pakete/Projekte, alle Regressionen bleiben aktiv.
+
+
+## Edit / Archive / Delete Baseline Slice 1
+
+IT/SEC/MIG-LIF-001 (LifecycleTests): Updates aller sechs Entitäten, Id/CreatedAt,
+ModifiedAt, Offset-only-Korrekturen, Archive/Reactivate, Referenz-/Kindschutz, professionelle
+und Source-basierte Revisionen, Delete/Reload, No-op/Concurrency, v1/v2, Backup/Temp/Lock,
+Corruption und bytegenauer Erhalt fremder Stores. Parent Delete ist absichtlich nicht
+verfügbar. UI-LIF-001: echte Edit-/History-/Delete-Dialoge und Archive-Workspace DE/EN,
+Enter=Cancel, Cancel/Confirm, Refresh/Restart/Sprachwechsel/Auswahl und Mindestgrößen;
+veraltete Timeline-Version und überlappender Session-Refresh separat abgesichert.
+Keine neuen Pakete/Projekte; Safe Launcher mit Windows PowerShell 5.1 und allen
+bestehenden Regressionen. Manuelles Gate offen; konkrete Prüfliste in Dokument 153.

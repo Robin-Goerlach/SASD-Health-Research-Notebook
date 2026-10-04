@@ -209,3 +209,19 @@ markiert. Die Lebenszyklusregeln in Dokument 152 sind verbindliche Vorgaben;
 Bearbeiten/Archivieren/Löschen sind noch nicht implementiert oder durch Tests als
 erfüllt nachgewiesen. Pausieren/Reaktivieren ist keine Archivierung.
 Slice 1 ist implementiert und manuell akzeptiert (2026-10-03); genaue manuelle Abdeckung in Dokument 152. Bearbeiten/Archivieren/Löschen sind ausdrücklich Folgearbeit und kein Blocker dieses Slices. Ready for review nach grüner Abschlussprüfung/CI und synchronem Branch; die allgemeinen Release-Quality-Gates bleiben verbindlich.
+
+
+## Traceability – Edit / Archive / Delete Baseline Slice 1
+
+| Requirement | Akzeptanz / Test | Stand |
+|---|---|---|
+| FR-LIF-001 | Sechs Objekte korrigierbar, Id/CreatedAt und Referenzen erhalten, ModifiedAt steigt; No-op, Concurrency und Offsetpräzision; IT-LIF-001, UI-LIF-001 | Implementiert, manuelle Abnahme offen |
+| FR-LIF-002 | Separates Session-/Action-Archiv, Filter/Reaktivierung und Kindschutz; IT-LIF-001, UI-LIF-001 | Implementiert, Routine-Archiv bleibt offen |
+| FR-LIF-003 | Drei sichere Einzellöschungen mit Default-Cancel/Bestätigung und Reload; keine Parent-Delete-API; IT/SEC-LIF-001, UI-LIF-001 | Implementiert, manuelle Abnahme offen |
+| FR-ACT-006 | Vorherige professionelle/quellenbasierte Action-Inhalte/Herkunft atomar in Revision, read-only Historie inkl. Verweise; IT-LIF-001, UI-LIF-001 | Slice-1-Lösung implementiert, manuelle Abnahme offen |
+| FR-GEN-003/005/007, FR-DEV-001 | Keine Bewertung/Logs, Referenzerhalt, isolierte Daten, v1 ohne Rewrite/v2-Write/Backup/Temp/Lock; SEC/MIG-LIF-001 | Automatisierte Prüfung, bekannte Link-Race unverändert |
+
+Diese neuere Ergänzung ersetzt die historischen create-only/Lebenszyklus-offen-Aussagen
+in den früheren Slice-Zeilen. Keine allgemeine Audit- oder Parent-Löschplattform.
+Draft PR #18; Prüfliste und bewusste Folgearbeit in Dokument 153. Ready/Merge erst
+nach separater Nutzerabnahme und ausdrücklichem Folgeauftrag.

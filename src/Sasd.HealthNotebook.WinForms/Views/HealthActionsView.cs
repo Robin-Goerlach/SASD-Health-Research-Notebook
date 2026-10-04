@@ -29,6 +29,13 @@ public sealed class HealthActionsView : UserControl
     private IReadOnlyList<HealthActionSummary> _actions = Array.Empty<HealthActionSummary>();
     private IReadOnlyList<Routine> _routines = Array.Empty<Routine>();
     private IReadOnlyList<ProgressEntry> _entries = Array.Empty<ProgressEntry>();
+    private readonly CheckBox _showArchivedCheckBox = new() { AutoSize = true, Dock = DockStyle.Top, Height = 28 };
+    private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(90, UiMetrics.ActionHeight) };
+    private readonly Button _archiveButton = new() { AutoSize = true, MinimumSize = new(76, UiMetrics.ActionHeight) };
+    private readonly Button _historyButton = ActionButton();
+    private readonly Button _editRoutineButton = ActionButton();
+    private readonly Button _editProgressButton = ActionButton();
+    private readonly Button _deleteProgressButton = ActionButton();
     private bool _binding;
     /// <summary>Creates aligned surfaces with standard spacing and no draggable splitters.</summary>
     public HealthActionsView()
@@ -40,12 +47,12 @@ public sealed class HealthActionsView : UserControl
         _workspace = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = Padding.Empty, TabIndex = 1 };
         _workspace.ColumnStyles.Add(new(SizeType.Percent, 46)); _workspace.ColumnStyles.Add(new(SizeType.Percent, 54));
         _workspace.RowStyles.Add(new(SizeType.Percent, 50)); _workspace.RowStyles.Add(new(SizeType.Percent, 50));
-        var actionPane = Pane(_actionsHeading, _actionsGrid, _emptyStateLabel, _actionDetails, 36);
+        var actionPane = Pane(_actionsHeading, _actionsGrid, _emptyStateLabel, _actionDetails, 36, _editButton, _archiveButton, _historyButton);
         actionPane.Margin = new(0, 0, UiMetrics.StandardSpacing, 0);
         _workspace.Controls.Add(actionPane, 0, 0); _workspace.SetRowSpan(actionPane, 2);
-        var routinePane = Pane(_routinesHeading, _routinesGrid, _routinesEmpty, _routineDetails, 24, _newRoutineButton, _routineStatusButton);
+        var routinePane = Pane(_routinesHeading, _routinesGrid, _routinesEmpty, _routineDetails, 24, _newRoutineButton, _routineStatusButton, _editRoutineButton);
         routinePane.TabIndex = 1; routinePane.Margin = new(0, 0, 0, UiMetrics.StandardSpacing);
-        var progressPane = Pane(_progressHeading, _progressGrid, _progressEmpty, _progressDetails, 28, _newProgressButton);
+        var progressPane = Pane(_progressHeading, _progressGrid, _progressEmpty, _progressDetails, 28, _newProgressButton, _editProgressButton, _deleteProgressButton);
         progressPane.TabIndex = 2; progressPane.Margin = Padding.Empty;
         _workspace.Controls.Add(routinePane, 1, 0); _workspace.Controls.Add(progressPane, 1, 1);
         root.Controls.Add(_workspace, 0, 1); Controls.Add(root);
@@ -53,9 +60,17 @@ public sealed class HealthActionsView : UserControl
         _actionsGrid.CurrentCellChanged += (_, _) => { if (!_binding) { UpdateDetails(); ActionSelected?.Invoke(this, EventArgs.Empty); } };
         _routinesGrid.CurrentCellChanged += (_, _) => { if (!_binding) { BindProgress(); UpdateDetails(); } };
         _progressGrid.CurrentCellChanged += (_, _) => { if (!_binding) UpdateDetails(); };
+        _historyButton.Click += (_, _) => HistoryRequested?.Invoke(this, EventArgs.Empty);
+        _editRoutineButton.Click += (_, _) => EditRoutineRequested?.Invoke(this, EventArgs.Empty);
+        _editProgressButton.Click += (_, _) => EditProgressRequested?.Invoke(this, EventArgs.Empty);
+        _deleteProgressButton.Click += (_, _) => DeleteProgressRequested?.Invoke(this, EventArgs.Empty);
         _newRoutineButton.Click += (_, _) => NewRoutineRequested?.Invoke(this, EventArgs.Empty);
         _routineStatusButton.Click += (_, _) => RoutineStatusRequested?.Invoke(this, EventArgs.Empty);
         _newProgressButton.Click += (_, _) => NewProgressRequested?.Invoke(this, EventArgs.Empty);
+        Controls.Add(_showArchivedCheckBox);
+        _showArchivedCheckBox.CheckedChanged += (_, _) => ArchiveFilterChanged?.Invoke(this, EventArgs.Empty);
+        _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
+        _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
         ApplyTexts();
     }
     /// <summary>Raised after the current action has changed.</summary>
@@ -79,7 +94,7 @@ public sealed class HealthActionsView : UserControl
         try
         {
             _actions = actions;
-            _actionsGrid.DataSource = actions.Select(item => new Row(item.Action.Id, item.Action.Title, AppStrings.ActionTypeText(item.Action.ActionType), AppStrings.ActionStatusText(item.Action.Status))).ToList();
+            _actionsGrid.DataSource = actions.Select(item => new Row(item.Action.Id, item.Action.Title, AppStrings.ActionTypeText(item.Action.ActionType), (item.Action.IsArchived ? AppStrings.Archived : AppStrings.ActionStatusText(item.Action.Status)))).ToList();
             Select(_actionsGrid, selected); ShowEmpty(_actionsGrid, _emptyStateLabel, actions.Count == 0);
         }
         finally { _binding = false; }
@@ -104,6 +119,9 @@ public sealed class HealthActionsView : UserControl
     /// <summary>Localizes headings; presenter refreshes row projections.</summary>
     public void ApplyTexts()
     {
+        _showArchivedCheckBox.Text = AppStrings.ShowArchived; _editButton.Text = AppStrings.Edit;
+        _historyButton.Text = AppStrings.RevisionCommand;
+        _editRoutineButton.Text = _editProgressButton.Text = AppStrings.Edit; _deleteProgressButton.Text = AppStrings.Delete;
         _actionsHeading.Text = AppStrings.ActionList; _routinesHeading.Text = AppStrings.RoutineList; _progressHeading.Text = AppStrings.ProgressHistory;
         _emptyStateLabel.Text = AppStrings.ActionsEmpty; _newRoutineButton.Text = AppStrings.NewRoutine; _newProgressButton.Text = AppStrings.NewProgress;
         _actionsGrid.Columns[0].HeaderText = AppStrings.ActionTitle; _actionsGrid.Columns[1].HeaderText = AppStrings.ActionKind; _actionsGrid.Columns[2].HeaderText = AppStrings.ActionState;
@@ -135,6 +153,10 @@ public sealed class HealthActionsView : UserControl
             AppStrings.ActionOrigin + ": " + AppStrings.ActionOriginText(action.Origin),
             AppStrings.ActionSourceLink + ": " + (summary.SourceTitle ?? (action.SourceId.HasValue ? AppStrings.MissingActionLink : AppStrings.NoActionLink)),
             AppStrings.ActionSessionLink + ": " + (summary.SessionTitle ?? (action.SessionId.HasValue ? AppStrings.MissingActionLink : AppStrings.NoActionLink)), action.OriginNote, action.Description);
+        _editButton.Enabled = _archiveButton.Enabled = _historyButton.Enabled = action is not null;
+        _archiveButton.Text = action?.IsArchived == true ? AppStrings.Reactivate : AppStrings.Archive;
+        _editRoutineButton.Enabled = SelectedRoutine is not null;
+        _editProgressButton.Enabled = _deleteProgressButton.Enabled = SelectedProgress is not null;
         var routine = SelectedRoutine;
         _routineDetails.Text = routine is null ? string.Empty : string.Join(Environment.NewLine,
             AppStrings.RoutineSchedule + ": " + routine.ScheduleText, routine.Description);
@@ -163,7 +185,7 @@ public sealed class HealthActionsView : UserControl
     private static RichTextBox Details() => new() { Dock = DockStyle.Fill, ReadOnly = true, DetectUrls = false, ScrollBars = RichTextBoxScrollBars.Vertical, BorderStyle = BorderStyle.None, BackColor = UiColors.CardBackground, Font = UiFonts.Body, TabIndex = 3 };
     private static Button ActionButton()
     {
-        var button = new Button { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight), FlatStyle = FlatStyle.Flat, BackColor = UiColors.CardBackground, Margin = new(0, 0, UiMetrics.StandardSpacing, 0) };
+        var button = new Button { AutoSize = true, MinimumSize = new(76, UiMetrics.ActionHeight), FlatStyle = FlatStyle.Flat, BackColor = UiColors.CardBackground, Margin = new(0, 0, UiMetrics.StandardSpacing, 0) };
         button.FlatAppearance.BorderColor = UiColors.BorderColor; return button;
     }
     private static Control Pane(Label heading, DataGridView grid, Label empty, RichTextBox details, int detailPercent, params Button[] actions)
@@ -197,4 +219,21 @@ public sealed class HealthActionsView : UserControl
         return grid;
     }
     private sealed record Row(Guid Id, string Title = "", string Category = "", string Status = "", string Time = "", string Count = "");
+    /// <summary>Includes archived parents in the normal workspace.</summary>
+    public bool IncludeArchived => _showArchivedCheckBox.Checked;
+    /// <summary>Explicit filter refresh command.</summary>
+    public event EventHandler? ArchiveFilterChanged;
+    /// <summary>Selected-parent edit command.</summary>
+    public event EventHandler? EditRequested;
+    /// <summary>Selected-parent archive/reactivate command.</summary>
+    public event EventHandler? ArchiveRequested;
+    /// <summary>Selected instruction revision history.</summary>
+    public event EventHandler? HistoryRequested;
+    /// <summary>Selected routine edit command.</summary>
+    public event EventHandler? EditRoutineRequested;
+    /// <summary>Selected execution edit command.</summary>
+    public event EventHandler? EditProgressRequested;
+    /// <summary>Selected execution delete command.</summary>
+    public event EventHandler? DeleteProgressRequested;
+
 }

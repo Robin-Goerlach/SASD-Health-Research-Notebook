@@ -2,7 +2,7 @@ using Sasd.HealthNotebook.Domain;
 
 namespace Sasd.HealthNotebook.Application.Repositories;
 
-/// <summary>Create-only storage contract for documented measurements.</summary>
+/// <summary>Storage contract for documented measurements and explicit corrections/deletions.</summary>
 public interface IMeasurementRepository
 {
     /// <summary>Loads all numeric measurements without interpreting them.</summary>

@@ -26,6 +26,9 @@ public sealed class SessionsView : UserControl
     private IReadOnlyList<SessionSummary> _sessions = Array.Empty<SessionSummary>();
     private IReadOnlyList<SessionQuestion> _questions = Array.Empty<SessionQuestion>();
     private IReadOnlyList<SessionFollowUp> _followUps = Array.Empty<SessionFollowUp>();
+    private readonly CheckBox _showArchivedCheckBox = new() { AutoSize = true, Dock = DockStyle.Top, Height = 28 };
+    private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(90, UiMetrics.ActionHeight) };
+    private readonly Button _archiveButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
     private bool _binding;
     /// <summary>Creates proportional lists/details, keeping both lower detail fields aligned.</summary>
     public SessionsView()
@@ -34,7 +37,7 @@ public sealed class SessionsView : UserControl
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = Padding.Empty };
         layout.ColumnStyles.Add(new(SizeType.Percent, 45)); layout.ColumnStyles.Add(new(SizeType.Percent, 55));
         layout.RowStyles.Add(new(SizeType.Percent, 60)); layout.RowStyles.Add(new(SizeType.Percent, 40));
-        var left = Pane(_sessionsGrid, _emptyStateLabel); left.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
+        var left = Pane(_sessionsGrid, _emptyStateLabel, _editButton, _archiveButton); left.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
         layout.Controls.Add(left, 0, 0);
         var tabs = new TabControl { Dock = DockStyle.Fill, Margin = Padding.Empty, TabIndex = 1 };
         _questionsTab.Controls.Add(Pane(_questionsGrid, _questionsEmpty, _newQuestionButton, _answerButton));
@@ -52,6 +55,10 @@ public sealed class SessionsView : UserControl
         _answerButton.Click += (_, _) => AnswerRequested?.Invoke(this, EventArgs.Empty);
         _newFollowUpButton.Click += (_, _) => NewFollowUpRequested?.Invoke(this, EventArgs.Empty);
         _statusButton.Click += (_, _) => FollowUpStatusRequested?.Invoke(this, EventArgs.Empty);
+        Controls.Add(_showArchivedCheckBox);
+        _showArchivedCheckBox.CheckedChanged += (_, _) => ArchiveFilterChanged?.Invoke(this, EventArgs.Empty);
+        _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
+        _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
         ApplyTexts(); SetSessions(Array.Empty<SessionSummary>()); SetDependents(Array.Empty<SessionQuestion>(), Array.Empty<SessionFollowUp>());
     }
     /// <summary>Selection now refers to the new current session.</summary>
@@ -77,7 +84,7 @@ public sealed class SessionsView : UserControl
         try
         {
             _sessions = sessions;
-            _sessionsGrid.DataSource = sessions.Select(item => new Row(item.Session.Id, Time(item.Session.ScheduledAt), item.Session.Title, AppStrings.SessionStatusText(item.Session.Status))).ToList();
+            _sessionsGrid.DataSource = sessions.Select(item => new Row(item.Session.Id, Time(item.Session.ScheduledAt), item.Session.Title, (item.Session.IsArchived ? AppStrings.Archived : AppStrings.SessionStatusText(item.Session.Status)))).ToList();
             Select(_sessionsGrid, selected); ShowEmpty(_sessionsGrid, _emptyStateLabel, sessions.Count == 0);
         }
         finally { _binding = false; }
@@ -97,6 +104,7 @@ public sealed class SessionsView : UserControl
     /// <summary>Updates headings; presenter refreshes localized row projections.</summary>
     public void ApplyTexts()
     {
+        _showArchivedCheckBox.Text = AppStrings.ShowArchived; _editButton.Text = AppStrings.Edit;
         _emptyStateLabel.Text = AppStrings.SessionsEmpty; _questionsTab.Text = AppStrings.SessionQuestions; _followUpsTab.Text = AppStrings.SessionFollowUps;
         _newQuestionButton.Text = AppStrings.NewSessionQuestion; _answerButton.Text = AppStrings.EditSessionAnswer;
         _newFollowUpButton.Text = AppStrings.NewSessionFollowUp; _statusButton.Text = AppStrings.ToggleSessionFollowUp;
@@ -110,6 +118,8 @@ public sealed class SessionsView : UserControl
     {
         var summary = _sessions.SingleOrDefault(item => item.Session.Id == Id(_sessionsGrid));
         var session = summary?.Session;
+        _editButton.Enabled = _archiveButton.Enabled = session is not null;
+        _archiveButton.Text = session?.IsArchived == true ? AppStrings.Reactivate : AppStrings.Archive;
         _sessionDetails.Text = session is null ? string.Empty : string.Join(Environment.NewLine,
             AppStrings.SessionTitle + ": " + session.Title, AppStrings.EntryDate + ": " + Time(session.ScheduledAt),
             AppStrings.SessionKind + ": " + AppStrings.SessionTypeText(session.SessionType), AppStrings.SessionState + ": " + AppStrings.SessionStatusText(session.Status),
@@ -159,4 +169,13 @@ public sealed class SessionsView : UserControl
         return grid;
     }
     private sealed record Row(Guid Id, string Time = "", string Title = "", string Status = "", string Text = "", string DueDate = "");
+    /// <summary>Includes archived parents in the normal workspace.</summary>
+    public bool IncludeArchived => _showArchivedCheckBox.Checked;
+    /// <summary>Explicit filter refresh command.</summary>
+    public event EventHandler? ArchiveFilterChanged;
+    /// <summary>Selected-parent edit command.</summary>
+    public event EventHandler? EditRequested;
+    /// <summary>Selected-parent archive/reactivate command.</summary>
+    public event EventHandler? ArchiveRequested;
+
 }

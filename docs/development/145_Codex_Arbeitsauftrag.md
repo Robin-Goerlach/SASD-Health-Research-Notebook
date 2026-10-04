@@ -220,3 +220,13 @@ Ein Codex-PR soll enthalten:
 Wenn Codex bei einem UI-Sprint feststellt, dass ein späteres Fachfeature "auch gleich" implementiert werden könnte, wird es dokumentiert, aber nicht automatisch mitgebaut.
 
 Das Ziel ist schnelle sichtbare Qualität **plus** stabile Architektur, nicht maximale Featurezahl pro PR.
+
+
+## Aktueller Auftrag: Edit / Archive / Delete Baseline Slice 1
+
+PR #17 ist gemergt; verbindlicher neuer Start-main ist 87438eced2ba770c943a2ae87ff906354d07f584.
+Querschnitt über Measurement, HealthEntry, Session, HealthAction, Routine, ProgressEntry;
+FR-LIF-001/002/003 und FR-ACT-006. Backend-Checkpoint c4b6854, Draft PR #18.
+Dokument 153 enthält Semantik, Kompatibilität, Nachweise und die noch offene manuelle
+Abnahme. Frühere create-only-Aussagen sind historischer Slice-Stand. Kein Ready/Merge,
+Reminder oder anderer Fachslice vor diesem manuellen Gate.

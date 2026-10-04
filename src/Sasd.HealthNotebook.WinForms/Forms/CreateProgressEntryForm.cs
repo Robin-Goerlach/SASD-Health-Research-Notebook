@@ -1,3 +1,4 @@
+using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.Application.Services;
 using Sasd.HealthNotebook.Domain;
 using Sasd.HealthNotebook.WinForms.Localization;
@@ -8,6 +9,7 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 public sealed class CreateProgressEntryForm : SourceRecordForm
 {
     private readonly HealthActionService _service;
+    private readonly ProgressEntry? _existing;
     private readonly Guid _routineId;
     private readonly DateTimePicker _datePicker = new() { Format = DateTimePickerFormat.Custom };
     private readonly DateTimePicker _timePicker = new() { Format = DateTimePickerFormat.Custom, CustomFormat = "HH:mm", ShowUpDown = true };
@@ -16,9 +18,10 @@ public sealed class CreateProgressEntryForm : SourceRecordForm
     private readonly NumericUpDown _countEditor = new() { Minimum = 0, Maximum = int.MaxValue, Enabled = false, Width = 140, TabIndex = 1, AccessibleName = AppStrings.ProgressCount, AccessibleDescription = AppStrings.ProgressCountHelp };
     private readonly TextBox _noteTextBox = TextEditor(HealthAction.MaximumTextLength);
     /// <summary>Records history only for the explicitly selected routine.</summary>
-    public CreateProgressEntryForm(HealthActionService service, Guid routineId)
-        : base(AppStrings.NewProgress, AppStrings.ActionSemantics, new Size(740, 560))
+    public CreateProgressEntryForm(HealthActionService service, Guid routineId, ProgressEntry? existing = null)
+        : base(existing is null ? AppStrings.NewProgress : AppStrings.EditProgress, AppStrings.ActionSemantics, new Size(740, 560))
     {
+        _existing = existing;
         _service = service; _routineId = routineId;
         _datePicker.CustomFormat = AppLanguage.Current == UiLanguage.German ? "dd.MM.yyyy" : "MM/dd/yyyy";
         _completionComboBox.DataSource = Enum.GetValues<ProgressCompletion>().Select(value => new CompletionChoice(value, AppStrings.CompletionText(value))).ToList();
@@ -30,6 +33,17 @@ public sealed class CreateProgressEntryForm : SourceRecordForm
         _countCheckBox.CheckedChanged += (_, _) => _countEditor.Enabled = _countCheckBox.Checked;
         AddField(AppStrings.ProgressCount, countPanel, AppStrings.ProgressCountHelp);
         AddField(AppStrings.ProgressNote, _noteTextBox, AppStrings.ActionSemantics, true);
+        // Data-bound Items are ready at Load, before users can interact with the editor.
+        Load += (_, _) =>
+        {
+            if (existing is not null)
+            {
+                SetEditMode();
+                _datePicker.Value = _timePicker.Value = existing.OccurredAt.LocalDateTime;
+                _completionComboBox.SelectedIndex = _completionComboBox.Items.Cast<CompletionChoice>().ToList().FindIndex(item => item.Completion == existing.Completion);
+                _countCheckBox.Checked = existing.Count.HasValue; _countEditor.Value = existing.Count ?? 0; _noteTextBox.Text = existing.Note;
+            }
+        };
     }
     /// <summary>Identity to select after creation.</summary>
     public Guid? CreatedProgressId { get; private set; }
@@ -37,10 +51,16 @@ public sealed class CreateProgressEntryForm : SourceRecordForm
     protected override string SaveOperation => AppStrings.SaveActionOperation;
     protected override async Task SaveRecordAsync()
     {
-        var local = DateTime.SpecifyKind(_datePicker.Value.Date + _timePicker.Value.TimeOfDay, DateTimeKind.Unspecified);
-        if (TimeZoneInfo.Local.IsInvalidTime(local) || TimeZoneInfo.Local.IsAmbiguousTime(local)) throw new ArgumentException("Ambiguous or invalid local time.");
-        var entry = await _service.CreateProgressEntryAsync(new(_routineId, new DateTimeOffset(local, TimeZoneInfo.Local.GetUtcOffset(local)),
-            ((CompletionChoice)_completionComboBox.SelectedItem!).Completion, _noteTextBox.Text, _countCheckBox.Checked ? (int?)_countEditor.Value : null));
+        var instant = EditSupport.Instant(_datePicker.Value, _timePicker.Value, _existing?.OccurredAt);
+        var request = new CreateProgressEntryRequest(_routineId, instant,
+            ((CompletionChoice)_completionComboBox.SelectedItem!).Completion, EditSupport.Optional(_noteTextBox.Text, _existing?.Note), _countCheckBox.Checked ? (int?)_countEditor.Value : null);
+
+        if (_existing is not null)
+        {
+            await _service.UpdateProgressEntryAsync(_existing.Id, request, _existing.ModifiedAt);
+            CreatedProgressId = _existing.Id; return;
+        }
+        var entry = await _service.CreateProgressEntryAsync(request);
         CreatedProgressId = entry.Id;
     }
     private sealed record CompletionChoice(ProgressCompletion Completion, string Label);

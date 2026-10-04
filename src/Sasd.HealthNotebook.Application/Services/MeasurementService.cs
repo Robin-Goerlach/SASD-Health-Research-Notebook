@@ -4,7 +4,7 @@ using Sasd.HealthNotebook.Domain;
 
 namespace Sasd.HealthNotebook.Application.Services;
 
-/// <summary>Creates and chronologically loads measurements without clinical evaluation or duplicated timeline records.</summary>
+/// <summary>Creates, corrects, deletes and chronologically loads measurements without clinical evaluation.</summary>
 public sealed class MeasurementService
 {
     private readonly IMeasurementRepository _measurements;

@@ -158,6 +158,10 @@ public sealed class JsonMeasurementRepository : IMeasurementRepository
             if (current is null || current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
             store.Measurements.Remove(current); return true;
         }, cancellationToken);
-    private static DateTimeOffset NextTime(DateTimeOffset previous) => DateTimeOffset.Now > previous ? DateTimeOffset.Now : previous.AddTicks(1);
+    private static DateTimeOffset NextTime(DateTimeOffset previous)
+    {
+        var now = DateTimeOffset.Now;
+        return now > previous ? now : previous.AddTicks(1);
+    }
 
 }

@@ -21,12 +21,15 @@ public sealed class CreateHealthEntryForm : Form
     private readonly Label _validationLabel;
     private readonly ToolTip _toolTip = new() { AutoPopDelay = 15000 };
     private bool _saving;
+    private readonly HealthEntry? _existing;
 
     /// <summary>Uses existing Application topic summaries for optional linkage.</summary>
-    public CreateHealthEntryForm(HealthEntryService service, IReadOnlyList<HealthTopicSummary> topics)
+    public CreateHealthEntryForm(HealthEntryService service, IReadOnlyList<HealthTopicSummary> topics, HealthEntry? existing = null)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         ArgumentNullException.ThrowIfNull(topics);
+        _existing = existing;
+        BindingContext = new BindingContext();
         AutoScaleDimensions = new SizeF(96, 96);
         AutoScaleMode = AutoScaleMode.Dpi;
         Text = AppStrings.NewTimelineEntry;
@@ -71,6 +74,21 @@ public sealed class CreateHealthEntryForm : Form
         Controls.Add(root);
         AcceptButton = _saveButton; CancelButton = cancel;
         FormClosing += (_, args) => { if (_saving) args.Cancel = true; };
+        // Data-bound Items are ready at Load, before users can interact with the editor.
+        Load += (_, _) =>
+        {
+            if (existing is not null)
+            {
+                Text = AppStrings.EditEntry; _saveButton.Text = AppStrings.SaveChanges;
+                _datePicker.Value = _timePicker.Value = existing.OccurredAt.LocalDateTime;
+                _typeComboBox.SelectedIndex = _typeComboBox.Items.Cast<TypeChoice>().ToList().FindIndex(item => item.Type == existing.EntryType);
+                _titleTextBox.Text = existing.Title; _contentTextBox.Text = existing.Content;
+                var choices = (List<TopicChoice>)_topicComboBox.DataSource!;
+                if (existing.HealthTopicId.HasValue && !choices.Any(item => item.Id == existing.HealthTopicId))
+                    _topicComboBox.DataSource = choices.Concat(new[] { new TopicChoice(existing.HealthTopicId, AppStrings.MissingEntryTopic) }).ToList();
+                _topicComboBox.SelectedIndex = _topicComboBox.Items.Cast<TopicChoice>().ToList().FindIndex(item => item.Id == existing.HealthTopicId);
+            }
+        };
         Shown += (_, _) => _titleTextBox.Focus();
     }
     private void AddField(TableLayoutPanel layout, int row, string text, Control editor, string help)
@@ -92,16 +110,16 @@ public sealed class CreateHealthEntryForm : Form
         {
             // Date/time editors are local presentation values. Reject clock-transition
             // gaps/ambiguities rather than silently assigning a different instant.
-            DateTime localTime = DateTime.SpecifyKind(_datePicker.Value.Date
-                .AddHours(_timePicker.Value.Hour).AddMinutes(_timePicker.Value.Minute), DateTimeKind.Unspecified);
-            if (TimeZoneInfo.Local.IsInvalidTime(localTime) || TimeZoneInfo.Local.IsAmbiguousTime(localTime))
-                throw new ArgumentException("Local time is ambiguous or invalid.");
-            await _service.CreateEntryAsync(new CreateHealthEntryRequest { Title = _titleTextBox.Text,
+            var instant = EditSupport.Instant(_datePicker.Value, _timePicker.Value, _existing?.OccurredAt);
+            var request = new CreateHealthEntryRequest { Title = _titleTextBox.Text,
                 Content = _contentTextBox.Text, EntryType = ((TypeChoice)_typeComboBox.SelectedItem!).Type,
                 HealthTopicId = ((TopicChoice)_topicComboBox.SelectedItem!).Id,
-                OccurredAt = new DateTimeOffset(localTime, TimeZoneInfo.Local.GetUtcOffset(localTime)) });
+                OccurredAt = instant };
+            if (_existing is null) await _service.CreateEntryAsync(request);
+            else await _service.UpdateHealthEntryAsync(_existing.Id, request, _existing.ModifiedAt);
             saved = true;
         }
+        catch (LifecycleConflictException) { _validationLabel.Text = AppStrings.LifecycleConflict; }
         catch (ArgumentException) { _validationLabel.Text = AppStrings.EntryValidationFailed; }
         catch { UiErrorHandler.ShowSafeError(this, AppStrings.OperationSaveEntry); }
         finally { _saving = false; _saveButton.Enabled = true; }

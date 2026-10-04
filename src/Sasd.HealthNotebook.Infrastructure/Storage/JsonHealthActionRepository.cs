@@ -191,7 +191,7 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
             if (changeReason?.Length > HealthAction.MaximumTextLength) throw new ArgumentException("Change reason too long.");
             // Auditing occurs under the same lock and replacement as the corrected instruction.
             // Entering or leaving professional provenance cannot erase the previous content.
-            if (IsProfessional(current.Origin) || IsProfessional(changed.Origin))
+            if (HasProtectedProvenance(current) || HasProtectedProvenance(changed))
                 store.Revisions!.Add(new HealthActionRevision { Id = Guid.NewGuid(), HealthActionId = current.Id,
                     ChangedAt = changed.ModifiedAt, Previous = current, ChangeReason = changeReason });
             store.Actions[index] = changed; return true;
@@ -248,10 +248,17 @@ public sealed class JsonHealthActionRepository : IHealthActionRepository
             var current = store.Actions[index]; if (current.IsArchived == archived) return false;
             store.Actions[index] = current with { IsArchived = archived, ModifiedAt = NextTime(current.ModifiedAt) }; return true;
         }, cancellationToken);
-    private static DateTimeOffset NextTime(DateTimeOffset previous) => DateTimeOffset.Now > previous ? DateTimeOffset.Now : previous.AddTicks(1);
+    private static DateTimeOffset NextTime(DateTimeOffset previous)
+    {
+        var now = DateTimeOffset.Now;
+        return now > previous ? now : previous.AddTicks(1);
+    }
 
 
-    private static bool IsProfessional(HealthActionOrigin origin) => origin is HealthActionOrigin.Doctor or HealthActionOrigin.Therapist or HealthActionOrigin.Coach;
+    // Sources can document professional statements. Retain all source-backed corrections
+    // conservatively, including missing sources, without cross-store races or content inference.
+    private static bool HasProtectedProvenance(HealthAction action) => action.SourceId.HasValue
+        || action.Origin is HealthActionOrigin.Doctor or HealthActionOrigin.Therapist or HealthActionOrigin.Coach or HealthActionOrigin.Source;
     /// <inheritdoc />
     public Task DeleteProgressEntryAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) =>
         WriteAsync(store =>

@@ -598,3 +598,18 @@ Statusänderung erhält Historie; doppelte IDs/verwaiste Kinder werden abgewiese
 Backup/Temp/Lock wie Sessions; keine stille Recovery und keine Migration der fünf
 bestehenden Stores. Das größere RoutineProgress-Zielmodell (Zähler, Ziele, Perioden)
 bleibt offen. Details: Dokument 152. Keine SQLite-Vorwegnahme.
+
+
+## Lebenszyklus-Baseline Slice 1 (2026-10-03)
+
+Aktuelle Präzisierung zu §7: Measurement, HealthEntry und ProgressEntry sind aktuell
+kinderlose Korrekturdatensätze und dürfen nach expliziter Bestätigung einzeln gelöscht
+werden (FR-LIF-003). Kein Parent Hard Delete; keine Kaskaden. Session/HealthAction
+erhalten separates IsArchived mit Default false in v1; Routine bleibt Active/Paused.
+HealthActionRevision speichert den vollständigen vorherigen Action-Snapshot, ChangedAt,
+HealthActionId, Id und optional ChangeReason für professionelle/quellenbasierte Änderungen.
+Das ist sensible lokale Nutzerdokumentation, kein technisches AuditLogEntry.
+Sessions/Actions lesen v1/v2 ohne Rewrite, schreiben bei expliziter Mutation v2;
+v2-Actions verlangen Revisionsliste. v1-Backup wird bytegenau erhalten. Keine neuen
+Dateien, keine SQLite-Migration. Andere Store-Versionen bleiben gleich. Alte Programme
+können v2 nicht öffnen; kein Downgrade. Einzelheiten und offene Grenzen: Dokument 153.
