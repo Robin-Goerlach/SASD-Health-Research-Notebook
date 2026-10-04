@@ -157,3 +157,8 @@ Geschützte Benutzerdateien bleiben unverändert und außerhalb der Commits:
 `CreateHealthTopicWizardForm.resx` SHA-256
 `4363CD7D5B8671C72442CE1A1BFC10D64EBD24B2D718B54BD4FCD025E4967298`.
 `.codex` bleibt ignoriert, ohne getrackte Dateien. Ausschließlich synthetische Testdaten.
+
+Die erste Abschluss-CI zeigte zusätzlich einen anzahlabhängigen bestehenden
+Action-Navigationstest: dessen Lade-Erkennung akzeptierte nur bestimmte Datensatzzahlen.
+Der Helfer wartet nun auf den lokalisierten Abschluss unabhängig von der Anzahl;
+die fachlichen Lifecycle-Tests waren in beiden CI-Läufen bereits erfolgreich.
