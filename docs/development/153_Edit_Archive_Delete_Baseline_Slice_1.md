@@ -162,3 +162,34 @@ Die erste Abschluss-CI zeigte zusätzlich einen anzahlabhängigen bestehenden
 Action-Navigationstest: dessen Lade-Erkennung akzeptierte nur bestimmte Datensatzzahlen.
 Der Helfer wartet nun auf den lokalisierten Abschluss unabhängig von der Anzahl;
 die fachlichen Lifecycle-Tests waren in beiden CI-Läufen bereits erfolgreich.
+
+## Measurement-Dialog: Korrektur aus manueller Abnahme
+
+FR-MEA-001/002, UI-MEA-002: Im Create-Modus konnte die Feldinitialisierung vor der
+ComboBox-Bindung abbrechen. Das primäre Label blieb leer; die Blutdruckfelder behielten
+ihre Standardsichtbarkeit. Das bisher gemeinsam verwendete Value-/Systolic-Control
+erschwerte zudem die eindeutige Zuordnung. Die bisherigen Tests wechselten zuerst den
+Typ und maskierten damit den fehlerhaften Startzustand.
+
+Create und Edit initialisieren die Felder jetzt nach Bindung im Load-Ereignis.
+`UpdateMeasurementFieldVisibility` steuert Labels, Sichtbarkeit, Enabled, TabStop und
+Zeilenhöhe. BloodPressure verwendet drei eigene numerische Controls: Systolic,
+Diastolic und optional Pulse. Das allgemeine Value-Control ist verborgen/deaktiviert.
+Pulse, Temperature, BloodGlucose und Weight verwenden ausschließlich Value mit passender
+Beschriftung/Einheit. Ein echter Typwechsel leert alle Zahlen; erneute Layoutanwendung
+erhält relevante Eingaben. Save berücksichtigt ausschließlich typrelevante Controls.
+Keine kombinierte Blutdruckeingabe, keine Änderung des strukturierten Domain-/JSON-Modells.
+
+UI-MEA-002 prüft in DE/EN den frisch geöffneten Dialog, sichtbare Labels/Controls,
+tatsächliche Tab-Traversierung, Create/Reload und Edit aller fünf Typen, exakt getrennte
+Blutdruckwerte 130/60/60, No-op-Edit, optional leeren Puls und die vier angeforderten
+Typwechsel. Bewusst ungültig befüllte versteckte Controls dürfen nicht gespeichert
+werden. Renderbilder für alle Create-/Edit-Typen liegen ausschließlich im isolierten
+synthetischen Testverzeichnis unter `.codex`. Die erneute manuelle Nutzerabnahme bleibt
+offen; PR #18 bleibt Draft.
+
+Korrekturprüfung: vollständiger Windows-PowerShell-5.1-Safe-Lauf grün, Release WinForms
+und WPF ohne Warnungen/Fehler, Backend- und alle WinForms-Smoke-Tests in DE/EN inklusive
+UI-MEA-002, Lifecycle, SourceLocation, Session, HealthAction und Dashboardcounts.
+BloodPressure-Create-/Edit-Renderbilder in beiden Sprachen bei Mindestgröße visuell
+geprüft: exakt drei korrekt beschriftete Felder, kein sichtbares Einzelwertfeld.

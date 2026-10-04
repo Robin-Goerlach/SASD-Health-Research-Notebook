@@ -16,11 +16,13 @@ public sealed class CreateMeasurementForm : Form
     private readonly ComboBox _typeComboBox = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly ComboBox _topicComboBox = new() { DropDownStyle = ComboBoxStyle.DropDownList };
     private readonly TextBox _valueTextBox = new();
+    private readonly TextBox _systolicTextBox = new();
     private readonly TextBox _diastolicTextBox = new();
     private readonly TextBox _pulseTextBox = new();
     private readonly TextBox _contextTextBox = new() { MaxLength = Measurement.MaximumContextLength };
     private readonly TextBox _noteTextBox = new() { Multiline = true, AcceptsReturn = true, ScrollBars = ScrollBars.Vertical, MaxLength = Measurement.MaximumNoteLength };
     private readonly Label _primaryLabel = new();
+    private readonly Label _systolicLabel = new();
     private readonly Label _diastolicLabel = new();
     private readonly Label _pulseLabel = new();
     private readonly TableLayoutPanel _valuesPanel;
@@ -30,6 +32,7 @@ public sealed class CreateMeasurementForm : Form
     private readonly ToolTip _toolTip = new() { AutoPopDelay = 15000 };
     private bool _saving;
     private readonly Measurement? _existing;
+    private MeasurementType? _fieldType;
     /// <summary>Uses shared Application summaries for optional linkage.</summary>
     public CreateMeasurementForm(MeasurementService service, IReadOnlyList<HealthTopicSummary> topics, Measurement? existing = null)
     {
@@ -52,18 +55,19 @@ public sealed class CreateMeasurementForm : Form
         AddField(_root, 0, AppStrings.EntryDate, _datePicker, AppStrings.EntryTimeHelp);
         AddField(_root, 1, AppStrings.EntryClock, _timePicker, AppStrings.EntryTimeHelp);
         AddField(_root, 2, AppStrings.MeasurementKind, _typeComboBox, AppStrings.MeasurementsDescription);
-        _valuesPanel = CreateLayout(3); _valuesPanel.TabIndex = 3;
-        for (int row = 0; row < 3; row++) _valuesPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
+        _valuesPanel = CreateLayout(4); _valuesPanel.TabIndex = 3;
+        for (int row = 0; row < 4; row++) _valuesPanel.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
         AddField(_valuesPanel, 0, string.Empty, _valueTextBox, AppStrings.MeasurementNumberHelp, _primaryLabel);
-        AddField(_valuesPanel, 1, AppStrings.MeasurementDiastolic, _diastolicTextBox, AppStrings.MeasurementNumberHelp, _diastolicLabel);
-        AddField(_valuesPanel, 2, AppStrings.MeasurementPulseOptional, _pulseTextBox, AppStrings.MeasurementNumberHelp, _pulseLabel);
+        AddField(_valuesPanel, 1, AppStrings.MeasurementPrimaryLabel(MeasurementType.BloodPressure), _systolicTextBox, AppStrings.MeasurementNumberHelp, _systolicLabel);
+        AddField(_valuesPanel, 2, AppStrings.MeasurementDiastolic, _diastolicTextBox, AppStrings.MeasurementNumberHelp, _diastolicLabel);
+        AddField(_valuesPanel, 3, AppStrings.MeasurementPulseOptional, _pulseTextBox, AppStrings.MeasurementNumberHelp, _pulseLabel);
         _root.Controls.Add(_valuesPanel, 0, 3); _root.SetColumnSpan(_valuesPanel, 2);
         AddField(_root, 4, AppStrings.EntryTopic, _topicComboBox, AppStrings.EntryTopicHelp);
         AddField(_root, 5, AppStrings.MeasurementContext, _contextTextBox, AppStrings.MeasurementContextHelp);
         AddField(_root, 6, AppStrings.MeasurementNote, _noteTextBox, AppStrings.MeasurementNoteHelp);
         _typeComboBox.DataSource = Enum.GetValues<MeasurementType>().Select(type => new TypeChoice(type, AppStrings.MeasurementTypeText(type))).ToList();
         _typeComboBox.DisplayMember = nameof(TypeChoice.Label);
-        _typeComboBox.SelectedIndexChanged += (_, _) => ApplyMeasurementType();
+        _typeComboBox.SelectedIndexChanged += (_, _) => UpdateMeasurementFieldVisibility();
         _topicComboBox.DataSource = new[] { new TopicChoice(null, AppStrings.NoEntryTopic) }
             .Concat(topics.Select(topic => new TopicChoice(topic.Id, topic.Title))).ToList();
         _topicComboBox.DisplayMember = nameof(TopicChoice.Label);
@@ -81,13 +85,15 @@ public sealed class CreateMeasurementForm : Form
         // Data-bound Items are ready at Load, before users can interact with the editor.
         Load += (_, _) =>
         {
+            UpdateMeasurementFieldVisibility();
             if (existing is not null)
             {
                 Text = AppStrings.EditMeasurement; _saveButton.Text = AppStrings.SaveChanges;
                 _datePicker.Value = _timePicker.Value = existing.OccurredAt.LocalDateTime;
                 _typeComboBox.SelectedIndex = _typeComboBox.Items.Cast<TypeChoice>().ToList().FindIndex(item => item.Type == existing.MeasurementType);
-                ApplyMeasurementType();
-                _valueTextBox.Text = (existing.Value ?? existing.Systolic)?.ToString("R", AppStrings.MeasurementCulture) ?? "";
+                UpdateMeasurementFieldVisibility();
+                _valueTextBox.Text = existing.Value?.ToString("R", AppStrings.MeasurementCulture) ?? "";
+                _systolicTextBox.Text = existing.Systolic?.ToString("R", AppStrings.MeasurementCulture) ?? "";
                 _diastolicTextBox.Text = existing.Diastolic?.ToString("R", AppStrings.MeasurementCulture) ?? "";
                 _pulseTextBox.Text = existing.Pulse?.ToString("R", AppStrings.MeasurementCulture) ?? "";
                 _contextTextBox.Text = existing.Context; _noteTextBox.Text = existing.Note;
@@ -97,20 +103,37 @@ public sealed class CreateMeasurementForm : Form
                 _topicComboBox.SelectedIndex = _topicComboBox.Items.Cast<TopicChoice>().ToList().FindIndex(item => item.Id == existing.HealthTopicId);
             }
         };
-        if (existing is null) ApplyMeasurementType(); Shown += (_, _) => _valueTextBox.Focus();
+        Shown += (_, _) => (_fieldType == MeasurementType.BloodPressure ? _systolicTextBox : _valueTextBox).Focus();
     }
-    private void ApplyMeasurementType()
+    private void UpdateMeasurementFieldVisibility()
     {
         if (_typeComboBox.SelectedItem is not TypeChoice choice) return;
         bool pressure = choice.Type == MeasurementType.BloodPressure;
-        _primaryLabel.Text = AppStrings.MeasurementPrimaryLabel(choice.Type); _valueTextBox.AccessibleName = _primaryLabel.Text;
-        _diastolicLabel.Visible = _diastolicTextBox.Visible = pressure;
-        _pulseLabel.Visible = _pulseTextBox.Visible = pressure;
-        _diastolicTextBox.TabStop = _pulseTextBox.TabStop = pressure;
+        // Blood pressure has two required numeric components, not a combined string.
+        // Its separate pulse is optional; it must not replace either pressure value.
+        // The generic single-value editor belongs only to the other four types.
+        if (_fieldType != choice.Type)
+        {
+            // A real type change starts fresh: values from incompatible units or hidden
+            // controls must not become a misleading prefill. Reapplying layout is idempotent.
+            foreach (var editor in new[] { _valueTextBox, _systolicTextBox, _diastolicTextBox, _pulseTextBox }) editor.Clear();
+            _validationLabel.Text = string.Empty;
+        }
+        _fieldType = choice.Type;
+        _primaryLabel.Text = pressure ? string.Empty : AppStrings.MeasurementPrimaryLabel(choice.Type);
+        SetNumericField(_primaryLabel, _valueTextBox, !pressure);
+        SetNumericField(_systolicLabel, _systolicTextBox, pressure);
+        SetNumericField(_diastolicLabel, _diastolicTextBox, pressure);
+        SetNumericField(_pulseLabel, _pulseTextBox, pressure);
         _root.RowStyles[3].Height = pressure ? 126 : 42;
-        _valuesPanel.RowStyles[1].Height = _valuesPanel.RowStyles[2].Height = pressure ? 42 : 0;
-        // Changing types starts a fresh numeric input, preventing hidden stale values from being saved.
-        _valueTextBox.Clear(); _diastolicTextBox.Clear(); _pulseTextBox.Clear(); _validationLabel.Text = string.Empty;
+        _valuesPanel.RowStyles[0].Height = pressure ? 0 : 42;
+        for (int row = 1; row < 4; row++) _valuesPanel.RowStyles[row].Height = pressure ? 42 : 0;
+    }
+    private static void SetNumericField(Label label, TextBox editor, bool relevant)
+    {
+        label.Visible = editor.Visible = editor.Enabled = editor.TabStop = relevant;
+        editor.AccessibleName = label.Text;
+        if (!relevant) editor.Clear();
     }
     private async Task SaveAsync()
     {
@@ -124,7 +147,9 @@ public sealed class CreateMeasurementForm : Form
             var instant = EditSupport.Instant(_datePicker.Value, _timePicker.Value, _existing?.OccurredAt);
             var request = new CreateMeasurementRequest { MeasurementType = type,
                 OccurredAt = instant,
-                Value = pressure ? null : ParseNumber(_valueTextBox.Text), Systolic = pressure ? ParseNumber(_valueTextBox.Text) : null,
+                // Select by type, never by leftover control text: hidden values are ignored
+                // even if populated programmatically. Domain keeps enforcing this structure.
+                Value = pressure ? null : ParseNumber(_valueTextBox.Text), Systolic = pressure ? ParseNumber(_systolicTextBox.Text) : null,
                 Diastolic = pressure ? ParseNumber(_diastolicTextBox.Text) : null,
                 Pulse = pressure && !string.IsNullOrWhiteSpace(_pulseTextBox.Text) ? ParseNumber(_pulseTextBox.Text) : null,
                 HealthTopicId = ((TopicChoice)_topicComboBox.SelectedItem!).Id, Note = EditSupport.Optional(_noteTextBox.Text, _existing?.Note), Context = EditSupport.Optional(_contextTextBox.Text, _existing?.Context) };
