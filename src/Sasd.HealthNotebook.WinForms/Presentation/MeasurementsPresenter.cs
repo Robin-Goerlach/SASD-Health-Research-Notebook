@@ -14,7 +14,7 @@ public sealed class MeasurementsPresenter
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _view = view ?? throw new ArgumentNullException(nameof(view));
     }
-    /// <summary>Loads measurements and returns their displayed count.</summary>
+    /// <summary>Loads the complete list and returns its total count; the View preserves its display filter.</summary>
     public async Task<int> LoadAsync(CancellationToken cancellationToken = default)
     {
         var entries = await _service.GetMeasurementsAsync(cancellationToken: cancellationToken).ConfigureAwait(true);

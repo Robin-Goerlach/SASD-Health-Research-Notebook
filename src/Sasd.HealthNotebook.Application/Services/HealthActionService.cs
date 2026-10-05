@@ -54,7 +54,7 @@ public sealed class HealthActionService
         var routines = store.Routines.Where(routine => routine.HealthActionId == actionId).OrderBy(routine => routine.CreatedAt).ThenBy(routine => routine.Id).ToList();
         var ids = routines.Select(routine => routine.Id).ToHashSet();
         return new(store.Actions.Where(action => action.Id == actionId).ToList(), routines,
-            store.ProgressEntries.Where(entry => ids.Contains(entry.RoutineId)).OrderByDescending(entry => entry.OccurredAt).ThenByDescending(entry => entry.CreatedAt).ThenBy(entry => entry.Id).ToList());
+            store.ProgressEntries.Where(entry => ids.Contains(entry.RoutineId)).OrderByDescending(entry => entry.OccurredAt).ThenByDescending(entry => entry.CreatedAt).ThenBy(entry => entry.Id).ToList()) { Revisions = store.Revisions.Where(item => item.HealthActionId == actionId).OrderBy(item => item.ChangedAt).ThenBy(item => item.Id).ToList() };
     }
     /// <summary>Adds a separately configured routine to an existing action.</summary>
     public async Task<Routine> CreateRoutineAsync(CreateRoutineRequest request, CancellationToken cancellationToken = default)
@@ -86,8 +86,49 @@ public sealed class HealthActionService
     public async Task<HealthActionOverview> GetOverviewAsync(DateOnly localDate, CancellationToken cancellationToken = default)
     {
         var store = await _repository.LoadAsync(cancellationToken).ConfigureAwait(false);
-        return new(store.Actions.Count(action => action.Status == HealthActionStatus.Active),
+        return new(store.Actions.Count(action => !action.IsArchived && action.Status == HealthActionStatus.Active),
             store.Routines.Count(routine => routine.Status == RoutineStatus.Active),
             store.ProgressEntries.Count(entry => DateOnly.FromDateTime(entry.OccurredAt.LocalDateTime) == localDate));
     }
+
+    /// <summary>Corrects an action and atomically retains previous professional content (FR-ACT-006).</summary>
+    public async Task UpdateHealthActionAsync(Guid id, CreateHealthActionRequest request, DateTimeOffset expectedModifiedAt, string? changeReason = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var current = (await _repository.LoadAsync(cancellationToken).ConfigureAwait(false)).Actions.SingleOrDefault(item => item.Id == id) ?? throw new LifecycleConflictException();
+        var changed = HealthAction.Create(request.Title, request.ActionType, request.Status, request.HealthTopicId, request.Description, request.Origin, request.OriginNote, request.SourceId, request.SessionId)
+            with { Id = current.Id, CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt, IsArchived = current.IsArchived };
+        if (changed.HealthTopicId != current.HealthTopicId && changed.HealthTopicId.HasValue && !(await _topics.GetAllAsync(cancellationToken).ConfigureAwait(false)).Any(item => item.Id == changed.HealthTopicId))
+            throw new ArgumentException("The selected topic does not exist.");
+        if (changed.SourceId != current.SourceId && changed.SourceId.HasValue && !(await _sources.LoadAsync(cancellationToken).ConfigureAwait(false)).Sources.Any(item => item.Id == changed.SourceId))
+            throw new ArgumentException("The selected source does not exist.");
+        if (changed.SessionId != current.SessionId && changed.SessionId.HasValue && !(await _sessions.LoadAsync(cancellationToken).ConfigureAwait(false)).Sessions.Any(item => item.Id == changed.SessionId))
+            throw new ArgumentException("The selected session does not exist.");
+        await _repository.UpdateActionAsync(changed, expectedModifiedAt, changeReason, cancellationToken).ConfigureAwait(false);
+    }
+    /// <summary>Archives an action without pausing/deleting its children.</summary>
+    public Task ArchiveHealthActionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _repository.SetActionArchivedAsync(id, true, expectedModifiedAt, cancellationToken);
+    /// <summary>Reactivates an action, preserving its previously chosen status.</summary>
+    public Task ReactivateHealthActionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _repository.SetActionArchivedAsync(id, false, expectedModifiedAt, cancellationToken);
+    /// <summary>Corrects routine fields; its action parent and execution history cannot change.</summary>
+    public async Task UpdateRoutineAsync(Guid id, CreateRoutineRequest request, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var current = (await _repository.LoadAsync(cancellationToken).ConfigureAwait(false)).Routines.SingleOrDefault(item => item.Id == id) ?? throw new LifecycleConflictException();
+        var changed = Routine.Create(request.HealthActionId, request.Title, request.Description, request.ScheduleText, request.Status)
+            with { Id = current.Id, CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+        await _repository.UpdateRoutineAsync(changed, expectedModifiedAt, cancellationToken).ConfigureAwait(false);
+    }
+    /// <summary>Corrects one execution; its routine parent cannot change.</summary>
+    public async Task UpdateProgressEntryAsync(Guid id, CreateProgressEntryRequest request, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var current = (await _repository.LoadAsync(cancellationToken).ConfigureAwait(false)).ProgressEntries.SingleOrDefault(item => item.Id == id) ?? throw new LifecycleConflictException();
+        var changed = ProgressEntry.Create(request.RoutineId, request.OccurredAt, request.Completion, request.Note, request.Count)
+            with { Id = current.Id, CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+        await _repository.UpdateProgressEntryAsync(changed, expectedModifiedAt, cancellationToken).ConfigureAwait(false);
+    }
+    /// <summary>Deletes only the explicitly confirmed execution.</summary>
+    public Task DeleteProgressEntryAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _repository.DeleteProgressEntryAsync(id, expectedModifiedAt, cancellationToken);
+
 }

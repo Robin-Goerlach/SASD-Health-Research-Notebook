@@ -16,4 +16,16 @@ public interface IHealthActionRepository
     Task AddProgressEntryAsync(ProgressEntry entry, CancellationToken cancellationToken = default);
     /// <summary>Changes only routine status on the latest record under the writer lock.</summary>
     Task SetRoutineStatusAsync(Guid id, RoutineStatus status, CancellationToken cancellationToken = default);
+
+    /// <summary>Updates an action and any required professional revision atomically.</summary>
+    Task UpdateActionAsync(HealthAction replacement, DateTimeOffset expectedModifiedAt, string? changeReason = null, CancellationToken cancellationToken = default);
+    /// <summary>Changes archive state only; retains routines, progress and revisions.</summary>
+    Task SetActionArchivedAsync(Guid id, bool archived, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Edits a routine without moving it to another action.</summary>
+    Task UpdateRoutineAsync(Routine replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Corrects one execution without moving it to another routine.</summary>
+    Task UpdateProgressEntryAsync(ProgressEntry replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+    /// <summary>Deletes only the selected execution; never its parents or siblings.</summary>
+    Task DeleteProgressEntryAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default);
+
 }

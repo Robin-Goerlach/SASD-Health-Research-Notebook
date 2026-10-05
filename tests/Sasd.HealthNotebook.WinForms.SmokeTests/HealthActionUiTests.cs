@@ -117,8 +117,10 @@ internal static partial class Program
     {
         var button = Field<NavigationButton>(Field<NavigationControl>(form, "_navigation"), "_actionsButton");
         Assert(button.Text == AppStrings.Actions, "Action navigation text incorrect."); button.PerformClick();
-        PumpUntil(() => Field<ToolStripStatusLabel>(form, "_statusLabel").Text!.StartsWith(AppStrings.LoadedActions(0).Split(' ')[0])
-            || Field<ToolStripStatusLabel>(form, "_statusLabel").Text == AppStrings.LoadedActions(2), "action page load");
+        // The shared test store may contain more actions after the other language run.
+        // Wait for the localized completion suffix rather than particular counts.
+        PumpUntil(() => Field<ToolStripStatusLabel>(form, "_statusLabel").Text!
+            .EndsWith(AppStrings.LoadedActions(0)[1..], StringComparison.Ordinal), "action page load");
     }
     private static void CheckActionDialog(Form dialog, string root, string name)
     {

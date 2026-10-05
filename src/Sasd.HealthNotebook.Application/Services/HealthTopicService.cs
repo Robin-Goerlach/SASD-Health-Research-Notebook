@@ -71,4 +71,25 @@ public sealed class HealthTopicService
             ArchivedTopics = topics.Count(topic => topic.Status == HealthTopicStatus.Archived)
         };
     }
+
+    /// <summary>Gets one topic for a correction dialog.</summary>
+    public async Task<HealthTopic> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
+        (await _repository.GetAllAsync(cancellationToken).ConfigureAwait(false)).SingleOrDefault(item => item.Id == id) ?? throw new LifecycleConflictException();
+    /// <summary>Corrects documentation without truncation or identity changes.</summary>
+    public async Task UpdateHealthTopicAsync(Guid id, CreateHealthTopicRequest request, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        if (request.ShortDescription?.Length > 500 || request.Notes?.Length > 4000 || !Enum.IsDefined(request.Status) || !Enum.IsDefined(request.Priority)) throw new ArgumentException("Invalid topic fields.");
+        var current = await GetByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        var changed = HealthTopic.Create(request.Title, request.Status, request.Priority, request.ShortDescription, request.Notes);
+        changed.Id = current.Id; changed.CreatedAt = current.CreatedAt; changed.ModifiedAt = current.ModifiedAt;
+        await _repository.UpdateAsync(changed, expectedModifiedAt, cancellationToken).ConfigureAwait(false);
+    }
+    /// <summary>Archives without removing any linked documentation.</summary>
+    public Task ArchiveHealthTopicAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _repository.SetArchivedAsync(id, true, expectedModifiedAt, cancellationToken);
+    /// <summary>Restores the previous documentation status, or Observation for legacy archives.</summary>
+    public Task ReactivateHealthTopicAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _repository.SetArchivedAsync(id, false, expectedModifiedAt, cancellationToken);
+    /// <summary>Deletes only an unreferenced topic; storage coordinates all related writers.</summary>
+    public Task DeleteHealthTopicAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _repository.DeleteIfUnreferencedAsync(id, expectedModifiedAt, cancellationToken);
+
 }

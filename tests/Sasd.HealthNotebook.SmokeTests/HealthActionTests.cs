@@ -90,9 +90,9 @@ internal static class HealthActionTests
         byte[] backup = await File.ReadAllBytesAsync(Path.Combine(root, "health-actions.backup.json"));
         Assert(beforeStatus.SequenceEqual(backup), "Backup is not the exact last valid store.");
         var json = JsonNode.Parse(valid)!.AsObject();
-        Assert(json["Store"]!.GetValue<string>() == "SASD.HealthNotebook.HealthActions" && json["Version"]!.GetValue<int>() == 1, "Store contract wrong.");
+        Assert(json["Store"]!.GetValue<string>() == "SASD.HealthNotebook.HealthActions" && json["Version"]!.GetValue<int>() == 2, "Store contract wrong.");
         Assert(json["Actions"]!.AsArray().All(item => item!["HealthTopicTitle"] is null), "Topic title persisted redundantly.");
-        foreach (string bad in new[] { "{", "", "{}", json.ToJsonString().Replace("SASD.HealthNotebook.HealthActions", "Foreign.Store"), json.ToJsonString().Replace("\"Version\":1", "\"Version\":2") })
+        foreach (string bad in new[] { "{", "", "{}", json.ToJsonString().Replace("SASD.HealthNotebook.HealthActions", "Foreign.Store"), json.ToJsonString().Replace("\"Version\":2", "\"Version\":99") })
             await RejectStore(root, bad);
         foreach (string collection in new[] { "Actions", "Routines", "ProgressEntries" })
         {

@@ -76,4 +76,34 @@ public sealed class SessionService
         if (!(await _sessions.LoadAsync(cancellationToken).ConfigureAwait(false)).Sessions.Any(session => session.Id == id))
             throw new ArgumentException("The selected session does not exist.");
     }
+
+    /// <summary>Corrects a session while preserving its questions, follow-ups and identity.</summary>
+    public async Task UpdateSessionAsync(Guid id, CreateSessionRequest request, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var current = (await _sessions.LoadAsync(cancellationToken).ConfigureAwait(false)).Sessions.SingleOrDefault(item => item.Id == id) ?? throw new LifecycleConflictException();
+        var changed = Session.Create(request.ScheduledAt, request.Title, request.SessionType, request.Status, request.HealthTopicId, request.ContactText, request.Notes)
+            with { Id = current.Id, CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt, IsArchived = current.IsArchived };
+        if (changed.HealthTopicId != current.HealthTopicId && changed.HealthTopicId.HasValue
+            && !(await _topics.GetAllAsync(cancellationToken).ConfigureAwait(false)).Any(topic => topic.Id == changed.HealthTopicId))
+            throw new ArgumentException("The selected topic does not exist.");
+        await _sessions.UpdateSessionAsync(changed, expectedModifiedAt, cancellationToken).ConfigureAwait(false);
+    }
+    /// <summary>Archives a session without changing its business status or children.</summary>
+    public Task ArchiveSessionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.SetSessionArchivedAsync(id, true, expectedModifiedAt, cancellationToken);
+    /// <summary>Reactivates a session with its original business status and children.</summary>
+    public Task ReactivateSessionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.SetSessionArchivedAsync(id, false, expectedModifiedAt, cancellationToken);
+
+
+    /// <summary>Corrects a question, with optimistic concurrency and no parent change.</summary>
+    public Task UpdateQuestionAsync(SessionQuestion replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    { ArgumentNullException.ThrowIfNull(replacement); replacement.Validate(); return _sessions.UpdateQuestionAsync(replacement, expectedModifiedAt, cancellationToken); }
+    /// <summary>Deletes an unanswered question only; recorded answers block deletion.</summary>
+    public Task DeleteQuestionAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.DeleteQuestionAsync(id, expectedModifiedAt, cancellationToken);
+    /// <summary>Corrects a next step without changing its session.</summary>
+    public Task UpdateFollowUpAsync(SessionFollowUp replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    { ArgumentNullException.ThrowIfNull(replacement); replacement.Validate(); return _sessions.UpdateFollowUpAsync(replacement, expectedModifiedAt, cancellationToken); }
+    /// <summary>Deletes one explicitly selected next step.</summary>
+    public Task DeleteFollowUpAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => _sessions.DeleteFollowUpAsync(id, expectedModifiedAt, cancellationToken);
+
 }

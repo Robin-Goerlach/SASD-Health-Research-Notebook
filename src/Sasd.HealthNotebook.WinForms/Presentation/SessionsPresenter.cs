@@ -10,14 +10,16 @@ public sealed class SessionsPresenter
     private readonly SessionService _service;
     private readonly SessionsView _view;
     private int _generation;
+    private int _loadGeneration;
     /// <summary>Connects the shared session use cases to the WinForms view.</summary>
     public SessionsPresenter(SessionService service, SessionsView view)
     { _service = service ?? throw new ArgumentNullException(nameof(service)); _view = view ?? throw new ArgumentNullException(nameof(view)); }
     /// <summary>Refreshes sessions and their selected children.</summary>
     public async Task<int> LoadAsync(Guid? preferredId = null)
     {
-        var sessions = await _service.GetSessionsAsync();
-        if (_view.IsDisposed) return sessions.Count;
+        int loadGeneration = ++_loadGeneration;
+        var sessions = (await _service.GetSessionsAsync()).Where(item => _view.IncludeArchived || !item.Session.IsArchived).ToList();
+        if (_view.IsDisposed || loadGeneration != _loadGeneration) return sessions.Count;
         _view.SetSessions(sessions, preferredId); await LoadSelectionAsync(); return sessions.Count;
     }
     /// <summary>Clears stale children and rejects responses for obsolete selections.</summary>

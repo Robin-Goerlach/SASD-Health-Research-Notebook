@@ -64,6 +64,7 @@ FR-OBS-005 bleiben außerhalb dieses Slices.
 | FR-MEA-005 | Rohwert und persönliche Notiz/Interpretation werden getrennt gespeichert. |
 | FR-MEA-006 | Messwerte können mit Dokument, Gesundheitsthema, Beobachtung und Session verknüpft werden. |
 | FR-MEA-007 | Die Anwendung darf Messwerte nicht automatisch diagnostisch bewerten. |
+| FR-MEA-008 | Die Messwertliste kann rein darstellend nach bestehender Messart gefiltert werden; vollständige Daten bleiben erhalten. |
 
 Akzeptanz für FR-MEA-001/002/004/005/007, Measurement/Vitalwerte Slice 1:
 Der Nutzer dokumentiert Blutdruck mit getrennten systolischen/diastolischen Zahlen
@@ -252,3 +253,25 @@ Alle oben genannten Objekte sollen langfristig:
 ## 17. Implementierungsprinzip
 
 Diese Anforderungen sind ein Zielbild. Implementiert wird in kleinen vertikalen Slices. Ein Slice enthält nach Möglichkeit Domain, Application, Persistenz, WPF, Tests und Dokumentation für einen zusammenhängenden Anwendungsfall.
+
+## 18. Edit / Archive / Delete Baseline Slice 1
+
+Explizite Erweiterung: **FR-LIF-004** – HealthTopic ist editierbar, archivierbar und
+reaktivierbar; Delete ausschließlich bestätigt ohne aktuelle/historische Store-Referenz.
+**FR-LIF-005** – SessionQuestion ist editierbar; Delete nur ohne beantworteten Status und
+Antwortnotiz. SessionFollowUp ist editierbar und bestätigt einzeln löschbar.
+Akzeptanz: kein Cascade, Identität/Eltern/übrige Kinder erhalten, stale/concurrent Writer
+abgewiesen, klare DE/EN-Sperrmeldung und Cancel-default. Dokument 153 enthält Nachweise.
+FR-LIF-004 ersetzt die frühere pauschale Topic-Hard-Delete-Sperre dieses Teilumfangs.
+
+| ID | Anforderung / konkrete Akzeptanz |
+|---|---|
+| FR-LIF-001 | Measurement, HealthEntry, Session, HealthAction, Routine und ProgressEntry sind korrigierbar. Id/CreatedAt und Kinder bleiben erhalten, ModifiedAt steigt bei Änderung. Unverändertes Speichern schreibt nicht; veraltete Editoren werden abgewiesen. |
+| FR-LIF-002 | Sessions und HealthActions sind separat archivierbar/reaktivierbar; fachlicher Status und Kinder bleiben erhalten. Normale Arbeitslisten blenden Archive aus; „Archivierte anzeigen“ erlaubt Reaktivierung. Routine bleibt pausierbar; Pause ist keine Archivierung. |
+| FR-LIF-003 | Measurement, HealthEntry und ProgressEntry dürfen einzeln nach konkreter Bestätigung gelöscht werden. Elternobjekte HealthTopic, Session, HealthAction, Routine und Sources haben in diesem Slice keine Hard-Delete-API oder -UI; keine Cascades. |
+| FR-ACT-006 / Slice 1 | Änderungen professioneller Maßnahmen (Arzt/Therapeut/Coach oder quellenbasierte Herkunft, auch Wechsel/Entfernen der Herkunft) bewahren den vorherigen Inhalt samt Herkunft als atomare HealthActionRevision; Historie bleibt im UI lesbar. |
+
+Neuere Slice-Spezifikation: Dokument 153. Die create-only-Aussagen oben beschreiben
+die historischen Fachslices. Die ältere Einschränkung auf falsch importierte/leere
+Testdaten in Datenmodell §7 wird für diese drei korrigierbaren, aktuell kinderlosen
+Datensatztypen ausdrücklich durch FR-LIF-003 präzisiert. Sources bleiben Folgearbeit.

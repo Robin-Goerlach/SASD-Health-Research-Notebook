@@ -22,8 +22,16 @@ public interface IHealthTopicRepository
     Task AddAsync(HealthTopic topic, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Replaces the persisted topic collection.
-    /// This method is useful for future import, migration and bulk update scenarios.
+    /// Initializes an empty topic store. Existing collections must use the explicit
+    /// lifecycle methods so bulk replacement cannot bypass reference protection.
     /// </summary>
     Task SaveAllAsync(IReadOnlyList<HealthTopic> topics, CancellationToken cancellationToken = default);
+
+    /// <summary>Updates one topic, rejecting stale editors.</summary>
+    Task UpdateAsync(HealthTopic replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    /// <summary>Archives/reactivates a topic without changing references.</summary>
+    Task SetArchivedAsync(Guid id, bool archived, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    /// <summary>Deletes only when every current and historical topic reference is absent.</summary>
+    Task DeleteIfUnreferencedAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
 }

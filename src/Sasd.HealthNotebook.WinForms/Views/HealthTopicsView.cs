@@ -21,6 +21,11 @@ public sealed class HealthTopicsView : UserControl
     private readonly DataGridViewTextBoxColumn _shortDescriptionColumn;
     private readonly Label _emptyStateLabel;
     private readonly Label _titleLabel;
+    private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
+    private readonly Button _archiveButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
+    private readonly Button _deleteButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
+    private readonly CheckBox _showArchived = new() { AutoSize = true, Margin = new(8, 10, 3, 3) };
+    private IReadOnlyList<HealthTopicSummary> _topics = Array.Empty<HealthTopicSummary>();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="HealthTopicsView" /> class.
@@ -99,8 +104,16 @@ public sealed class HealthTopicsView : UserControl
             _createdColumn,
             _shortDescriptionColumn);
 
-        Controls.Add(_grid);
-        Controls.Add(_emptyStateLabel);
+        var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
+        var commands = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
+        _editButton.TabIndex = 0; _archiveButton.TabIndex = 1; _deleteButton.TabIndex = 2; _showArchived.TabIndex = 3;
+        commands.Controls.AddRange(new Control[] { _editButton, _archiveButton, _deleteButton, _showArchived });
+        Controls.Add(list); Controls.Add(commands);
+        _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
+        _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
+        _deleteButton.Click += (_, _) => DeleteRequested?.Invoke(this, EventArgs.Empty);
+        _showArchived.CheckedChanged += (_, _) => BindTopics();
+        _grid.CurrentCellChanged += (_, _) => UpdateCommands();
         Controls.Add(_titleLabel);
 
         ApplyTexts();
@@ -119,7 +132,8 @@ public sealed class HealthTopicsView : UserControl
     /// </summary>
     public void ApplyTexts()
     {
-        _emptyStateLabel.Text = AppStrings.EmptyHealthTopics;
+        _editButton.Text = AppStrings.Edit; _deleteButton.Text = AppStrings.Delete; _showArchived.Text = AppStrings.ShowArchived;
+        _emptyStateLabel.Text = AppStrings.EmptyHealthTopics; UpdateCommands();
         _titleColumn.HeaderText = AppStrings.ColumnTitle;
         _statusColumn.HeaderText = AppStrings.ColumnStatus;
         _priorityColumn.HeaderText = AppStrings.ColumnPriority;
@@ -133,6 +147,11 @@ public sealed class HealthTopicsView : UserControl
     public void SetTopics(IReadOnlyList<HealthTopicSummary> summaries)
     {
         ArgumentNullException.ThrowIfNull(summaries);
+        _topics = summaries; BindTopics();
+    }
+    private void BindTopics()
+    {
+        var summaries = _topics.Where(item => _showArchived.Checked || item.Status != Sasd.HealthNotebook.Domain.HealthTopicStatus.Archived);
         Guid? selectedId = (_grid.CurrentRow?.DataBoundItem as HealthTopicGridRow)?.Id;
 
         var rows = summaries
@@ -144,6 +163,8 @@ public sealed class HealthTopicsView : UserControl
         _grid.Visible = rows.Count != 0;
         _grid.TabStop = rows.Count != 0;
         if (_emptyStateLabel.Visible) { _emptyStateLabel.BringToFront(); }
+        if (_grid.Rows.Count > 0) _grid.CurrentCell = _grid.Rows[0].Cells[0]; else _grid.CurrentCell = null;
+        UpdateCommands();
         if (selectedId.HasValue)
         {
             foreach (DataGridViewRow row in _grid.Rows)
@@ -170,4 +191,17 @@ public sealed class HealthTopicsView : UserControl
             AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill
         };
     }
+    private void UpdateCommands()
+    {
+        var selected = SelectedTopic; _editButton.Enabled = _archiveButton.Enabled = _deleteButton.Enabled = selected is not null;
+        _archiveButton.Text = selected?.Status == Sasd.HealthNotebook.Domain.HealthTopicStatus.Archived ? AppStrings.Reactivate : AppStrings.Archive;
+    }
+    /// <summary>Selected displayed summary including its conflict token.</summary>
+    public HealthTopicSummary? SelectedTopic => _topics.SingleOrDefault(item => item.Id == (_grid.CurrentRow?.DataBoundItem as HealthTopicGridRow)?.Id);
+    /// <summary>Selected topic correction command.</summary>
+    public event EventHandler? EditRequested;
+    /// <summary>Selected topic archive/reactivate command.</summary>
+    public event EventHandler? ArchiveRequested;
+    /// <summary>Explicit selected topic delete command.</summary>
+    public event EventHandler? DeleteRequested;
 }

@@ -52,6 +52,10 @@ internal static partial class Program
                     foreach (UiLanguage language in Enum.GetValues<UiLanguage>())
                     {
                         AppLanguage.SetLanguage(language);
+                        CheckParentLifecycle(testPath, language);
+                        CheckMeasurementFields(testPath, language);
+                        CheckMeasurementTypeFilter(testPath, language);
+                        CheckLifecycle(testPath, language);
                         var service = new HealthTopicService(new JsonHealthTopicRepository());
                         CheckShell(service, testPath, language);
                         CheckWizard(service, testPath, language);

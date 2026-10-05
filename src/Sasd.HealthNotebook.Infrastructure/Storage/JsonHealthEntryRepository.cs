@@ -1,3 +1,4 @@
+using Sasd.HealthNotebook.Application.Contracts;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Sasd.HealthNotebook.Application.Repositories;
@@ -17,7 +18,7 @@ public sealed class JsonHealthEntryRepository : IHealthEntryRepository
     private readonly string _path;
 
     /// <summary>Resolves the shared data directory; no alternate arbitrary filename is accepted.</summary>
-    public JsonHealthEntryRepository() => _path = LocalHealthNotebookPaths.HealthEntriesFilePath;
+    public JsonHealthEntryRepository(string? filePath = null) => _path = Path.GetFullPath(filePath ?? LocalHealthNotebookPaths.HealthEntriesFilePath);
 
     /// <inheritdoc />
     public async Task<IReadOnlyList<HealthEntry>> GetAllAsync(CancellationToken cancellationToken = default) =>
@@ -26,8 +27,17 @@ public sealed class JsonHealthEntryRepository : IHealthEntryRepository
     /// <inheritdoc />
     public async Task AddAsync(HealthEntry entry, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(entry);
-        entry.Validate();
+        ArgumentNullException.ThrowIfNull(entry); entry.Validate();
+        await WriteAsync(store =>
+        {
+            if (store.Entries.Any(existing => existing.Id == entry.Id))
+                throw new InvalidOperationException("Duplicate identifier.");
+            store.Entries.Add(entry); return true;
+        }, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task WriteAsync(Func<EntryStore, bool> mutate, CancellationToken cancellationToken)
+    {
         cancellationToken.ThrowIfCancellationRequested();
         string directory = Path.GetDirectoryName(_path)!;
         RejectLink(directory);
@@ -38,12 +48,14 @@ public sealed class JsonHealthEntryRepository : IHealthEntryRepository
         await using var writeLock = new FileStream(lockPath, FileMode.CreateNew, FileAccess.Write, FileShare.None,
             4096, FileOptions.DeleteOnClose);
         var store = await LoadPrimaryAsync(cancellationToken).ConfigureAwait(false);
-        if (store.Entries.Any(existing => existing.Id == entry.Id))
-            throw new InvalidOperationException("An entry with this identifier already exists.");
+        var previousTopics = store.Entries.ToDictionary(item => item.Id, item => item.HealthTopicId);
+        if (!mutate(store)) return;
+        await TopicReferenceGuard.ValidateAsync(_path, previousTopics, store.Entries.Select(item => (item.Id, item.HealthTopicId)), cancellationToken).ConfigureAwait(false);
+        foreach (var item in store.Entries) item.Validate();
         string backupPath = Path.Combine(directory, "health-entries.backup.json");
+        if (Directory.Exists(backupPath)) throw new InvalidDataException("Entry backup unavailable; existing files retained.");
         if (File.Exists(backupPath)) await LoadAsync(backupPath, cancellationToken).ConfigureAwait(false);
         RejectLink(backupPath);
-        store.Entries.Add(entry);
         string temporaryPath = _path + ".tmp";
         RejectLink(temporaryPath);
         bool temporaryCreated = false;
@@ -121,4 +133,35 @@ public sealed class JsonHealthEntryRepository : IHealthEntryRepository
         public required int Version { get; init; }
         public required List<HealthEntry> Entries { get; init; }
     }
+
+    /// <inheritdoc />
+    public Task UpdateAsync(HealthEntry replacement, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(replacement); replacement.Validate();
+        return WriteAsync(store =>
+        {
+            int index = store.Entries.FindIndex(item => item.Id == replacement.Id);
+            if (index < 0) throw new LifecycleConflictException();
+            var current = store.Entries[index];
+            if (current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            var changed = replacement with { CreatedAt = current.CreatedAt, ModifiedAt = current.ModifiedAt };
+            if (changed == current && changed.OccurredAt.EqualsExact(current.OccurredAt)) return false;
+            changed = changed with { ModifiedAt = NextTime(current.ModifiedAt) };
+            changed.Validate(); store.Entries[index] = changed; return true;
+        }, cancellationToken);
+    }
+    /// <inheritdoc />
+    public Task DeleteAsync(Guid id, DateTimeOffset expectedModifiedAt, CancellationToken cancellationToken = default) =>
+        WriteAsync(store =>
+        {
+            var current = store.Entries.SingleOrDefault(item => item.Id == id);
+            if (current is null || current.ModifiedAt != expectedModifiedAt) throw new LifecycleConflictException();
+            store.Entries.Remove(current); return true;
+        }, cancellationToken);
+    private static DateTimeOffset NextTime(DateTimeOffset previous)
+    {
+        var now = DateTimeOffset.Now;
+        return now > previous ? now : previous.AddTicks(1);
+    }
+
 }

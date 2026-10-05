@@ -26,6 +26,13 @@ public sealed class SessionsView : UserControl
     private IReadOnlyList<SessionSummary> _sessions = Array.Empty<SessionSummary>();
     private IReadOnlyList<SessionQuestion> _questions = Array.Empty<SessionQuestion>();
     private IReadOnlyList<SessionFollowUp> _followUps = Array.Empty<SessionFollowUp>();
+    private readonly CheckBox _showArchivedCheckBox = new() { AutoSize = true, Dock = DockStyle.Top, Height = 28 };
+    private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(90, UiMetrics.ActionHeight) };
+    private readonly Button _archiveButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
+    private readonly Button _editQuestionButton = Action();
+    private readonly Button _deleteQuestionButton = Action();
+    private readonly Button _editFollowUpButton = Action();
+    private readonly Button _deleteFollowUpButton = Action();
     private bool _binding;
     /// <summary>Creates proportional lists/details, keeping both lower detail fields aligned.</summary>
     public SessionsView()
@@ -34,11 +41,11 @@ public sealed class SessionsView : UserControl
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = Padding.Empty };
         layout.ColumnStyles.Add(new(SizeType.Percent, 45)); layout.ColumnStyles.Add(new(SizeType.Percent, 55));
         layout.RowStyles.Add(new(SizeType.Percent, 60)); layout.RowStyles.Add(new(SizeType.Percent, 40));
-        var left = Pane(_sessionsGrid, _emptyStateLabel); left.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
+        var left = Pane(_sessionsGrid, _emptyStateLabel, _editButton, _archiveButton); left.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
         layout.Controls.Add(left, 0, 0);
         var tabs = new TabControl { Dock = DockStyle.Fill, Margin = Padding.Empty, TabIndex = 1 };
-        _questionsTab.Controls.Add(Pane(_questionsGrid, _questionsEmpty, _newQuestionButton, _answerButton));
-        _followUpsTab.Controls.Add(Pane(_followUpsGrid, _followUpsEmpty, _newFollowUpButton, _statusButton));
+        _questionsTab.Controls.Add(Pane(_questionsGrid, _questionsEmpty, _newQuestionButton, _answerButton, _editQuestionButton, _deleteQuestionButton));
+        _followUpsTab.Controls.Add(Pane(_followUpsGrid, _followUpsEmpty, _newFollowUpButton, _statusButton, _editFollowUpButton, _deleteFollowUpButton));
         tabs.TabPages.Add(_questionsTab); tabs.TabPages.Add(_followUpsTab); layout.Controls.Add(tabs, 1, 0);
         _sessionDetails.Margin = new Padding(0, 3, UiMetrics.StandardSpacing, 3); layout.Controls.Add(_sessionDetails, 0, 1);
         var right = new Panel { Dock = DockStyle.Fill, Margin = new Padding(0, 3, 0, 3), TabIndex = 2 };
@@ -52,6 +59,14 @@ public sealed class SessionsView : UserControl
         _answerButton.Click += (_, _) => AnswerRequested?.Invoke(this, EventArgs.Empty);
         _newFollowUpButton.Click += (_, _) => NewFollowUpRequested?.Invoke(this, EventArgs.Empty);
         _statusButton.Click += (_, _) => FollowUpStatusRequested?.Invoke(this, EventArgs.Empty);
+        Controls.Add(_showArchivedCheckBox);
+        _showArchivedCheckBox.CheckedChanged += (_, _) => ArchiveFilterChanged?.Invoke(this, EventArgs.Empty);
+        _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
+        _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
+        _editQuestionButton.Click += (_, _) => EditQuestionRequested?.Invoke(this, EventArgs.Empty);
+        _deleteQuestionButton.Click += (_, _) => DeleteQuestionRequested?.Invoke(this, EventArgs.Empty);
+        _editFollowUpButton.Click += (_, _) => EditFollowUpRequested?.Invoke(this, EventArgs.Empty);
+        _deleteFollowUpButton.Click += (_, _) => DeleteFollowUpRequested?.Invoke(this, EventArgs.Empty);
         ApplyTexts(); SetSessions(Array.Empty<SessionSummary>()); SetDependents(Array.Empty<SessionQuestion>(), Array.Empty<SessionFollowUp>());
     }
     /// <summary>Selection now refers to the new current session.</summary>
@@ -77,7 +92,7 @@ public sealed class SessionsView : UserControl
         try
         {
             _sessions = sessions;
-            _sessionsGrid.DataSource = sessions.Select(item => new Row(item.Session.Id, Time(item.Session.ScheduledAt), item.Session.Title, AppStrings.SessionStatusText(item.Session.Status))).ToList();
+            _sessionsGrid.DataSource = sessions.Select(item => new Row(item.Session.Id, Time(item.Session.ScheduledAt), item.Session.Title, (item.Session.IsArchived ? AppStrings.Archived : AppStrings.SessionStatusText(item.Session.Status)))).ToList();
             Select(_sessionsGrid, selected); ShowEmpty(_sessionsGrid, _emptyStateLabel, sessions.Count == 0);
         }
         finally { _binding = false; }
@@ -97,6 +112,9 @@ public sealed class SessionsView : UserControl
     /// <summary>Updates headings; presenter refreshes localized row projections.</summary>
     public void ApplyTexts()
     {
+        _editQuestionButton.Text = _editFollowUpButton.Text = AppStrings.Edit;
+        _deleteQuestionButton.Text = _deleteFollowUpButton.Text = AppStrings.Delete;
+        _showArchivedCheckBox.Text = AppStrings.ShowArchived; _editButton.Text = AppStrings.Edit;
         _emptyStateLabel.Text = AppStrings.SessionsEmpty; _questionsTab.Text = AppStrings.SessionQuestions; _followUpsTab.Text = AppStrings.SessionFollowUps;
         _newQuestionButton.Text = AppStrings.NewSessionQuestion; _answerButton.Text = AppStrings.EditSessionAnswer;
         _newFollowUpButton.Text = AppStrings.NewSessionFollowUp; _statusButton.Text = AppStrings.ToggleSessionFollowUp;
@@ -110,6 +128,8 @@ public sealed class SessionsView : UserControl
     {
         var summary = _sessions.SingleOrDefault(item => item.Session.Id == Id(_sessionsGrid));
         var session = summary?.Session;
+        _editButton.Enabled = _archiveButton.Enabled = session is not null;
+        _archiveButton.Text = session?.IsArchived == true ? AppStrings.Reactivate : AppStrings.Archive;
         _sessionDetails.Text = session is null ? string.Empty : string.Join(Environment.NewLine,
             AppStrings.SessionTitle + ": " + session.Title, AppStrings.EntryDate + ": " + Time(session.ScheduledAt),
             AppStrings.SessionKind + ": " + AppStrings.SessionTypeText(session.SessionType), AppStrings.SessionState + ": " + AppStrings.SessionStatusText(session.Status),
@@ -119,7 +139,8 @@ public sealed class SessionsView : UserControl
         _questionDetails.Text = question is null ? string.Empty : AppStrings.SessionQuestionText + ":\r\n" + question.Text + "\r\n\r\n" + AppStrings.SessionAnswerNote + ":\r\n" + question.AnswerNote;
         _followUpDetails.Text = followUp is null ? string.Empty : AppStrings.SessionNextStep + ":\r\n" + followUp.Text + "\r\n" + AppStrings.SessionDueDate + ": " + Date(followUp.DueDate);
         _newQuestionButton.Enabled = _newFollowUpButton.Enabled = session is not null;
-        _answerButton.Enabled = question is not null; _statusButton.Enabled = followUp is not null;
+        _answerButton.Enabled = _editQuestionButton.Enabled = _deleteQuestionButton.Enabled = question is not null;
+        _editFollowUpButton.Enabled = _deleteFollowUpButton.Enabled = followUp is not null; _statusButton.Enabled = followUp is not null;
         _questionsEmpty.Text = session is null ? AppStrings.SessionSelectionEmpty : AppStrings.SessionQuestionsEmpty;
         _followUpsEmpty.Text = session is null ? AppStrings.SessionSelectionEmpty : AppStrings.SessionFollowUpsEmpty;
     }
@@ -159,4 +180,21 @@ public sealed class SessionsView : UserControl
         return grid;
     }
     private sealed record Row(Guid Id, string Time = "", string Title = "", string Status = "", string Text = "", string DueDate = "");
+    /// <summary>Includes archived parents in the normal workspace.</summary>
+    public bool IncludeArchived => _showArchivedCheckBox.Checked;
+    /// <summary>Explicit filter refresh command.</summary>
+    public event EventHandler? ArchiveFilterChanged;
+    /// <summary>Selected-parent edit command.</summary>
+    public event EventHandler? EditRequested;
+    /// <summary>Selected-parent archive/reactivate command.</summary>
+    public event EventHandler? ArchiveRequested;
+
+    /// <summary>Question correction command.</summary>
+    public event EventHandler? EditQuestionRequested;
+    /// <summary>Explicit question delete command; recorded answers are protected.</summary>
+    public event EventHandler? DeleteQuestionRequested;
+    /// <summary>Follow-up correction command.</summary>
+    public event EventHandler? EditFollowUpRequested;
+    /// <summary>Explicit follow-up delete command.</summary>
+    public event EventHandler? DeleteFollowUpRequested;
 }

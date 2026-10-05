@@ -28,7 +28,8 @@ public sealed record SessionFollowUp
     /// <summary>Updates only the explicitly selected state.</summary>
     public SessionFollowUp WithStatus(SessionFollowUpStatus status)
     {
-        var updated = this with { Status = status, ModifiedAt = DateTimeOffset.Now };
+        var now = DateTimeOffset.Now;
+        var updated = this with { Status = status, ModifiedAt = now > ModifiedAt ? now : ModifiedAt.AddTicks(1) };
         updated.Validate(); return updated;
     }
     /// <summary>Checks metadata and bounded text without interpreting the next step.</summary>

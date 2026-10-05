@@ -10,6 +10,7 @@ namespace Sasd.HealthNotebook.WinForms.Presentation;
 public sealed class DashboardPresenter
 {
     private readonly HealthTopicService _healthTopicService;
+    private int _loadGeneration;
     private readonly DashboardView _view;
 
     /// <summary>
@@ -26,10 +27,11 @@ public sealed class DashboardPresenter
     /// </summary>
     public async Task LoadAsync(CancellationToken cancellationToken = default)
     {
+        int generation = ++_loadGeneration;
         DashboardOverview overview = await _healthTopicService
             .GetDashboardOverviewAsync(cancellationToken)
             .ConfigureAwait(true);
 
-        _view.SetOverview(overview);
+        if (!_view.IsDisposed && generation == _loadGeneration) _view.SetOverview(overview);
     }
 }

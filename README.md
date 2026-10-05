@@ -205,3 +205,19 @@ The preferred near-term sequence is:
 ## License
 
 See [LICENSE](LICENSE).
+
+
+## Edit / Archive / Delete Baseline
+
+The WinForms lifecycle baseline adds correction dialogs for measurements, timeline
+entries, sessions, actions, routines and execution entries. Sessions/actions have a
+separate archive filter. Health topics also support correction and archive/reactivate;
+topic deletion requires no current or historical references. Individual measurements,
+timeline entries, execution entries and follow-ups require explicit deletion confirmation;
+questions can only be deleted when unanswered and without an answer note. Professional/source-backed action
+corrections retain local revisions. See [Slice 153](docs/development/153_Edit_Archive_Delete_Baseline_Slice_1.md)
+for JSON v1/v2 compatibility and the recorded manual acceptance scope. Topic and
+session-child lifecycle functions, blood pressure entry and the measurement-type filter
+are manually accepted; older lifecycle checks and action revision history remain
+manually unconfirmed. PR #18 is authorized for Ready for Review after final validation;
+no merge is authorized.

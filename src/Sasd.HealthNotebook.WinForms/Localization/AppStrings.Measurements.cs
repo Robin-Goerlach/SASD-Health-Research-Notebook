@@ -14,6 +14,19 @@ public static partial class AppStrings
     public static string MeasurementsDescription => Text("Manually documented measurements, newest first. No medical assessment.", "Manuell dokumentierte Messwerte, neueste zuerst. Keine medizinische Bewertung.");
     /// <summary>Empty list guidance.</summary>
     public static string MeasurementsEmpty => Text("No measurements yet. Choose New measurement to document one.", "Noch keine Messwerte. Mit Neuen Messwert erfassen eine Messung dokumentieren.");
+    /// <summary>Compact display filter label.</summary>
+    public static string MeasurementFilterLabel => Text("Measurement type", "Messart");
+    /// <summary>Unrestricted display filter.</summary>
+    public static string MeasurementsFilterAll => Text("All", "Alle");
+    /// <summary>Empty filtered projection; does not imply an empty notebook.</summary>
+    public static string MeasurementsFilteredEmpty => Text("No measurements of this type.", "Keine Messwerte dieser Art vorhanden.");
+    /// <summary>Compact names for the transient type filter.</summary>
+    public static string MeasurementFilterTypeText(MeasurementType type) => type switch
+    {
+        MeasurementType.Temperature => Text("Temperature", "Temperatur"),
+        MeasurementType.Weight => Text("Weight", "Gewicht"),
+        _ => MeasurementTypeText(type)
+    };
     /// <summary>Category label.</summary>
     public static string MeasurementKind => Text("Measurement type", "Messwertart");
     /// <summary>Numeric values heading.</summary>

@@ -9,9 +9,11 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 public sealed class CreateHealthActionForm : SourceRecordForm
 {
     private readonly HealthActionService _service;
+    private readonly HealthAction? _existing;
     private readonly TextBox _titleTextBox = new() { MaxLength = HealthAction.MaximumTitleLength };
     private readonly TextBox _descriptionTextBox = TextEditor(HealthAction.MaximumTextLength);
     private readonly TextBox _originNoteTextBox = TextEditor(HealthAction.MaximumTextLength);
+    private readonly TextBox _changeReasonTextBox = new() { MaxLength = HealthAction.MaximumTextLength };
     private readonly ComboBox _typeComboBox = Choice();
     private readonly ComboBox _statusComboBox = Choice();
     private readonly ComboBox _originComboBox = Choice();
@@ -19,9 +21,10 @@ public sealed class CreateHealthActionForm : SourceRecordForm
     private readonly ComboBox _sourceComboBox = Choice();
     private readonly ComboBox _sessionComboBox = Choice();
     /// <summary>Uses shared service and current topic summaries.</summary>
-    public CreateHealthActionForm(HealthActionService service, IReadOnlyList<HealthTopicSummary> topics, IReadOnlyList<SourceSummary> sources, IReadOnlyList<SessionSummary> sessions)
-        : base(AppStrings.NewAction, AppStrings.ActionSemantics, new Size(780, 740))
+    public CreateHealthActionForm(HealthActionService service, IReadOnlyList<HealthTopicSummary> topics, IReadOnlyList<SourceSummary> sources, IReadOnlyList<SessionSummary> sessions, HealthAction? existing = null)
+        : base(existing is null ? AppStrings.NewAction : AppStrings.EditAction, AppStrings.ActionSemantics, new Size(780, 740))
     {
+        _existing = existing;
         _service = service;
         _typeComboBox.DataSource = Enum.GetValues<HealthActionType>().OrderBy(value => value == HealthActionType.Other ? 0 : 1).Select(value => new Option<HealthActionType>(value, AppStrings.ActionTypeText(value))).ToList();
         _statusComboBox.DataSource = Enum.GetValues<HealthActionStatus>().Select(value => new Option<HealthActionStatus>(value, AppStrings.ActionStatusText(value))).ToList();
@@ -39,6 +42,18 @@ public sealed class CreateHealthActionForm : SourceRecordForm
         AddField(AppStrings.ActionOriginNote, _originNoteTextBox, AppStrings.ActionSemantics, true, 40);
         AddField(AppStrings.ActionDescription, _descriptionTextBox, AppStrings.ActionDescription, true, 60);
         Shown += (_, _) => _titleTextBox.Focus();
+        // Data-bound Items are ready at Load, before users can interact with the editor.
+        Load += (_, _) =>
+        {
+            if (existing is not null)
+            {
+                SetEditMode();
+                _titleTextBox.Text = existing.Title; _descriptionTextBox.Text = existing.Description; _originNoteTextBox.Text = existing.OriginNote;
+                SelectOption(_typeComboBox, existing.ActionType); SelectOption(_statusComboBox, existing.Status); SelectOption(_originComboBox, existing.Origin);
+                SelectReference(_topicComboBox, existing.HealthTopicId); SelectReference(_sourceComboBox, existing.SourceId); SelectReference(_sessionComboBox, existing.SessionId);
+                AddField(AppStrings.ChangeReason, _changeReasonTextBox, AppStrings.ChangeReason);
+            }
+        };
     }
     /// <summary>Identity to select after creation.</summary>
     public Guid? CreatedActionId { get; private set; }
@@ -46,11 +61,26 @@ public sealed class CreateHealthActionForm : SourceRecordForm
     protected override string SaveOperation => AppStrings.SaveActionOperation;
     protected override async Task SaveRecordAsync()
     {
-        var action = await _service.CreateActionAsync(new(_titleTextBox.Text, ((Option<HealthActionType>)_typeComboBox.SelectedItem!).Value,
+        var request = new CreateHealthActionRequest(_titleTextBox.Text, ((Option<HealthActionType>)_typeComboBox.SelectedItem!).Value,
             ((Option<HealthActionStatus>)_statusComboBox.SelectedItem!).Value, ((Option<Guid?>)_topicComboBox.SelectedItem!).Value,
-            _descriptionTextBox.Text, ((Option<HealthActionOrigin>)_originComboBox.SelectedItem!).Value, _originNoteTextBox.Text, ((Option<Guid?>)_sourceComboBox.SelectedItem!).Value, ((Option<Guid?>)_sessionComboBox.SelectedItem!).Value));
+            EditSupport.Optional(_descriptionTextBox.Text, _existing?.Description), ((Option<HealthActionOrigin>)_originComboBox.SelectedItem!).Value, EditSupport.Optional(_originNoteTextBox.Text, _existing?.OriginNote), ((Option<Guid?>)_sourceComboBox.SelectedItem!).Value, ((Option<Guid?>)_sessionComboBox.SelectedItem!).Value);
+
+        if (_existing is not null)
+        {
+            await _service.UpdateHealthActionAsync(_existing.Id, request, _existing.ModifiedAt, EditSupport.Optional(_changeReasonTextBox.Text, null));
+            CreatedActionId = _existing.Id; return;
+        }
+        var action = await _service.CreateActionAsync(request);
         CreatedActionId = action.Id;
     }
     private static ComboBox Choice() => new() { DropDownStyle = ComboBoxStyle.DropDownList, DisplayMember = "Label" };
     private sealed record Option<T>(T Value, string Label);
+    private static void SelectOption<T>(ComboBox box, T value) => box.SelectedIndex = box.Items.Cast<Option<T>>().ToList().FindIndex(item => EqualityComparer<T>.Default.Equals(item.Value, value));
+    private static void SelectReference(ComboBox box, Guid? id)
+    {
+        var choices = (List<Option<Guid?>>)box.DataSource!;
+        if (id.HasValue && !choices.Any(item => item.Value == id)) box.DataSource = choices.Concat(new[] { new Option<Guid?>(id, AppStrings.MissingActionLink) }).ToList();
+        SelectOption(box, id);
+    }
+
 }

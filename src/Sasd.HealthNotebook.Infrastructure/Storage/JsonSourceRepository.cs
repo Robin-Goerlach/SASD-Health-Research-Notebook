@@ -17,7 +17,7 @@ public sealed class JsonSourceRepository : ISourceRepository
     };
     private readonly string _path;
     /// <summary>Resolves the same shared data directory as topics and entries.</summary>
-    public JsonSourceRepository() => _path = LocalHealthNotebookPaths.SourcesFilePath;
+    public JsonSourceRepository(string? filePath = null) => _path = Path.GetFullPath(filePath ?? LocalHealthNotebookPaths.SourcesFilePath);
     /// <inheritdoc />
     public async Task<SourceNotebook> LoadAsync(CancellationToken cancellationToken = default)
     {
@@ -58,7 +58,9 @@ public sealed class JsonSourceRepository : ISourceRepository
         RejectLink(backupPath);
         if (Directory.Exists(backupPath)) throw new InvalidDataException("Source backup is unavailable; existing files retained.");
         if (File.Exists(backupPath)) await LoadStoreAsync(backupPath, cancellationToken).ConfigureAwait(false);
+        var previousTopics = store.Sources.ToDictionary(item => item.Id, item => item.HealthTopicId);
         append(store);
+        await TopicReferenceGuard.ValidateAsync(_path, previousTopics, store.Sources.Select(item => (item.Id, item.HealthTopicId)), cancellationToken).ConfigureAwait(false);
         // Revalidate under the writer lock: even direct repository clients cannot persist
         // duplicate IDs or a note referencing a locator in a different source.
         ValidateStore(store);

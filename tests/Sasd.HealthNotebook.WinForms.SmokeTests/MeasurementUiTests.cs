@@ -51,20 +51,20 @@ internal static partial class Program
                 // Change away and back: hidden values must never leak across categories.
                 kind.SelectedIndex = type == MeasurementType.Weight ? 0 : (int)MeasurementType.Weight;
                 kind.SelectedIndex = (int)type;
-                var primary = Field<TextBox>(dialog, "_valueTextBox");
+                bool pressure = type == MeasurementType.BloodPressure;
+                var primary = Field<TextBox>(dialog, pressure ? "_systolicTextBox" : "_valueTextBox");
                 var diastolic = Field<TextBox>(dialog, "_diastolicTextBox");
                 var pulse = Field<TextBox>(dialog, "_pulseTextBox");
                 Assert(primary.Text.Length == 0 && diastolic.Text.Length == 0 && pulse.Text.Length == 0, "Type switch retained stale numbers.");
-                bool pressure = type == MeasurementType.BloodPressure;
                 Assert(diastolic.Visible == pressure && pulse.Visible == pressure && pulse.TabStop == pressure, "Type-dependent editors failed.");
                 Assert(primary.AccessibleName == AppStrings.MeasurementPrimaryLabel(type), "Specific measurement label/unit missing.");
-                foreach (string field in new[] { "_datePicker", "_timePicker", "_typeComboBox", "_valueTextBox", "_topicComboBox", "_contextTextBox", "_noteTextBox", "_saveButton" })
+                foreach (string field in new[] { "_datePicker", "_timePicker", "_typeComboBox", pressure ? "_systolicTextBox" : "_valueTextBox", "_topicComboBox", "_contextTextBox", "_noteTextBox", "_saveButton" })
                 {
                     var control = Field<Control>(dialog, field); AssertWithinParent(control);
                     if (field != "_saveButton") Assert(!string.IsNullOrWhiteSpace(Field<ToolTip>(dialog, "_toolTip").GetToolTip(control)), "Measurement tooltip missing.");
                 }
                 foreach (Label label in Descendants(dialog).OfType<Label>().Where(label => label.Visible)) AssertTextFits(label);
-                Assert(primary.TabIndex == 0 && diastolic.TabIndex == 1 && pulse.TabIndex == 2
+                Assert(primary.TabIndex == (pressure ? 1 : 0) && diastolic.TabIndex == 2 && pulse.TabIndex == 3
                     && Field<Control>(dialog, "_valuesPanel").TabIndex == 3 && Field<Control>(dialog, "_topicComboBox").TabIndex == 4
                     && Field<Control>(dialog, "_noteTextBox").TabIndex == 6, "Measurement tab sequence failed.");
                 Assert(dialog.AcceptButton == Field<Button>(dialog, "_saveButton") && dialog.CancelButton is not null, "Measurement Enter/Escape missing.");
