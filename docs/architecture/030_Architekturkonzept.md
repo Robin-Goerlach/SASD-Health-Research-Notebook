@@ -438,3 +438,12 @@ Die bestehende leichte Presenter-Struktur wird weiterentwickelt, ohne ein zusät
 ### 23.5 Konsequenz für die alte WPF-Planung
 
 Abschnitt 22.5 und ältere Formulierungen, die WPF als aktiven nächsten Navigation Host beschreiben, gelten nur noch historisch. Der Navigation Host und neue Produktseiten werden aktuell primär im WinForms-Frontend entwickelt.
+
+### 23.6 Dashboard-Agenda Slice 1 (2026-10-05)
+
+SessionService.GetDashboardAgendaAsync liest genau einen bestehenden SessionNotebook.
+DashboardAgendaProjector erzeugt eine read-only Application-Projektion mit explizitem
+DateTimeOffset now. Keine neue Domain-Entität, Store-Datei, Migration oder persistierter
+Cache. WinForms-Presenter schützt Ladegenerationen; SessionsPresenter navigiert nach
+stabiler Session-/Follow-up-ID mit abgewarteten Reads. Details: Dokument 154.
+Kalenderfälligkeit erzeugt keine Reminder. WPF bleibt unverändert buildbar.

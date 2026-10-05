@@ -12,22 +12,23 @@ internal static class DashboardAgendaTests
     {
         var now = new DateTimeOffset(2026, 10, 5, 0, 0, 0, TimeSpan.FromHours(2));
         var today = new DateOnly(2026, 10, 5);
-        var parent = Session.Create(now, "CODEX TEST – Agenda", SessionType.DoctorVisit, SessionStatus.Planned);
+        var parent = Session.Create(now, "CODEX TEST – Agenda", SessionType.DoctorVisit, SessionStatus.Planned)
+            with { CreatedAt = now.AddDays(-1), ModifiedAt = now.AddDays(-1) };
         var completed = parent with { Id = Guid.NewGuid(), Status = SessionStatus.Completed };
         var cancelled = parent with { Id = Guid.NewGuid(), Status = SessionStatus.Cancelled };
         var archived = parent with { Id = Guid.NewGuid(), IsArchived = true };
-        var past = parent with { Id = Guid.NewGuid(), ScheduledAt = now.AddTicks(-1) };
+        var past = parent with { Id = Guid.NewGuid(), ScheduledAt = now.AddTicks(-1).ToOffset(TimeSpan.FromHours(14)) };
         var future = parent with { Id = Guid.NewGuid(), ScheduledAt = now.AddHours(1).ToOffset(TimeSpan.FromHours(-5)) };
-        var tieA = parent with { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), ScheduledAt = now.ToOffset(TimeSpan.FromHours(-5)), CreatedAt = now.AddDays(-1) };
+        var tieA = parent with { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), ScheduledAt = now.ToOffset(TimeSpan.FromHours(-5)), CreatedAt = now.AddDays(-2) };
         var tieB = tieA with { Id = Guid.Parse("00000000-0000-0000-0000-000000000002") };
         var sessions = new[] { future, archived, completed, cancelled, past, parent, tieB, tieA };
-        var overdue = SessionFollowUp.Create(parent.Id, "CODEX TEST – Past", dueDate: today.AddDays(-1));
-        var dueToday = SessionFollowUp.Create(completed.Id, "CODEX TEST – Today", dueDate: today);
-        var later = SessionFollowUp.Create(cancelled.Id, "CODEX TEST – Later", dueDate: today.AddDays(1));
-        var noDate = SessionFollowUp.Create(parent.Id, "CODEX TEST – No date");
+        var overdue = SessionFollowUp.Create(parent.Id, "CODEX TEST – Past", dueDate: today.AddDays(-1)) with { CreatedAt = now.AddDays(-1), ModifiedAt = now.AddDays(-1) };
+        var dueToday = SessionFollowUp.Create(completed.Id, "CODEX TEST – Today", dueDate: today) with { CreatedAt = now.AddDays(-1), ModifiedAt = now.AddDays(-1) };
+        var later = SessionFollowUp.Create(cancelled.Id, "CODEX TEST – Later", dueDate: today.AddDays(1)) with { CreatedAt = now.AddDays(-1), ModifiedAt = now.AddDays(-1) };
+        var noDate = SessionFollowUp.Create(parent.Id, "CODEX TEST – No date") with { CreatedAt = now.AddDays(-1), ModifiedAt = now.AddDays(-1) };
         var done = overdue with { Id = Guid.NewGuid(), Status = SessionFollowUpStatus.Done };
         var hidden = overdue with { Id = Guid.NewGuid(), SessionId = archived.Id };
-        var stepTieA = dueToday with { Id = Guid.Parse("00000000-0000-0000-0000-000000000003"), CreatedAt = now.AddDays(-1), ModifiedAt = now };
+        var stepTieA = dueToday with { Id = Guid.Parse("00000000-0000-0000-0000-000000000003"), CreatedAt = now.AddDays(-2) };
         var stepTieB = stepTieA with { Id = Guid.Parse("00000000-0000-0000-0000-000000000004") };
         var steps = new[] { noDate, hidden, later, done, dueToday, overdue, stepTieB, stepTieA };
         var notebook = new SessionNotebook(sessions, Array.Empty<SessionQuestion>(), steps);

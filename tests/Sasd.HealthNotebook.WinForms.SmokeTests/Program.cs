@@ -65,6 +65,7 @@ internal static partial class Program
                         CheckMeasurements(service, testPath, language);
                         CheckSessions(service, testPath, language);
                         CheckHealthActions(testPath, language);
+                        CheckDashboardAgenda(testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }

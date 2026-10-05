@@ -40,6 +40,8 @@ public sealed partial class MainForm : Form
     private readonly HealthTopicPresenter _dashboardTopicsPresenter;
     private readonly HealthTopicPresenter _topicsPresenter;
     private readonly Control _dashboardPage;
+    private readonly DashboardAgendaView _agendaView = new();
+    private readonly DashboardAgendaPresenter _agendaPresenter;
     private bool _isApplyingLanguageSelection;
     private int? _lastLoadedTopicCount;
     private NavigationPage _currentPage = NavigationPage.Dashboard;
@@ -232,6 +234,7 @@ public sealed partial class MainForm : Form
         _dashboardPresenter = new DashboardPresenter(_healthTopicService, _dashboardView);
         _dashboardTopicsPresenter = new HealthTopicPresenter(_healthTopicService, _dashboardTopicsView);
         _topicsPresenter = new HealthTopicPresenter(_healthTopicService, _topicsView);
+        _agendaPresenter = new DashboardAgendaPresenter(_sessionService, _agendaView);
         _dashboardPage = CreateDashboardPage();
         _timelineView = new TimelineView();
         _timelinePresenter = new TimelinePresenter(_healthEntryService, _timelineView);
@@ -251,6 +254,7 @@ public sealed partial class MainForm : Form
         InitializeActions();
         InitializeLifecycle();
         InitializeParentLifecycle();
+        InitializeAgenda();
         ApplyTexts();
 
         Shown += async (_, _) =>
@@ -313,6 +317,7 @@ public sealed partial class MainForm : Form
         _sessionsView.ApplyTexts();
         _actionsView.ApplyTexts();
         _dashboardActionsOverview.ApplyTexts();
+        _agendaView.ApplyTexts();
 
         ShowPage(_currentPage);
         _statusLabel.Text = _lastLoadedTopicCount.HasValue
@@ -348,6 +353,7 @@ public sealed partial class MainForm : Form
     private void ShowPage(NavigationPage page)
     {
         bool changingPage = _currentPage != page;
+        if (changingPage && _currentPage == NavigationPage.Dashboard) _agendaPresenter.Invalidate();
         _currentPage = page;
         _navigation.SelectPage(page);
         // Keep the active view attached when localizing; reparenting resets inherited binding managers.
@@ -356,7 +362,7 @@ public sealed partial class MainForm : Form
         if (page == NavigationPage.Dashboard)
         {
             _pageTitleLabel.Text = AppStrings.Dashboard;
-            _pageDescriptionLabel.Text = AppStrings.DashboardDescription;
+            _pageDescriptionLabel.Text = AppStrings.AgendaBoundary;
             _contentPanel.Controls.Add(_dashboardPage);
         }
         else if (page == NavigationPage.HealthTopics)
@@ -409,20 +415,32 @@ public sealed partial class MainForm : Form
         {
             Dock = DockStyle.Fill,
             ColumnCount = 1,
-            RowCount = 3,
+            RowCount = 2,
             Margin = Padding.Empty,
             BackColor = UiColors.WindowBackground
         };
 
         // Reuse this page when navigating/localizing; do not accumulate abandoned containers.
         layout.RowStyles.Add(new RowStyle(SizeType.Absolute, UiMetrics.DashboardOverviewHeight));
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute, UiMetrics.CompactOverviewHeight));
         layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
 
-        layout.Controls.Add(_dashboardView, 0, 0);
+        // One consistent six-count strip frees room for actual work at minimum size.
+        var counts = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 1, Margin = Padding.Empty };
+        counts.ColumnStyles.Add(new(SizeType.Percent, 50)); counts.ColumnStyles.Add(new(SizeType.Percent, 50));
+        counts.RowStyles.Add(new(SizeType.Percent, 100));
+        _dashboardView.Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
+        counts.Controls.Add(_dashboardView, 0, 0);
         _dashboardActionsOverview.Margin = new Padding(0, 0, 0, UiMetrics.StandardSpacing);
-        layout.Controls.Add(_dashboardActionsOverview, 0, 1);
-        layout.Controls.Add(_dashboardTopicsView, 0, 2);
+        counts.Controls.Add(_dashboardActionsOverview, 1, 0);
+        layout.Controls.Add(counts, 0, 0);
+        // Keep the topic grid at full width: its existing lifecycle commands and
+        // columns remain usable. Agenda panels share the next row beneath it.
+        var work = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty };
+        work.ColumnStyles.Add(new(SizeType.Percent, 100));
+        work.RowStyles.Add(new(SizeType.Percent, 48)); work.RowStyles.Add(new(SizeType.Percent, 52));
+        _dashboardTopicsView.Margin = new Padding(0, 0, 0, UiMetrics.StandardSpacing);
+        work.Controls.Add(_dashboardTopicsView, 0, 0); work.Controls.Add(_agendaView, 0, 1);
+        layout.Controls.Add(work, 0, 1);
 
         return layout;
     }
@@ -432,6 +450,11 @@ public sealed partial class MainForm : Form
     {
         int generation = ++_reloadGeneration;
         var page = _currentPage;
+        // One explicit local instant for this refresh; capture before the first await.
+        var now = DateTimeOffset.Now;
+        // Invalidate agenda work at refresh START, rather than after other reads.
+        // A slow older agenda must not publish while the new refresh loads topics.
+        if (page == NavigationPage.Dashboard) { _agendaPresenter.Invalidate(); _agendaView.SetLoading(); }
         void SetStatus(string text)
         {
             // Older page loads must not overwrite the status of a later navigation/refresh.
@@ -477,7 +500,11 @@ public sealed partial class MainForm : Form
             SetStatus(AppStrings.FormatLoadedHealthTopics(_lastLoadedTopicCount.Value));
             if (_currentPage == NavigationPage.Dashboard)
             {
-                var overview = await _healthActionService.GetOverviewAsync(DateOnly.FromDateTime(DateTime.Now));
+                // Application has no hidden clock. Counts and agenda share the
+                // explicit local instant captured at this refresh's outer boundary.
+                await _agendaPresenter.LoadAsync(now);
+                if (IsDisposed || generation != _reloadGeneration || page != _currentPage) return;
+                var overview = await _healthActionService.GetOverviewAsync(DateOnly.FromDateTime(now.DateTime));
                 if (!IsDisposed && generation == _reloadGeneration && page == _currentPage)
                     _dashboardActionsOverview.SetOverview(overview);
             }
@@ -485,6 +512,7 @@ public sealed partial class MainForm : Form
         catch
         {
             if (IsDisposed || generation != _reloadGeneration) return;
+            if (page == NavigationPage.Dashboard) _agendaView.SetFailed();
             UiErrorHandler.ShowSafeError(this, AppStrings.OperationLoadLocalNotebookData);
             SetStatus(AppStrings.LoadingFailed);
         }

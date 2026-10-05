@@ -85,6 +85,13 @@ public sealed class SessionsView : UserControl
     public SessionQuestion? SelectedQuestion => _questions.SingleOrDefault(item => item.Id == Id(_questionsGrid));
     /// <summary>Selected shared next step.</summary>
     public SessionFollowUp? SelectedFollowUp => _followUps.SingleOrDefault(item => item.Id == Id(_followUpsGrid));
+
+    /// <summary>Shows and focuses the follow-up grid after an awaited exact child selection.</summary>
+    public void OpenFollowUps()
+    {
+        ((TabControl)_followUpsTab.Parent!).SelectedTab = _followUpsTab;
+        _followUpsGrid.Focus();
+    }
     /// <summary>Refreshes sessions with selection retention.</summary>
     public void SetSessions(IReadOnlyList<SessionSummary> sessions, Guid? preferredId = null)
     {

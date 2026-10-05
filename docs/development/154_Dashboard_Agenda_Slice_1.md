@@ -37,6 +37,23 @@ und sichere Fehleranzeige. SessionsPresenter erhält explizite Parent-/Child-Nav
 Follow-up-Aktivierung öffnet den richtigen Tab und selektiert das konkrete Kind.
 Keine Timer. Keine Dashboard-Fachlogik in Controls.
 
+Die sechs bestehenden Counts stehen in einer einzigen proportionalen Reihe (132 px).
+Zweizeilige Titel/Beschreibungen sind in DE/EN vorgesehen; Werte bleiben unverändert.
+Der restliche Arbeitsbereich teilt sich 48% Themen / 52% Agenda. 40-px-Agenda-Zeilen
+zeigen Zeitpunkt bzw. Kalendergruppe/Datum und einen kurzen Text mit vollständigem
+Tooltip. Bei 1120×740 bleibt mindestens eine vollständige Themenzeile sichtbar;
+die Agenda-Vorschau kann vertikal gescrollt werden. Die Grenzen 5/6 halten sie auch
+bei großen Datenbeständen klein; „Alle anzeigen“ öffnet eine eigene vollständige Liste.
+Bei fehlendem Child oder zwischenzeitlich archiviertem Parent wird vor dem Binden
+ein sicherer Konflikt ausgelöst; keine Auswahl eines zufälligen Ersatzkindes.
+
+Generationen werden bereits zu Refresh-Beginn invalidiert, nicht erst nach anderen
+Dashboard-Reads. Presenter schützen sowohl alte Ergebnisse als auch alte Fehler.
+Session-Listenrefresh invalidiert auch laufende Child-Reads sofort. Keine Background-
+Aktualisierung: Reload erfolgt beim Öffnen, explizitem Refresh, Sprachwechsel und
+Rückkehr vom Arbeitsbereich. Eine über Mitternacht offen stehende Seite wird beim
+nächsten dieser Vorgänge mit einer neuen Zeitbasis eingeordnet.
+
 ## Nicht-Ziele
 
 Reminder, Notifications, Toasts, Hintergrundjobs, Wiederholungen, Snooze, Ruhezeiten,
@@ -52,6 +69,58 @@ Geschützte Benutzerhashes unverändert. Weitere Nachweise folgen tatsächlichen
 Manuelle Abnahme offen. Ältere offene Nachweise aus Dokument 153 bleiben offen.
 
 Application-Checkpoint: Release-Lösung 0 Warnungen/Fehler; Backend-Smoke einschließlich
-UT-DASH-001/002/003 und IT-DASH-001 erfolgreich. WinForms-Agenda noch nicht implementiert.
+UT-DASH-001/002/003 und IT-DASH-001 erfolgreich. Zu diesem Checkpoint war die
+WinForms-Agenda noch nicht implementiert. Commit `2aac233`, gepusht, Draft PR #19.
 Reale Persistenz wird nur gelesen; fehlender Store wird nicht angelegt, korrupter Store
 wirft und bleibt unverändert. Bestehende Primär-/Backup-Dateien und Inventar bleiben gleich.
+
+## Offene manuelle Prüfliste
+
+Start ausschließlich mit synthetischen Daten:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1" -Action WinForms
+```
+
+1. DE/EN, 1120×740 und normale Größe: sechs bestehende Counts, Themenzeile und beide
+   Agenda-Überschriften lesbar; keine horizontalen Scrollbars, ruhige Farben/Abstände.
+2. Geplante kommende Termine sichtbar; archivierte, abgeschlossene, abgesagte und
+   vergangene Termine fehlen. Kontakt/Institution steht optional im vollständigen Tooltip.
+3. Open-Follow-ups in vier Kalendergruppen; Completed-Session darf offene Kinder zeigen.
+   Done und archivierte Eltern fehlen. „Überfällig“ ist keine medizinische Warnung.
+4. Klick und Enter öffnen exakt die Session; Follow-up öffnet Parent, Follow-up-Tab,
+   konkretes Kind und Fokus. Tab erreicht die Listen und „Alle anzeigen“.
+5. Mehr als 5/6 Einträge: begrenzte Vorschau, vertikales Scrollen, vollständige Liste
+   über „Alle anzeigen“, Ziel außerhalb der Vorschau exakt öffnen; Escape schließt.
+6. Follow-up im Session-Arbeitsbereich erledigen/bearbeiten; Rückkehr und Refresh
+   zeigen aktuelle Daten. Sprachwechsel erhält Projektion/Identität und übersetzt Texte.
+7. Leerer Bestand zeigt klare Empty States. Ladefehler zeigt Fehlerzustand und den
+   vorhandenen sicheren Dialog, niemals einen erfolgreich leeren Bestand.
+8. Neustart lädt vorhandene Daten weiter. Kein neuer Store/Cache/Reminder, keine
+   Änderung vorhandener Dateien allein durch Lesen. DPI/Fokus bei realem Desktop prüfen.
+
+Diese Liste ist keine Abnahmebestätigung. Automatische Controls und Renderbilder
+ersetzen weder die Nutzerabnahme dieses Slices noch offene ältere Nachweise aus 153.
+
+## Abschlussvalidierung vor manueller Abnahme (2026-10-05)
+
+Vollständiger Windows-PowerShell-5.1-Safe-Lauf Exit 0: Release-Lösung einschließlich
+WinForms/WPF 0 Warnungen/Fehler, Backend und sämtliche DE/EN-WinForms-Regressionen grün.
+UT-DASH-001/002/003, IT-DASH-001 und UI-DASH-001 sind automatisiert nachgewiesen.
+Zusätzliche Randfälle: fehlendes konkretes Child, Parent-Archivierung zwischen Listen-
+und Detailread, überlappende Child-Navigation, veralteter Erfolg/Fehler und Navigation-
+away-Invalidierung. Kein Ersatzkind wird bei fehlendem Ziel gebunden.
+Zelltext-Clipping wird anhand Font, Textmaß und Padding geprüft; zweizeilige Datums-
+angaben benötigen 40 px statt der zunächst versuchten 32 px. Deutsche kompakte
+Themenkarte heißt „Themen“, um keinen Wortumbruch mitten im Titel zu erzwingen.
+
+Synthetische Renderbilder: `.codex/synthetic-development-data/ui-tests/329325b0019c49a6ae72a635a15fc828/agenda-English`
+und `agenda-German`. Gefüllte/leere Mindestansichten, 1280×820 und vollständige
+Listen wurden visuell geprüft. Diese Prüfung ist keine manuelle Nutzerabnahme und
+kein vollständiger High-DPI-Nachweis. Keine Bilder mit echten Gesundheitsdaten.
+
+`git diff --check` erfolgreich. Geschützte Benutzerdateien bleiben außerhalb des Index:
+`.gitignore` SHA-256 `9A84AA3B5E4E9DF41A745F8BF9288C1059948047061503A8634C574DB788A3C6`;
+`CreateHealthTopicWizardForm.resx` SHA-256
+`4363CD7D5B8671C72442CE1A1BFC10D64EBD24B2D718B54BD4FCD025E4967298`.
+`.codex/` bleibt ignoriert. Kein Ready for Review, Merge oder nächster Slice autorisiert.

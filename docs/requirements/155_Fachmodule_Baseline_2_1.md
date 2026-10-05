@@ -1,5 +1,10 @@
 # 155 - Fachmodule und Anforderungen Baseline 2.1
 
+Projekt: SASD Health Research Notebook
+Stand: 2026-09-30
+Dokumenttyp: ergänzender Anforderungskatalog
+Status: verbindliche Ergänzung zu Lasten- und Pflichtenheft
+
 ## Dashboard-Agenda Slice 1 (2026-10-05)
 
 | ID | Anforderung |
@@ -12,11 +17,6 @@
 
 Scope und Akzeptanz: [Entwicklungsdokument 154](../development/154_Dashboard_Agenda_Slice_1.md).
 Keine Umsetzung von FR-NOT; Kalenderfälligkeit ist keine Notification.
-
-Projekt: SASD Health Research Notebook  
-Stand: 2026-09-30  
-Dokumenttyp: ergänzender Anforderungskatalog  
-Status: verbindliche Ergänzung zu Lasten- und Pflichtenheft
 
 ## 1. Zweck
 
