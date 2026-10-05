@@ -1,4 +1,5 @@
 using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.WinForms.Controls;
 using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
 
@@ -15,7 +16,8 @@ public sealed class AgendaTargetEventArgs(Guid sessionId, Guid? followUpId = nul
 
 /// <summary>
 /// Displays the Application projection. Only preview truncation and localized formatting
-/// happen here; eligibility, dates, sorting and grouping remain Application concerns.
+/// happen here; eligibility, dates and baseline ordering/grouping remain Application concerns.
+/// A column click only reorders the already bounded preview locally.
 /// </summary>
 public sealed class DashboardAgendaView : UserControl
 {
@@ -31,6 +33,8 @@ public sealed class DashboardAgendaView : UserControl
     private readonly Label _followUpsEmpty = Empty();
     private readonly Button _showSessions = More();
     private readonly Button _showFollowUps = More();
+    private readonly ThreeStateGridSort<Row> _sessionSort;
+    private readonly ThreeStateGridSort<Row> _followUpSort;
     private readonly bool _preview;
     private readonly Control? _unusedSection;
     private DashboardAgenda _agenda = new(Array.Empty<AgendaSession>(), Array.Empty<AgendaFollowUp>());
@@ -39,6 +43,12 @@ public sealed class DashboardAgendaView : UserControl
     /// <summary>Creates a two-section preview or a single complete agenda list.</summary>
     public DashboardAgendaView(bool preview = true, bool? sessionsOnly = null)
     {
+        _sessionSort = new ThreeStateGridSort<Row>(_sessionsGrid, row => row.SessionId)
+            .Column(0, row => row.SortTime).Text(1, row => row.Text);
+        _followUpSort = new ThreeStateGridSort<Row>(_followUpsGrid, row => row.FollowUpId!.Value)
+            .Column(0, row => (row.SortGroup, row.SortDueDate)).Text(1, row => row.Text);
+        _sessionSort.Rebound += () => SetRowToolTips(_sessionsGrid);
+        _followUpSort.Rebound += () => SetRowToolTips(_followUpsGrid);
         _preview = preview;
         Dock = DockStyle.Fill; Margin = Padding.Empty; BackColor = UiColors.WindowBackground;
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, RowCount = 1, ColumnCount = sessionsOnly.HasValue ? 1 : 2, Margin = Padding.Empty };
@@ -86,7 +96,7 @@ public sealed class DashboardAgendaView : UserControl
     public void SetAgenda(DashboardAgenda agenda)
     { _agenda = agenda ?? throw new ArgumentNullException(nameof(agenda)); _state = LoadState.Ready; ApplyTexts(); }
 
-    /// <summary>Relabels existing projection without loading, sorting or writing the store.</summary>
+    /// <summary>Relabels the existing projection and reapplies local ordering without reading or writing stores.</summary>
     public void ApplyTexts()
     {
         _sessionsTitle.Text = AppStrings.UpcomingSessions; _followUpsTitle.Text = AppStrings.OpenFollowUps;
@@ -96,12 +106,12 @@ public sealed class DashboardAgendaView : UserControl
         _followUpsGrid.Columns[0].HeaderText = AppStrings.AgendaGrouping;
         _sessionsGrid.Columns[1].HeaderText = AppStrings.SessionTitle;
         _followUpsGrid.Columns[1].HeaderText = AppStrings.OpenFollowUps;
-        Bind(_sessionsGrid, (_preview ? _agenda.Sessions.Take(SessionPreviewLimit) : _agenda.Sessions)
+        _sessionSort.SetRows((_preview ? _agenda.Sessions.Take(SessionPreviewLimit) : _agenda.Sessions)
             .Select(item => new Row(item.SessionId, null, item.ScheduledAt.ToLocalTime().ToString(DateFormat + "\nHH:mm"), item.Title,
-                string.Join(Environment.NewLine, item.Title, item.ContactText ?? string.Empty))).ToArray());
-        Bind(_followUpsGrid, (_preview ? _agenda.FollowUps.Take(FollowUpPreviewLimit) : _agenda.FollowUps)
+                string.Join(Environment.NewLine, item.Title, item.ContactText ?? string.Empty), SortTime: item.ScheduledAt)).ToArray());
+        _followUpSort.SetRows((_preview ? _agenda.FollowUps.Take(FollowUpPreviewLimit) : _agenda.FollowUps)
             .Select(item => new Row(item.SessionId, item.FollowUpId, AppStrings.AgendaDueGroup(item.Group)
-                + (item.DueDate.HasValue ? "\n" + item.DueDate.Value.ToString(DateFormat) : string.Empty), item.Text, item.Text)).ToArray());
+                + (item.DueDate.HasValue ? "\n" + item.DueDate.Value.ToString(DateFormat) : string.Empty), item.Text, item.Text, SortGroup: item.Group, SortDueDate: item.DueDate)).ToArray());
         ApplyState();
     }
 
@@ -129,17 +139,12 @@ public sealed class DashboardAgendaView : UserControl
         if (_state == LoadState.Ready && grid.CurrentRow?.DataBoundItem is Row row)
             TargetRequested?.Invoke(this, new(row.SessionId, row.FollowUpId));
     }
-    private static void Bind(DataGridView grid, IReadOnlyList<Row> rows)
+    private static void SetRowToolTips(DataGridView grid)
     {
-        if (grid.IsDisposed) return;
-        var previous = grid.CurrentRow?.DataBoundItem as Row;
-        grid.DataSource = rows;
         foreach (DataGridViewRow row in grid.Rows)
         {
             var item = (Row)row.DataBoundItem;
             row.Cells[1].ToolTipText = item.Detail;
-            if (previous is not null && item.SessionId == previous.SessionId && item.FollowUpId == previous.FollowUpId)
-                grid.CurrentCell = row.Cells[1];
         }
     }
     private static Control Section(Label title, DataGridView grid, Label empty, Button more)
@@ -186,5 +191,5 @@ public sealed class DashboardAgendaView : UserControl
         return grid;
     }
     private enum LoadState { Loading, Ready, Failed }
-    private sealed record Row(Guid SessionId, Guid? FollowUpId, string When, string Text, string Detail);
+    private sealed record Row(Guid SessionId, Guid? FollowUpId, string When, string Text, string Detail, DateTimeOffset? SortTime = null, FollowUpDueGroup SortGroup = default, DateOnly? SortDueDate = null);
 }

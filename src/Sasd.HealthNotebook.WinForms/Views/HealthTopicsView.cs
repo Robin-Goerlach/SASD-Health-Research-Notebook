@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using Sasd.HealthNotebook.WinForms.Controls;
 using System.Drawing;
 using System.Windows.Forms;
 using Sasd.HealthNotebook.Application.Contracts;
@@ -14,6 +14,7 @@ namespace Sasd.HealthNotebook.WinForms.Views;
 public sealed class HealthTopicsView : UserControl
 {
     private readonly DataGridView _grid;
+    private readonly ThreeStateGridSort<HealthTopicGridRow> _sort;
     private readonly DataGridViewTextBoxColumn _titleColumn;
     private readonly DataGridViewTextBoxColumn _statusColumn;
     private readonly DataGridViewTextBoxColumn _priorityColumn;
@@ -104,6 +105,11 @@ public sealed class HealthTopicsView : UserControl
             _createdColumn,
             _shortDescriptionColumn);
 
+        _sort = new ThreeStateGridSort<HealthTopicGridRow>(_grid, row => row.Id)
+            .Text(0, row => row.Title).Column(1, row => row.SortStatus)
+            .Column(2, row => row.SortPriority).Column(3, row => row.SortCreatedAt)
+            .Text(4, row => row.ShortDescription);
+        _sort.Rebound += UpdateCommands;
         var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
         var commands = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
         _editButton.TabIndex = 0; _archiveButton.TabIndex = 1; _deleteButton.TabIndex = 2; _showArchived.TabIndex = 3;
@@ -139,6 +145,7 @@ public sealed class HealthTopicsView : UserControl
         _priorityColumn.HeaderText = AppStrings.ColumnPriority;
         _createdColumn.HeaderText = AppStrings.ColumnCreated;
         _shortDescriptionColumn.HeaderText = AppStrings.ColumnShortDescription;
+        BindTopics();
     }
 
     /// <summary>
@@ -158,7 +165,7 @@ public sealed class HealthTopicsView : UserControl
             .Select(HealthTopicGridRow.FromSummary)
             .ToList();
 
-        _grid.DataSource = new BindingList<HealthTopicGridRow>(rows);
+        _sort.SetRows(rows);
         _emptyStateLabel.Visible = rows.Count == 0;
         _grid.Visible = rows.Count != 0;
         _grid.TabStop = rows.Count != 0;

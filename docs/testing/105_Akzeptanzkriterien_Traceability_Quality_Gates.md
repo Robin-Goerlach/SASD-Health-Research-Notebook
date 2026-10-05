@@ -14,6 +14,8 @@ Status: aktiv
 | FR-DASH-003 | UT-DASH-003: feste Zeit, Mitternacht und Offset-Grenzen ohne implizite Systemuhr. | automatisiert nachgewiesen, 2026-10-05 |
 | FR-DASH-004 | IT-DASH-001: kohärenter Snapshot, unveränderte Primär-/Backup-Dateien, keine neue Datei, Fehlerweitergabe. | automatisiert nachgewiesen, 2026-10-05 |
 | FR-DASH-005, FR-UI-001 | UI-DASH-001: DE/EN Vorschau/Show all/Empty/Error, exakte Navigation, Refresh/Return/Stale, No-write, Minimum/Tastatur/Render. | automatisiert nachgewiesen; manuelle Abnahme offen |
+| FR-UI-002 | UI-NAV-001: alle sieben Tooltips DE/EN, Sprachwechsel, nicht leer/überlang, unveränderte Navigationsziele. | automatisierte Control-Prüfung; manuelle Tooltip-Abnahme offen (Dokument 154) |
+| FR-UI-003 | UI-GRID-001: typgerechte Text-/Datum-/Zahl-/Status-/Nullsortierung, stabile Ties, Zyklus mit viertem Klick, Pfeile, ID-Auswahl, Refresh/Sprachwechsel, alle vorhandenen Grids einschließlich Agenda und vollständiger Dialoge, No-write. | automatisierte Control-/Render-Prüfung; manuelle Grid-Abnahme offen (Dokument 154) |
 
 Details: [154](../development/154_Dashboard_Agenda_Slice_1.md).
 Offene manuelle Lifecycle-/Dashboardcount-/Action-Historiennachweise aus 153 bleiben offen.

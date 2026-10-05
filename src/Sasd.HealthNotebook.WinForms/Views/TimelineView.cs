@@ -1,4 +1,5 @@
 using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.WinForms.Controls;
 using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
 
@@ -10,6 +11,7 @@ public sealed class TimelineView : UserControl
     private readonly Button _editButton = new() { AutoSize = true, MinimumSize = new(110, UiMetrics.ActionHeight) };
     private readonly Button _deleteButton = new() { AutoSize = true, MinimumSize = new(110, UiMetrics.ActionHeight) };
     private readonly DataGridView _grid;
+    private readonly ThreeStateGridSort<TimelineRow> _sort;
     private readonly Label _emptyStateLabel;
     private IReadOnlyList<HealthEntrySummary> _entries = Array.Empty<HealthEntrySummary>();
     /// <summary>Creates a responsive timeline with a readable empty state.</summary>
@@ -43,6 +45,9 @@ public sealed class TimelineView : UserControl
         for (int index = 0; index < properties.Length; index++)
             _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = properties[index],
                 MinimumWidth = widths[index], FillWeight = index == 2 || index == 4 ? 25 : 16, SortMode = DataGridViewColumnSortMode.NotSortable });
+        _sort = new ThreeStateGridSort<TimelineRow>(_grid, row => row.Id)
+            .Column(0, row => row.Data.OccurredAt).Column(1, row => row.Data.EntryType)
+            .Text(2, row => row.Title).Text(3, row => row.Topic).Text(4, row => row.Data.Content);
         var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
         _editButton.TabIndex = 0; _deleteButton.TabIndex = 1; buttons.Controls.Add(_editButton); buttons.Controls.Add(_deleteButton);
@@ -61,16 +66,17 @@ public sealed class TimelineView : UserControl
         string[] headers = { AppStrings.EntryTime, AppStrings.EntryType, AppStrings.ColumnTitle,
             AppStrings.HealthTopics, AppStrings.EntryContent };
         for (int index = 0; index < headers.Length; index++) _grid.Columns[index].HeaderText = headers[index];
+        SetEntries(_entries);
     }
     /// <summary>Displays chronologically ordered application summaries; retains selection by ID.</summary>
     public void SetEntries(IReadOnlyList<HealthEntrySummary> entries)
     {
         _entries = entries;
         Guid? selected = (_grid.CurrentRow?.DataBoundItem as TimelineRow)?.Id;
-        _grid.DataSource = entries.Select(entry => new TimelineRow(entry.Id, AppStrings.FormatDateTime(entry.OccurredAt),
+        _sort.SetRows(entries.Select(entry => new TimelineRow(entry.Id, AppStrings.FormatDateTime(entry.OccurredAt),
             AppStrings.HealthEntryTypeText(entry.EntryType), entry.Title,
             entry.HealthTopicTitle ?? (entry.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic),
-            entry.Content.Length <= 160 ? entry.Content : entry.Content[..160] + "…")).ToList();
+            entry.Content.Length <= 160 ? entry.Content : entry.Content[..160] + "…", entry)).ToList());
         _editButton.Enabled = _deleteButton.Enabled = entries.Count > 0;
         _grid.Visible = entries.Count > 0;
         _grid.TabStop = _grid.Visible;
@@ -78,7 +84,7 @@ public sealed class TimelineView : UserControl
         foreach (DataGridViewRow row in _grid.Rows)
             if (row.DataBoundItem is TimelineRow item && item.Id == selected) _grid.CurrentCell = row.Cells[0];
     }
-    private sealed record TimelineRow(Guid Id, string Time, string Type, string Title, string Topic, string Preview);
+    private sealed record TimelineRow(Guid Id, string Time, string Type, string Title, string Topic, string Preview, HealthEntrySummary Data);
     /// <summary>Explicit selected-record edit command.</summary>
     public event EventHandler? EditRequested;
     /// <summary>Explicit selected-record delete command; shell confirms before the use case.</summary>

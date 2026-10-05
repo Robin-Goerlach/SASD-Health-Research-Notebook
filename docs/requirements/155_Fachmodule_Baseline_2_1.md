@@ -35,6 +35,8 @@ Dieses Dokument gibt den seit der ersten Baseline konkretisierten Fachmodulen st
 | FR-GEN-007 | Sensible Freitexte und Gesundheitswerte dürfen nicht in technische Logs geschrieben werden. |
 | FR-DEV-001 | Entwicklungs- und Testläufe müssen einen expliziten isolierten Datenordner verwenden können. Beide Frontends respektieren denselben Override; ohne Override bleibt der Produktpfad unverändert. Ungültige gesetzte Overrides dürfen nicht auf persönliche Daten zurückfallen. Smoke-Tests schreiben ausschließlich synthetische Daten in neue Lauf-Unterordner innerhalb des Repositorys. |
 | FR-UI-001 | Die bestehende WinForms-Schale, Dashboardkarten, Themenliste und Grunddaten-Wizard müssen bei dokumentierter Mindestgröße in Deutsch/Englisch ohne abgeschnittene Hauptaktionen bedienbar bleiben. Navigation besitzt unterscheidbare Auswahl-, Hover- und Fokuszustände; Refresh erhält die Themenauswahl und leere Listen zeigen einen lesbaren Hinweis. Der reine UI-Baseline-2-Auftrag umfasste keine zusätzlichen Fachmodule; spätere fachliche Slices übernehmen dieselben UI-Qualitätsregeln. |
+| FR-UI-002 | Alle sieben WinForms-Navigationseinträge besitzen kurze DE/EN-Erklärungen als Tooltip. Sprachwechsel aktualisiert sie; Ziele und Auswahlverhalten bleiben erhalten. |
+| FR-UI-003 | Semantische Datenspalten der read-only WinForms-Tabellen bieten Ascending → Descending → Original. Original ist exakt die zuletzt von der View gelieferte fachliche Reihenfolge. Typgerechte Schlüssel, stabile Gleichstände, native Einzelspalten-Pfeile und ID-Selektion; Refresh und Sprachwechsel erhalten aktive Sortierung, ohne Store-Schreibzugriff. |
 
 ## 3. Beobachtungen und Kontext
 

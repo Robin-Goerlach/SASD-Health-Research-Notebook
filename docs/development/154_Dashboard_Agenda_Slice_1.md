@@ -14,6 +14,14 @@ Branch: `feat/winforms-dashboard-agenda-slice-1`.
 | FR-DASH-005 | DE/EN, bestehende Counts/Themen, max. 5 Termine/6 Follow-ups, Empty/Loading/Error unterscheidbar, exakte Parent-/Child-Navigation, Show all, Refresh/Rückkehr und Stale-Schutz. | UI-DASH-001: reale Shell, Child-Tab/Selektion, vollständige Liste, Sprachwechsel, Return/Refresh, überlappende Loads/Fehler, No-write, 1120×740, Tastatur/Fokus/Clipping, synthetische Renderbilder. |
 
 Bezug: FR-UI-001, FR-SES-002/007, PF-APT-006 und Pflichtenheft §13.2.
+Ergänzung vor Umsetzung: FR-UI-002 / UI-NAV-001 fordert kurze DE/EN-Tooltips
+für alle sieben Navigationseinträge, einschließlich Aktualisierung beim Sprachwechsel.
+FR-UI-003 / UI-GRID-001 fordert lokale typgerechte Spaltensortierung
+Ascending → Descending → Original mit stabilen Gleichständen, ID-Selektion und
+nativen Pfeilen. Refresh ersetzt die Originalreihenfolge und erhält die aktive
+Sortierung; Sprachwechsel erhält Spalte/Richtung und lokalisiert die Anzeige neu.
+Tests prüfen Text, Datum, Zahl, Status, null/leer, Zyklus, Refresh, Sprache und
+bytegenau unveränderte Stores in DE/EN. Manuelle Abnahme bleibt offen.
 Vor UI-Implementierung werden diese Regeln in Application-Tests abgesichert.
 
 ## Architektur und Zeit
@@ -141,3 +149,82 @@ Nach der Korrektur vollständiger Safe-Lauf erneut grün (Exit 0, Release WinFor
 Mindestgrößen-Renderbilder in beiden Sprachen wurden visuell geprüft; Hashes bleiben
 gleich. Die abschließende Remote-CI wird am neuen Head des weiterhin offenen Draft-
 PR #19 geprüft, bevor die Arbeit zur manuellen Abnahme zurückgegeben wird.
+
+## Ergänzung: Navigationstooltips und dreistufige Tabellen-Sortierung
+
+FR-UI-002 / UI-NAV-001: Dashboard, Gesundheitsthemen, Verlauf, Quellen,
+Messwerte, Sessions und Maßnahmen besitzen zentral in AppStrings.Navigation
+lokalisierte Kurzbeschreibungen. NavigationControl verwaltet eine native ToolTip-
+Komponente, aktualisiert sie gemeinsam mit den Beschriftungen und entsorgt sie.
+Keine neuen Tooltips an sonstigen Controls, keine medizinische Bewertung.
+
+FR-UI-003 / UI-GRID-001: ThreeStateGridSort ist eine ausschließlich WinForms-seitige
+Hilfe. Jede View registriert ihre Datenspalten mit expliziten typisierten Schlüsseln.
+Keine Reflection, Text-zu-Datum-Konvertierung, Persistenz- oder Presenteränderung.
+Ein anderer Spaltenkopf beginnt mit Ascending. Wiederholte linke Klicks auf denselben
+Kopf wechseln Ascending → Descending → Original; danach beginnt der Zyklus erneut.
+Nur die aktive Spalte hat einen nativen SortGlyphDirection-Pfeil. Original hat keinen.
+
+Die separat kopierte Originalreihenfolge wird niemals umsortiert. Bei Gleichständen
+entscheidet der Originalindex, auch absteigend. Datum/Zeit verwendet DateTimeOffset-
+Instants, reine Daten verwenden DateOnly; Zahlen werden numerisch verglichen.
+Enums behalten ihre definierte Enum-Reihenfolge über Sprachwechsel hinweg;
+archivierte Sessions/Maßnahmen folgen den nicht archivierten Statuswerten aufsteigend.
+Fragen sortieren Open vor Answered. Text ist DE-/EN-kulturgerecht und ignoriert
+Groß-/Kleinschreibung. null/leer sind bei Text gleich und behalten ihre Reihenfolge;
+fehlende optionale Zahlen/Daten stehen aufsteigend vor vorhandenen, absteigend danach.
+
+Messwert-Werte gruppieren zunächst nach Messart, dann nach unveränderten Zahlen:
+Einzelwert bzw. systolisch, danach diastolisch und optionaler Puls. Unterschiedliche
+Messarten/Einheiten werden nicht als vergleichbare gesundheitliche Größen behandelt.
+Fundstellen bleiben Freitext (auch Seitenbereiche), ohne vermeintliche Zahlenauswertung.
+Notizsortierung verwendet den vollständigen Text, nicht die abgeschnittene Vorschau.
+Agenda-Datumsgruppen verwenden Gruppenum und DueDate, keine lokalisierten Strings.
+
+Unterstützt werden alle bestehenden DataGridViews: Themen (auch Dashboard), Timeline,
+Messwerte, Quellen, Fundstellen, EvidenceNotes, Sessions, Fragen, Follow-ups, Maßnahmen,
+Routinen, Durchführungseinträge sowie beide Agenda-Vorschauen und vollständige Agenda-
+Dialoge. Die Action-Historie ist RichTextBox-Dokumentation, keine Tabelle. IDs werden
+nicht als Spalten angezeigt; keine Button-/Dekorationsspalte wird registriert.
+
+Refresh ersetzt die Originalreihenfolge durch die neu gelieferte View-/Presenterfolge.
+Die aktive semantische Spalte/Richtung wird erneut angewandt; Original zeigt die neue
+Folge exakt. Sprachwechsel lokalisiert Anzeigezeilen neu und erhält Spalte/Richtung.
+Sortierung einer Agenda-Vorschau betrifft ausschließlich die fachlich ausgewählten
+5/6 Einträge; sie wählt keinen anderen Ausschnitt aus dem vollständigen Bestand.
+
+Die Auswahl wird über stabile Datensatz-ID erhalten, nicht über den Zeilenindex.
+Nicht mehr sichtbare Datensätze folgen der bisherigen View-Semantik (erster sichtbarer
+Datensatz bzw. keine Auswahl). IsRebinding unterdrückt Zwischenereignisse bei Parent-
+und Routinen-Selektion; Details werden erst nach Wiederherstellung der ID aktualisiert.
+Damit startet visuelle Sortierung keinen falschen Parent-/Child-Reload. Die Hilfe kennt
+weder Services noch Stores. Domain/Application/Infrastructure/WPF bleiben unverändert.
+
+GridUxTests prüfen alle Grids in DE/EN mit realen Header-Ereignissen: sechs Klicks
+einschließlich viertem Klick, exakt rückkehrende Originalfolge, Einzelpfeil, Auswahl-
+ID. Zusätzlich konkrete Text-, Instant-/Offset-, Enum-/Bool-, Zahlen-, strukturierte
+BloodPressure- und null/leer-Reihenfolgen; Refresh übernimmt neue Baseline, Sprache
+erhält Sortierzustand, Parent-Sortierung löst keine Zwischenloads aus, vollständige
+Agenda-Dialoge bleiben vollständig, Dateiinventar/Storebytes bleiben unverändert.
+Synthetische Renderbilder für Themen, Messwerte, Sessions und Agenda werden erzeugt.
+
+### Noch offene manuelle UX-Abnahme
+
+- Alle sieben Navigationstooltips in DE/EN: tatsächliches Hover-Popup, Lesbarkeit,
+  keine abgeschnittenen Texte; Sprachwechsel und Navigation.
+- Themen, Messwerte, Sessions, Timeline, Quellen, Maßnahmen und Dashboard-Agenda:
+  Klick 1 Asc, Klick 2 Desc, Klick 3 Original; passende Pfeile und sinnvolle Auswahl.
+- Unterlisten/Alle-anzeigen-Dialoge, Sprachwechsel und Refresh mit aktiver Sortierung
+  und mit Original; Mindestgröße und reale Maus-/Tastaturbedienung, High-DPI.
+- Die zuvor offenen Agenda- sowie älteren Nachweise aus Dokument 153 bleiben offen.
+
+PR #19 bleibt Draft. Keine Ready-for-Review-Umschaltung oder Merge.
+
+Abschließender UX-Safe-Lauf: Exit 0, Release-Solution einschließlich WinForms/WPF
+mit 0 Warnungen/Fehlern; Backend sowie sämtliche DE/EN-UI-Regressionen und neue
+UI-NAV-001/UI-GRID-001-Prüfungen grün. `git diff --check` erfolgreich. Synthetische
+Renderbilder mit aktiven Sortierpfeilen für Themen, Messwerte, Sessions und Agenda
+in beiden Sprachen wurden visuell geprüft:
+`.codex/synthetic-development-data/ui-tests/54fa780f01a94006875997e8cbb72c04/grid-*.png`.
+Geschützte Hashes weiterhin identisch; keine geschützte Datei wird gestagt.
+Remote-CI wird am gepushten Head geprüft, manuelle Abnahme bleibt offen.
