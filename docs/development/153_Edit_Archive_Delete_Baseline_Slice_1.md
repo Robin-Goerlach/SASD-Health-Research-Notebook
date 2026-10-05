@@ -1,8 +1,8 @@
 # 153 – Edit / Archive / Delete Baseline Slice 1
 
 Start: `87438eced2ba770c943a2ae87ff906354d07f584` (main = origin/main).
-Branch: `feat/edit-archive-delete-baseline-slice-1`. PR bleibt Draft bis manueller Abnahme.
-Anforderungen: FR-LIF-001/002/003, FR-ACT-006, FR-GEN-003/005/007, FR-DEV-001.
+Branch: `feat/edit-archive-delete-baseline-slice-1`. Nutzerauftrag vom 2026-10-05: nach Abschlussprüfung Ready for Review; kein Merge. Abnahmeumfang siehe Schlussabschnitt.
+Anforderungen: FR-LIF-001/002/003/004/005, FR-MEA-001/002/008, FR-ACT-006, FR-GEN-003/005/007, FR-DEV-001.
 
 ## Lebenszyklusentscheidung
 
@@ -14,14 +14,16 @@ Anforderungen: FR-LIF-001/002/003, FR-ACT-006, FR-GEN-003/005/007, FR-DEV-001.
 | HealthAction | Inhalt, Status, Herkunft und explizite Verweise | separates IsArchived, Status bleibt | nicht angeboten, auch ohne Kinder |
 | Routine | Titel, Beschreibung, Rhythmus, Status | Pause/Reaktivieren bleibt; kein zusätzliches Archiv | nicht angeboten, auch ohne Progress |
 | ProgressEntry | Zeitpunkt, Durchführung, Anzahl, Notiz | nein | einzeln nach Bestätigung |
-| HealthTopic | vorhandene Domain-UpdateDocumentation vorbereitet; UI unverändert | vorhandener Status Archived | kein Hard Delete |
+| HealthTopic | Dokumentation bearbeiten | Archived / vorherigen Status reaktivieren | bestätigt nur ohne aktuelle/historische Referenzen (FR-LIF-004) |
+| SessionQuestion | Text, Reihenfolge, Antwortkorrektur | nein | nur unbeantwortet und ohne Antwortnotiz |
+| SessionFollowUp | Text, Status, Fälligkeit | nein | einzeln nach Bestätigung |
 | Source / SourceLocation / EvidenceNote | unverändert; eigene Folgearbeit | unverändert | nicht angeboten |
 
 Routine-Pause ist gemäß Dokument 152 keine Archivierung. Der ausdrückliche Slice-Auftrag
 erlaubt die begrenzte Pause-Baseline; eine echte Routine-Archivierung bleibt Folgearbeit.
 Die historische Hard-Delete-Einschränkung in Datenmodell §7 wird durch die neueren
 FR-LIF-003-Akzeptanzkriterien auf die drei aktuell kinderlosen Korrekturdatensätze präzisiert.
-Es gibt keine Parent-Delete-API und somit keine mögliche Kaskade bei Fragen, Follow-ups,
+Für Session, HealthAction, Routine und Source gibt es keine Parent-Delete-API und somit keine mögliche Kaskade bei Fragen, Follow-ups,
 Routinen, Progress, SourceLocations, EvidenceNotes oder Herkunftsreferenzen.
 Ein „blockiertes Delete“ wird hier durch Nichtverfügbarkeit der Parent-Löschaktion erfüllt;
 keine scheinbar verfügbare Aktion, die erst nach einer Bestätigung scheitert.
@@ -79,9 +81,9 @@ Backend-CI erfolgreich. Zwei unabhängige CRITICAL-Prüfungen fanden Randfälle 
 Clock-Rollback, Offset-Korrektur, quellenbasierter Herkunft, Historienanzeige,
 veralteter Timeline-Löschung und überlappenden Session-Refreshes; diese wurden korrigiert
 und durch gezielte Regressionen abgesichert.
-Manuelle Nutzerabnahme ist noch offen. Kein Ready, Merge oder weiterer Fachslice.
+Stand des Backend-Checkpoints: manuelle Nutzerabnahme damals offen. Aktueller Abnahmeumfang siehe Schlussabschnitt; kein Merge oder weiterer Fachslice.
 
-Offen: Source-Lebenszyklus, HealthTopic-Edit-UI, Routine-Archivierung, globale Audit-/Undo-/
+Offen: Source-Lebenszyklus, Routine-Archivierung, globale Audit-/Undo-/
 Restore-Funktionen, Parent-Hard-Delete-Workflow und künftig neue Kindbeziehungen.
 Bei neuen Beziehungen müssen die drei Löschregeln vor Erweiterung erneut geprüft werden.
 
@@ -95,7 +97,7 @@ werden sichtbar erhalten. Normale Arbeitslisten blenden archivierte Session-/Act
 Eltern aus; „Archivierte anzeigen“ und „Reaktivieren“ bleiben direkt im Arbeitsbereich.
 „Historie“ zeigt frühere professionelle Inhalte, Herkunft und Änderungsgrund read-only.
 Auswahl bleibt nach Bearbeitung nach ID erhalten; nach Ausblenden/Löschen folgt die
-erste verbleibende Zeile oder ein deaktivierter Empty State. Keine Parent-Löschbuttons.
+erste verbleibende Zeile oder ein deaktivierter Empty State. Keine Löschbuttons für Session, HealthAction, Routine oder Source; HealthTopic siehe Erweiterung unten.
 
 Delete zeigt Datensatzart plus Titel/Zeitpunkt und den Hinweis „Diese Aktion kann nicht
 rückgängig gemacht werden“. Initialer Fokus, Enter und Escape wählen Abbrechen; nur
@@ -139,8 +141,9 @@ Nur synthetische Datensätze mit Kennzeichnung `CODEX TEST` verwenden:
 12. Mindestfenster 1120×740, Tab-Reihenfolge und Fokus prüfen; alle Buttons erreichbar,
     Enter im Delete-Dialog bricht ab, keine wichtigen Texte/Buttons abgeschnitten.
 
-Manuelle Nutzerabnahme ist ausdrücklich ausstehend. Automatisierte Controls und
-synthetische Renderbilder ersetzen sie nicht. PR bleibt Draft; kein Merge.
+Für diese ältere Lifecycle-Prüfliste ist keine vollständige manuelle Abdeckung dokumentiert.
+Automatisierte Controls und synthetische Renderbilder ersetzen sie nicht. Aktueller
+Abnahmeumfang siehe Schlussabschnitt; kein Merge.
 
 ## Abschließende automatisierte Prüfung (2026-10-04)
 
@@ -185,8 +188,8 @@ tatsächliche Tab-Traversierung, Create/Reload und Edit aller fünf Typen, exakt
 Blutdruckwerte 130/60/60, No-op-Edit, optional leeren Puls und die vier angeforderten
 Typwechsel. Bewusst ungültig befüllte versteckte Controls dürfen nicht gespeichert
 werden. Renderbilder für alle Create-/Edit-Typen liegen ausschließlich im isolierten
-synthetischen Testverzeichnis unter `.codex`. Die erneute manuelle Nutzerabnahme bleibt
-offen; PR #18 bleibt Draft.
+synthetischen Testverzeichnis unter `.codex`. Die korrigierte Blutdruckerfassung ist vom Nutzer manuell akzeptiert
+und am 2026-10-05 erneut ausdrücklich bestätigt.
 
 Korrekturprüfung: vollständiger Windows-PowerShell-5.1-Safe-Lauf grün, Release WinForms
 und WPF ohne Warnungen/Fehler, Backend- und alle WinForms-Smoke-Tests in DE/EN inklusive
@@ -214,8 +217,9 @@ UI-MEA-003 prüft in DE/EN Default/alle fünf Typen, vollständige Daten nach R�
 Alle, Auswahl, Edit inklusive Typänderung, Delete Cancel/Confirm, Refresh, Sprachwechsel,
 Empty State, Neustart, Mindestgröße, Tab-Reihenfolge und Clipping. Store-Dateien bleiben
 bei reinen Filter-/Refresh-/Sprachaktionen bytegenau erhalten; keine neue Store-Datei.
-Manuell noch prüfen: Filter im Alltag wechseln, Empty State und Auswahl nach Edit/Delete
-beobachten, DE/EN bei Mindestgröße prüfen. PR bleibt Draft, kein Merge.
+Der Measurement-Type-Filter ist vom Nutzer manuell akzeptiert und am 2026-10-05
+erneut ausdrücklich bestätigt. Die detaillierte automatisierte Abdeckung oben ist
+kein Nachweis, dass jeder einzelne Randfall zusätzlich manuell geprüft wurde.
 
 Filterprüfung: vollständiger Safe-Development-Lauf unter Windows PowerShell 5.1 grün;
 Release WinForms/WPF ohne Warnungen/Fehler, Backend und alle WinForms-Regressionen samt
@@ -261,10 +265,42 @@ bleibt Cancel-default. Tests prüfen Referenzarten einzeln, nur historische Link
 Writer-/Delete-Reihenfolgen, partielle Locks, Corruption, Unknown Fields/Legacy-Bytes,
 Stale-Tokens, Antworten-/Kindererhalt, DE/EN-Dialoge, Cancel/Confirm und Restart.
 
-Manuell prüfen: Topic Edit; Archive/Ausblenden/Anzeigen/Reactivate mit vorherigem Status;
+Manuell akzeptiert am 2026-10-05 anhand der vorgelegten Prüfliste: Topic Edit; Archive/Ausblenden/Anzeigen/Reactivate mit vorherigem Status;
 unreferenziertes Topic Delete Cancel/Confirm; referenziertes Topic verständlich blockiert.
 Frage Edit; unbeantwortete Frage Delete Cancel/Confirm; beantwortete Frage bleibt bei
 Delete erhalten. Follow-up Text/Status/Fälligkeit Edit und Delete Cancel/Confirm.
-Neustart, DE/EN, Tab und Mindestgröße 1120×740 prüfen. PR #18 bleibt Draft; kein Merge.
+Neustart, DE/EN, Tab und Mindestgröße 1120×740 sind Teil der bestätigten Prüfliste. Kein Merge.
 
-Abschlussprüfung der Erweiterung (2026-10-04): vollständiger Windows-PowerShell-5.1-Safe-Lauf grün, Release WinForms/WPF ohne Warnungen/Fehler, Backend und alle DE/EN-UI-Smoke-Tests einschließlich bestehender Measurement-/SourceLocation-/Session-/HealthAction-/Dashboard-Regressionen. Beide Frontends isoliert gestartet und geordnet beendet. Neue DE/EN-Renderbilder bei Mindestgröße visuell geprüft. Unabhängige CRITICAL-Prüfung abgeschlossen; Reload-Generationen schützen auch den letzten Dashboard-Await. Manuelle Nutzerabnahme dieser Erweiterung bleibt offen.
+Abschlussprüfung der Erweiterung (2026-10-04): vollständiger Windows-PowerShell-5.1-Safe-Lauf grün, Release WinForms/WPF ohne Warnungen/Fehler, Backend und alle DE/EN-UI-Smoke-Tests einschließlich bestehender Measurement-/SourceLocation-/Session-/HealthAction-/Dashboard-Regressionen. Beide Frontends isoliert gestartet und geordnet beendet. Neue DE/EN-Renderbilder bei Mindestgröße visuell geprüft. Unabhängige CRITICAL-Prüfung abgeschlossen; Reload-Generationen schützen auch den letzten Dashboard-Await. Manuelle Nutzerabnahme dieser Erweiterung wurde am 2026-10-05 bestätigt.
+
+## Manuelle Nutzerabnahme und Abschlussauftrag (2026-10-05)
+
+Der Nutzer bestätigt die erfolgreiche manuelle Abnahme der vorgelegten Prüfliste:
+HealthTopic bearbeiten, archivieren/ausblenden/anzeigen/reaktivieren, unreferenziert
+löschen (Cancel/Confirm), referenziertes Löschen blockieren; SessionQuestion bearbeiten,
+unbeantwortet ohne Antwortnotiz löschen, beantwortet oder mit Antwortnotiz geschützt;
+SessionFollowUp Text/Status/Fälligkeit bearbeiten und Delete Cancel/Confirm.
+Neustart, DE/EN, Tastatur/Fokus und Mindestgröße 1120×740 gehören zu dieser Abnahme.
+BloodPressure-Erfassung und Measurement-Type-Filter wurden bereits zuvor akzeptiert
+und im Abschlussauftrag ausdrücklich erneut bestätigt (FR-MEA-001/002/008).
+
+Nicht aus dieser Bestätigung abgeleitet: vollständige manuelle Abnahme der älteren
+FR-LIF-001/002/003-Prüfliste (Measurement/HealthEntry/Session/HealthAction/Routine/
+ProgressEntry), Dashboard-Lifecyclezählungen und FR-ACT-006-Revisionshistorie.
+Die Akzeptanz des create-only Action/Routine/Progress-Slices in Dokument 152 belegt
+diese späteren Korrektur-/Archiv-/Historienfunktionen nicht. Ihre automatisierten
+Nachweise bleiben bestehen; gezielte manuelle Abnahme bleibt offen. Auch die einzelne
+Referenzarten-/Concurrency-Matrix von IT-LIF-002 wird nicht als manuell geprüft erklärt.
+
+Der Nutzer autorisiert Dokumentationscommit, Push und Ready for Review nach vollständigem
+Safe-Lauf und Hashprüfung, mit anschließender CI-Prüfung. Ready for Review ist keine
+Behauptung vollständiger manueller Abdeckung aller älteren Lifecycle-Funktionen.
+PR #18 darf ohne ausdrücklichen weiteren Auftrag nicht gemergt werden.
+
+Abschlussvalidierung am 2026-10-05: vollständiger
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1"`
+erfolgreich (Exit 0). Release-Lösung einschließlich WinForms/WPF: 0 Warnungen,
+0 Fehler; Backend-Smoke und sämtliche WinForms-Smoke-/Regressionstests in DE/EN
+erfolgreich, einschließlich IT/UI-LIF-001/002 und UI-MEA-002/003.
+`git diff --check` erfolgreich; beide oben dokumentierten geschützten SHA-256
+unverändert. Ausschließlich Akzeptanz-/Dokumentationsdateien werden committed.

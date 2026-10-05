@@ -1,7 +1,7 @@
 # 105 - Akzeptanzkriterien, Traceability und Quality Gates
 
 Projekt: SASD Health Research Notebook  
-Stand: 2026-09-30  
+Stand: 2026-10-05
 Dokumenttyp: Requirements-Traceability / Akzeptanz- und Release-Qualität  
 Status: aktiv
 
@@ -88,11 +88,11 @@ Empfohlenes Tabellenformat:
 | FR-SRC-004 | Mehrere konkrete Fundstellen gehören einer vorhandenen Quelle; nach Neustart und erneuter Quellenauswahl ohne Refresh sichtbar. | UT-SRC-001, IT-SRC-001, UI-SRC-001, IT-SRC-RELOAD-001, UI-SRC-RELOAD-001 | teilweise | Slice 1 manuell akzeptiert; Auswahlregression automatisiert abgesichert | Frische Instanzen, originale Location-IDs/Metadaten, zwei Quellen und Wechsel ohne verdeckenden Refresh. Ursache/Reparatur in Dokument 149. |
 | FR-SRC-005, FR-SRC-006 | Aussage, Originalexzerpt und eigene Einordnung getrennt; nur Fundstellen derselben Quelle zulässig. | UT-SRC-001, IT-SRC-001, SEC-SRC-001, UI-SRC-001 | teilweise | erfüllt (Slice 1; manuell akzeptiert) | Application prüft Referenzen, Store prüft unter Writer-Lock erneut; keine Bewertung. |
 | FR-DEV-001 / Sources | Gemeinsamer Datenpfad und vier Sources-Dateiguards; bestehende Topic-/Entry-Dateien unverändert. | IT-SRC-001, SEC-SRC-001, SEC-SRC-002 | ja | automatisiert geprüft | Version/Kennung, fremde/beschädigte Stores, Backup, Temp/Lock und tatsächlicher PowerShell-5.1-Launcher. |
-| FR-MEA-001, FR-MEA-002 | Blutdruckkomponenten und optionaler Puls getrennt; alle fünf Typen numerisch erstellen/wiederladen, Einheiten sichtbar. | UT-MEA-001, IT-MEA-001, UI-MEA-001/002 | teilweise | implementiert; Blutdruck-Feldkorrektur manuell akzeptiert | Domain/Application, separater Store und echte WinForms-Dialoge DE/EN; Nutzerakzeptanz am 2026-10-01 in Dokument 150. PR #18 korrigiert Create-Initialisierung und trennt Systolic von Value; UI-MEA-002 prüft Create/Edit, Typwechsel, Tab und versteckte Werte. Nutzer bestätigt die korrigierte Blutdruckerfassung; Filterabnahme separat offen. |
+| FR-MEA-001, FR-MEA-002 | Blutdruckkomponenten und optionaler Puls getrennt; alle fünf Typen numerisch erstellen/wiederladen, Einheiten sichtbar. | UT-MEA-001, IT-MEA-001, UI-MEA-001/002 | teilweise | implementiert; Blutdruck-Feldkorrektur manuell akzeptiert | Domain/Application, separater Store und echte WinForms-Dialoge DE/EN; Nutzerakzeptanz am 2026-10-01 in Dokument 150. PR #18 korrigiert Create-Initialisierung und trennt Systolic von Value; UI-MEA-002 prüft Create/Edit, Typwechsel, Tab und versteckte Werte. Nutzer bestätigt die korrigierte Blutdruckerfassung; Measurement-Type-Filter ebenfalls manuell akzeptiert; Abschlussbestätigung 2026-10-05 in Dokument 153. |
 | FR-MEA-004, FR-MEA-005 | Zeitpunkt/Offset, typgebundene Einheit, Erfassungsart Manual, optionale Messsituation und persönliche Notiz getrennt erhalten. | UT-MEA-001, IT-MEA-001, UI-MEA-001 | teilweise | implementiert und manuell akzeptiert (Slice 1) | Keine Umrechnung, Zahlen sind keine formatierten Strings. |
 | FR-MEA-006 | Optionales vorhandenes Thema zuordnen; aktuellen/archivierten Titel auflösen; fehlendes Thema verliert keine Messung. | IT-MEA-001, UI-MEA-001 | ja | teilweise (Themenbezug) | Dokument-/Beobachtungs-/Session-Verknüpfungen noch offen. Keine redundanten Titel oder Cascading Deletes. |
-| FR-MEA-008, FR-UI-001 | Reiner Messart-Anzeigefilter; Alle/fünf Typen, eigener Empty State, sichere sichtbare Auswahl, Filter bleibt bei Edit/Delete/Refresh/Sprachwechsel. | UI-MEA-003 | teilweise | implementiert, manuelle Filterabnahme offen | DE/EN, bytegenaue Stores bei Filteraktionen, Neustart mit Alle, Mindestgröße/Tab/Clipping; Dokument 153. |
-| FR-LIF-004/005 | Topic-Lebenszyklus mit aktuellem/historischem Referenzschutz; Frage Edit/unbeantwortet Delete; Follow-up Edit/bestätigt Delete. | IT-LIF-002, UI-LIF-002 | teilweise | implementiert, Nutzerabnahme offen | Multi-Store-Locks, late-writer-Abweisung, Stale-Tokens, Antworten-/Kindererhalt, DE/EN und Restart; Dokument 153. |
+| FR-MEA-008, FR-UI-001 | Reiner Messart-Anzeigefilter; Alle/fünf Typen, eigener Empty State, sichere sichtbare Auswahl, Filter bleibt bei Edit/Delete/Refresh/Sprachwechsel. | UI-MEA-003 | teilweise | implementiert und manuell akzeptiert (Bestätigung 2026-10-05) | DE/EN, bytegenaue Stores bei Filteraktionen, Neustart mit Alle, Mindestgröße/Tab/Clipping; Dokument 153. |
+| FR-LIF-004/005 | Topic-Lebenszyklus mit aktuellem/historischem Referenzschutz; Frage Edit/unbeantwortet Delete; Follow-up Edit/bestätigt Delete. | IT-LIF-002, UI-LIF-002 | teilweise | implementiert und manuell akzeptiert (2026-10-05) | Multi-Store-Locks, late-writer-Abweisung, Stale-Tokens, Antworten-/Kindererhalt, DE/EN und Restart; Dokument 153. |
 | FR-MEA-007 | Nur Struktur, Pflichtwerte, Endlichkeit und nichtnegative Zahlen prüfen; keine medizinischen Schwellen oder Bewertung. | UT-MEA-001, UI-MEA-001, Code-Review | teilweise | implementiert und manuell akzeptiert (Slice 1) | Technisch darstellbare Extremwerte bleiben zulässig; keine Ampeln/Alarme. |
 | FR-DEV-001 / Measurements | Gemeinsamer Pfad und vier Messwert-Dateiguards; Topic-/Entry-/Source-Dateien bytegenau erhalten. | IT-MEA-001, SEC-MEA-001, SEC-MEA-002 | ja | automatisiert geprüft | Kennung/Version, beschädigte/fremde/zukünftige Stores, Backup, bestehende Temp-/Lock-Dateien, Windows PowerShell 5.1. |
 | FR-SES-001, FR-SES-002 | Sechs Gesprächstypen, Zeitpunkt, Titel/Anlass, Status, optionales Thema/Kontaktfreitext erstellen und chronologisch laden. | UT-SES-001, IT-SES-001, UI-SES-001 | teilweise | implementiert und manuell akzeptiert (Slice 1) | Gemeinsame Schichten, WinForms DE/EN; Nutzerakzeptanz am 2026-10-01, Dokument 151. Kontaktreferenzmodul bleibt offen. |
@@ -218,12 +218,17 @@ Slice 1 ist implementiert und manuell akzeptiert (2026-10-03); genaue manuelle A
 | Requirement | Akzeptanz / Test | Stand |
 |---|---|---|
 | FR-LIF-001 | Sechs Objekte korrigierbar, Id/CreatedAt und Referenzen erhalten, ModifiedAt steigt; No-op, Concurrency und Offsetpräzision; IT-LIF-001, UI-LIF-001 | Implementiert, manuelle Abnahme offen |
-| FR-LIF-002 | Separates Session-/Action-Archiv, Filter/Reaktivierung und Kindschutz; IT-LIF-001, UI-LIF-001 | Implementiert, Routine-Archiv bleibt offen |
+| FR-LIF-002 | Separates Session-/Action-Archiv, Filter/Reaktivierung und Kindschutz; IT-LIF-001, UI-LIF-001 | Implementiert; manuelle Lifecycle-Abnahme offen, Routine-Archiv bleibt Folgearbeit |
 | FR-LIF-003 | Drei sichere Einzellöschungen mit Default-Cancel/Bestätigung und Reload; keine Parent-Delete-API; IT/SEC-LIF-001, UI-LIF-001 | Implementiert, manuelle Abnahme offen |
 | FR-ACT-006 | Vorherige professionelle/quellenbasierte Action-Inhalte/Herkunft atomar in Revision, read-only Historie inkl. Verweise; IT-LIF-001, UI-LIF-001 | Slice-1-Lösung implementiert, manuelle Abnahme offen |
 | FR-GEN-003/005/007, FR-DEV-001 | Keine Bewertung/Logs, Referenzerhalt, isolierte Daten, v1 ohne Rewrite/v2-Write/Backup/Temp/Lock; SEC/MIG-LIF-001 | Automatisierte Prüfung, bekannte Link-Race unverändert |
+| FR-LIF-004 | Topic Edit/Archive/Reactivate; Delete ohne aktuelle/historische Referenzen, sonst Sperre; IT-LIF-002, UI-LIF-002 | Implementiert und manuell akzeptiert am 2026-10-05 anhand der Prüfliste in Dokument 153; Einzelreferenz-/Concurrency-Matrix automatisiert |
+| FR-LIF-005 | Question Edit, Delete nur unbeantwortet ohne Antwortnotiz; FollowUp Edit und Delete Cancel/Confirm; IT-LIF-002, UI-LIF-002 | Implementiert und manuell akzeptiert am 2026-10-05, einschließlich Neustart, DE/EN, Tastatur und Mindestgröße |
 
 Diese neuere Ergänzung ersetzt die historischen create-only/Lebenszyklus-offen-Aussagen
 in den früheren Slice-Zeilen. Keine allgemeine Audit- oder Parent-Löschplattform.
-Draft PR #18; Prüfliste und bewusste Folgearbeit in Dokument 153. Ready/Merge erst
-nach separater Nutzerabnahme und ausdrücklichem Folgeauftrag.
+
+
+PR #18: Ready for Review nach autorisiertem Abschlusslauf/Push; kein Merge.
+Dokument 153 grenzt die bestätigte manuelle Abnahme von den weiterhin offenen älteren
+Lifecycle-Prüfungen und FR-ACT-006 ab. Frühere create-only-Abnahmen ersetzen diese nicht.
