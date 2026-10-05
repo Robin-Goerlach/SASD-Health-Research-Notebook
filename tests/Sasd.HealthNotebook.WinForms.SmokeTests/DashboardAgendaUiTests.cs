@@ -64,7 +64,8 @@ internal static partial class Program
                     }
                 }
                 var topicGrid = Field<DataGridView>(Field<HealthTopicsView>(shell, "_dashboardTopicsView"), "_grid");
-                Assert(topicGrid.Height >= topicGrid.ColumnHeadersHeight + topicGrid.Rows[0].Height, "Dashboard topic row is clipped at minimum size.");
+                Assert(topicGrid.Height >= topicGrid.ColumnHeadersHeight + topicGrid.Rows[0].Height,
+                    $"Dashboard topic row clipped: grid={topicGrid.Height}, header={topicGrid.ColumnHeadersHeight}, row={topicGrid.Rows[0].Height}, client={shell.ClientSize}, dpi={shell.DeviceDpi}.");
                 Capture(shell, Path.Combine(root, $"agenda-filled-{size.Width}.png"));
             }
             sessionGrid.Focus(); Assert(sessionGrid.Focused, "Agenda keyboard focus inaccessible.");

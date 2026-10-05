@@ -39,7 +39,8 @@ Keine Timer. Keine Dashboard-Fachlogik in Controls.
 
 Die sechs bestehenden Counts stehen in einer einzigen proportionalen Reihe (132 px).
 Zweizeilige Titel/Beschreibungen sind in DE/EN vorgesehen; Werte bleiben unverändert.
-Der restliche Arbeitsbereich teilt sich 48% Themen / 52% Agenda. 40-px-Agenda-Zeilen
+Der Themenbereich erhält 210 px für Überschrift, Lifecycle-Commands, Header und eine
+vollständige umbrochene Zeile; übrige Fensterhöhe geht an die Agenda. 40-px-Agenda-Zeilen
 zeigen Zeitpunkt bzw. Kalendergruppe/Datum und einen kurzen Text mit vollständigem
 Tooltip. Bei 1120×740 bleibt mindestens eine vollständige Themenzeile sichtbar;
 die Agenda-Vorschau kann vertikal gescrollt werden. Die Grenzen 5/6 halten sie auch
@@ -114,7 +115,7 @@ Zelltext-Clipping wird anhand Font, Textmaß und Padding geprüft; zweizeilige D
 angaben benötigen 40 px statt der zunächst versuchten 32 px. Deutsche kompakte
 Themenkarte heißt „Themen“, um keinen Wortumbruch mitten im Titel zu erzwingen.
 
-Synthetische Renderbilder: `.codex/synthetic-development-data/ui-tests/329325b0019c49a6ae72a635a15fc828/agenda-English`
+Synthetische Renderbilder: `.codex/synthetic-development-data/ui-tests/21930f945ee64815b9c3cb4494750907/agenda-English`
 und `agenda-German`. Gefüllte/leere Mindestansichten, 1280×820 und vollständige
 Listen wurden visuell geprüft. Diese Prüfung ist keine manuelle Nutzerabnahme und
 kein vollständiger High-DPI-Nachweis. Keine Bilder mit echten Gesundheitsdaten.
@@ -124,3 +125,19 @@ kein vollständiger High-DPI-Nachweis. Keine Bilder mit echten Gesundheitsdaten.
 `CreateHealthTopicWizardForm.resx` SHA-256
 `4363CD7D5B8671C72442CE1A1BFC10D64EBD24B2D718B54BD4FCD025E4967298`.
 `.codex/` bleibt ignoriert. Kein Ready for Review, Merge oder nächster Slice autorisiert.
+
+## CI-Korrektur zur Mindestgröße
+
+Beide CI-Läufe des UI-Commits `98a4b2d` scheiterten an der neuen vollständigen
+Themenzeilenprüfung bei Mindestgröße, trotz lokal grünem Safe-Lauf. Build, Backend
+und alle zuvor durchlaufenen UI-Regressionen waren grün. Die zunächst prozentuale
+48/52-Aufteilung bot dem Runner nicht genug Höhe. Der Themenbereich reserviert nun
+210 px, zusätzliche Höhe erhält die Agenda. Die Prüfung bleibt unverändert streng
+und meldet Grid-/Header-/Zeilen-/Clienthöhe und DPI ohne Nutzerdaten. Keine
+Anpassung der Persistenz oder Absenkung des Akzeptanzkriteriums.
+
+Nach der Korrektur vollständiger Safe-Lauf erneut grün (Exit 0, Release WinForms/WPF
+0 Warnungen/Fehler, Backend und sämtliche DE/EN-UI-Tests). Die neuen synthetischen
+Mindestgrößen-Renderbilder in beiden Sprachen wurden visuell geprüft; Hashes bleiben
+gleich. Die abschließende Remote-CI wird am neuen Head des weiterhin offenen Draft-
+PR #19 geprüft, bevor die Arbeit zur manuellen Abnahme zurückgegeben wird.

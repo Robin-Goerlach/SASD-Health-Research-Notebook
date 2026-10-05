@@ -35,6 +35,9 @@ public static class UiMetrics
     /// <summary>Two complete date/group lines plus cell padding; verified in DE/EN renders.</summary>
     public const int AgendaRowHeight = 40;
 
+    /// <summary>Topic heading, lifecycle commands, grid header and a complete wrapped row.</summary>
+    public const int DashboardTopicWorkspaceHeight = 210;
+
     /// <summary>Minimum height of primary and secondary command buttons.</summary>
     public const int ActionHeight = 38;
 }

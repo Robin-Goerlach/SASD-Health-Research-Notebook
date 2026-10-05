@@ -437,7 +437,11 @@ public sealed partial class MainForm : Form
         // columns remain usable. Agenda panels share the next row beneath it.
         var work = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty };
         work.ColumnStyles.Add(new(SizeType.Percent, 100));
-        work.RowStyles.Add(new(SizeType.Percent, 48)); work.RowStyles.Add(new(SizeType.Percent, 52));
+        // A percentage alone can leave too little room for a wrapped topic row on
+        // another Windows/font setup (CI exposed this at 1120×740). Reserve the
+        // heading/commands/header/row first; all extra window height goes to agenda.
+        work.RowStyles.Add(new(SizeType.Absolute, UiMetrics.DashboardTopicWorkspaceHeight));
+        work.RowStyles.Add(new(SizeType.Percent, 100));
         _dashboardTopicsView.Margin = new Padding(0, 0, 0, UiMetrics.StandardSpacing);
         work.Controls.Add(_dashboardTopicsView, 0, 0); work.Controls.Add(_agendaView, 0, 1);
         layout.Controls.Add(work, 0, 1);
