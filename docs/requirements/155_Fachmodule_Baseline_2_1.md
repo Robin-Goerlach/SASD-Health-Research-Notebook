@@ -1,5 +1,18 @@
 # 155 - Fachmodule und Anforderungen Baseline 2.1
 
+## Dashboard-Agenda Slice 1 (2026-10-05)
+
+| ID | Anforderung |
+|---|---|
+| FR-DASH-001 | Nicht archivierte Planned-Sessions mit ScheduledAt >= explizitem now chronologisch anzeigen; CreatedAt und Id brechen Gleichstände deterministisch. |
+| FR-DASH-002 | Offene Follow-ups nicht archivierter Eltern nach Overdue/Today/Later/NoDate gruppieren. Completed/Cancelled-Eltern dürfen offene Kinder behalten. |
+| FR-DASH-003 | Termine nach absolutem Zeitpunkt vergleichen; Follow-ups nach dem Kalenderdatum des übergebenen lokalen DateTimeOffset now. Keine Uhrzeit aus DueDate ableiten. |
+| FR-DASH-004 | Einen kohärenten bestehenden SessionNotebook read-only projizieren; keine neue Datei, Migration, persistierter Cache oder verdeckter Rewrite. Ladefehler nicht als leere Daten darstellen. |
+| FR-DASH-005 | Dashboard in DE/EN mit bestehender Themenliste/Counts, Vorschau 5 Termine/6 Follow-ups und Show all. Exakte Parent-/Child-Navigation, Refresh/Rückkehr, Stale-Schutz, Tastaturbedienung und Mindestgröße 1120×740. |
+
+Scope und Akzeptanz: [Entwicklungsdokument 154](../development/154_Dashboard_Agenda_Slice_1.md).
+Keine Umsetzung von FR-NOT; Kalenderfälligkeit ist keine Notification.
+
 Projekt: SASD Health Research Notebook  
 Stand: 2026-09-30  
 Dokumenttyp: ergänzender Anforderungskatalog  

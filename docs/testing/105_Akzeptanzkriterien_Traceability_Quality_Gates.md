@@ -1,5 +1,18 @@
 # 105 - Akzeptanzkriterien, Traceability und Quality Gates
 
+## Dashboard-Agenda Slice 1
+
+| Anforderungen | Acceptance | Status |
+|---|---|---|
+| FR-DASH-001 | UT-DASH-001: Planned/Zukunft inklusive Gleichheit, Archiv/Status/Vergangenheit ausschließen, stabile Sortierung. | geplant |
+| FR-DASH-002 | UT-DASH-002: vier Datumsgruppen, Done/archivierte Eltern ausschließen, Completed-Eltern erhalten. | geplant |
+| FR-DASH-003 | UT-DASH-003: feste Zeit, Mitternacht und Offset-Grenzen ohne implizite Systemuhr. | geplant |
+| FR-DASH-004 | IT-DASH-001: kohärenter Snapshot, unveränderte Primär-/Backup-Dateien, keine neue Datei, Fehlerweitergabe. | geplant |
+| FR-DASH-005, FR-UI-001 | UI-DASH-001: DE/EN Vorschau/Show all/Empty/Error, exakte Navigation, Refresh/Return/Stale, No-write, Minimum/Tastatur/Render. | geplant; manuelle Abnahme offen |
+
+Details: [154](../development/154_Dashboard_Agenda_Slice_1.md).
+Offene manuelle Lifecycle-/Dashboardcount-/Action-Historiennachweise aus 153 bleiben offen.
+
 Projekt: SASD Health Research Notebook  
 Stand: 2026-10-05
 Dokumenttyp: Requirements-Traceability / Akzeptanz- und Release-Qualität  
