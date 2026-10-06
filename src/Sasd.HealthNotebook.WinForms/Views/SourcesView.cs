@@ -1,4 +1,5 @@
 using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.WinForms.Controls;
 using Sasd.HealthNotebook.Domain;
 using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
@@ -24,6 +25,9 @@ public sealed class SourcesView : UserControl
     private IReadOnlyList<SourceSummary> _sources = Array.Empty<SourceSummary>();
     private IReadOnlyList<SourceLocation> _locations = Array.Empty<SourceLocation>();
     private IReadOnlyList<EvidenceNote> _notes = Array.Empty<EvidenceNote>();
+    private readonly ThreeStateGridSort<SourceRow> _sourceSort;
+    private readonly ThreeStateGridSort<LocationRow> _locationSort;
+    private readonly ThreeStateGridSort<NoteRow> _noteSort;
     private bool _binding;
     /// <summary>Creates a compact two-pane workspace with keyboard-accessible tabs.</summary>
     public SourcesView()
@@ -32,6 +36,13 @@ public sealed class SourcesView : UserControl
         _sourcesGrid = Grid(new[] { "Name", "Type" }, new[] { 160, 110 });
         _locationsGrid = Grid(new[] { "Type", "Locator" }, new[] { 90, 140 });
         _notesGrid = Grid(new[] { "Statement", "Location" }, new[] { 170, 100 });
+        _sourceSort = new ThreeStateGridSort<SourceRow>(_sourcesGrid, row => row.Id)
+            .Text(0, row => row.Name).Column(1, row => row.SortType);
+        _locationSort = new ThreeStateGridSort<LocationRow>(_locationsGrid, row => row.Id)
+            .Column(0, row => row.SortType).Text(1, row => row.Locator);
+        _noteSort = new ThreeStateGridSort<NoteRow>(_notesGrid, row => row.Id)
+            .Text(0, row => row.SortStatement).Text(1, row => row.Location);
+        _sourceSort.Rebound += UpdateSourceDetails; _locationSort.Rebound += UpdateLocationDetails; _noteSort.Rebound += UpdateNoteDetails;
         _emptyStateLabel = EmptyLabel(); _locationsEmptyLabel = EmptyLabel(); _notesEmptyLabel = EmptyLabel();
         // A shared proportional detail row keeps both sides aligned despite the
         // right-hand tab header and action buttons consuming different list space.
@@ -60,9 +71,9 @@ public sealed class SourcesView : UserControl
         Controls.Add(layout);
         // SelectionChanged runs before CurrentRow changes. Dependents must be loaded
         // from the new current source; otherwise the presenter discards the old result.
-        _sourcesGrid.CurrentCellChanged += (_, _) => { if (!_binding) { UpdateSourceDetails(); SourceSelected?.Invoke(this, EventArgs.Empty); } };
-        _locationsGrid.SelectionChanged += (_, _) => UpdateLocationDetails();
-        _notesGrid.SelectionChanged += (_, _) => UpdateNoteDetails();
+        _sourcesGrid.CurrentCellChanged += (_, _) => { if (!_binding && !_sourceSort.IsRebinding) { UpdateSourceDetails(); SourceSelected?.Invoke(this, EventArgs.Empty); } };
+        _locationsGrid.CurrentCellChanged += (_, _) => { if (!_locationSort.IsRebinding) UpdateLocationDetails(); };
+        _notesGrid.CurrentCellChanged += (_, _) => { if (!_noteSort.IsRebinding) UpdateNoteDetails(); };
         _newLocationButton.Click += (_, _) => NewLocationRequested?.Invoke(this, EventArgs.Empty);
         _newNoteButton.Click += (_, _) => NewNoteRequested?.Invoke(this, EventArgs.Empty);
         ApplyTexts(); SetSources(Array.Empty<SourceSummary>()); SetDependents(Array.Empty<SourceLocation>(), Array.Empty<EvidenceNote>());
@@ -83,8 +94,8 @@ public sealed class SourcesView : UserControl
         try
         {
             _sources = sources;
-            _sourcesGrid.DataSource = sources.Select(item => new SourceRow(item.Source.Id, AppStrings.SourceDisplayName(item.Source),
-                AppStrings.SourceTypeText(item.Source.SourceType))).ToList();
+            _sourceSort.SetRows(sources.Select(item => new SourceRow(item.Source.Id, AppStrings.SourceDisplayName(item.Source),
+                AppStrings.SourceTypeText(item.Source.SourceType), item.Source.SourceType)).ToList());
             SelectId(_sourcesGrid, selected);
             SetEmpty(_sourcesGrid, _emptyStateLabel, sources.Count == 0);
         }
@@ -96,10 +107,10 @@ public sealed class SourcesView : UserControl
     {
         Guid? selectedLocation = SelectedId(_locationsGrid), selectedNote = SelectedId(_notesGrid);
         _locations = locations; _notes = notes;
-        _locationsGrid.DataSource = locations.Select(location => new LocationRow(location.Id,
-            AppStrings.SourceLocationTypeText(location.LocationType), location.Locator)).ToList();
-        _notesGrid.DataSource = notes.Select(note => new NoteRow(note.Id, Preview(note.Statement),
-            note.SourceLocationId.HasValue ? locations.Single(location => location.Id == note.SourceLocationId).Locator : AppStrings.NoSourceLocation)).ToList();
+        _locationSort.SetRows(locations.Select(location => new LocationRow(location.Id,
+            AppStrings.SourceLocationTypeText(location.LocationType), location.Locator, location.LocationType)).ToList());
+        _noteSort.SetRows(notes.Select(note => new NoteRow(note.Id, Preview(note.Statement),
+            note.SourceLocationId.HasValue ? locations.Single(location => location.Id == note.SourceLocationId).Locator : AppStrings.NoSourceLocation, note.Statement)).ToList());
         SelectId(_locationsGrid, selectedLocation); SelectId(_notesGrid, selectedNote);
         SetEmpty(_locationsGrid, _locationsEmptyLabel, locations.Count == 0);
         SetEmpty(_notesGrid, _notesEmptyLabel, notes.Count == 0);
@@ -119,7 +130,7 @@ public sealed class SourcesView : UserControl
         _notesGrid.Columns[0].HeaderText = AppStrings.SourceStatement; _notesGrid.Columns[1].HeaderText = AppStrings.NoteLocation;
         _sourceDetails.AccessibleName = AppStrings.Sources; _locationDetails.AccessibleName = AppStrings.LocationNote;
         _noteDetails.AccessibleName = AppStrings.SourceNotes;
-        UpdateSourceDetails(); UpdateLocationDetails(); UpdateNoteDetails();
+        SetSources(_sources); SetDependents(_locations, _notes);
     }
     private void UpdateSourceDetails()
     {
@@ -197,7 +208,7 @@ public sealed class SourcesView : UserControl
             DataPropertyName = properties[i], MinimumWidth = widths[i], FillWeight = i == 0 ? 60 : 40, SortMode = DataGridViewColumnSortMode.NotSortable });
         return grid;
     }
-    private sealed record SourceRow(Guid Id, string Name, string Type);
-    private sealed record LocationRow(Guid Id, string Type, string Locator);
-    private sealed record NoteRow(Guid Id, string Statement, string Location);
+    private sealed record SourceRow(Guid Id, string Name, string Type, SourceType SortType);
+    private sealed record LocationRow(Guid Id, string Type, string Locator, SourceLocationType SortType);
+    private sealed record NoteRow(Guid Id, string Statement, string Location, string SortStatement);
 }

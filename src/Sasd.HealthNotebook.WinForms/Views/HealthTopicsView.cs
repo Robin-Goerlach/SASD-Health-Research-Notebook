@@ -1,4 +1,4 @@
-using System.ComponentModel;
+using Sasd.HealthNotebook.WinForms.Controls;
 using System.Drawing;
 using System.Windows.Forms;
 using Sasd.HealthNotebook.Application.Contracts;
@@ -14,6 +14,7 @@ namespace Sasd.HealthNotebook.WinForms.Views;
 public sealed class HealthTopicsView : UserControl
 {
     private readonly DataGridView _grid;
+    private readonly ThreeStateGridSort<HealthTopicGridRow> _sort;
     private readonly DataGridViewTextBoxColumn _titleColumn;
     private readonly DataGridViewTextBoxColumn _statusColumn;
     private readonly DataGridViewTextBoxColumn _priorityColumn;
@@ -104,6 +105,11 @@ public sealed class HealthTopicsView : UserControl
             _createdColumn,
             _shortDescriptionColumn);
 
+        _sort = new ThreeStateGridSort<HealthTopicGridRow>(_grid, row => row.Id)
+            .Text(0, row => row.Title).Column(1, row => row.SortStatus)
+            .Column(2, row => row.SortPriority).Column(3, row => row.SortCreatedAt)
+            .Text(4, row => row.ShortDescription);
+        _sort.Rebound += UpdateCommands;
         var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
         var commands = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
         _editButton.TabIndex = 0; _archiveButton.TabIndex = 1; _deleteButton.TabIndex = 2; _showArchived.TabIndex = 3;
@@ -113,7 +119,9 @@ public sealed class HealthTopicsView : UserControl
         _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
         _deleteButton.Click += (_, _) => DeleteRequested?.Invoke(this, EventArgs.Empty);
         _showArchived.CheckedChanged += (_, _) => BindTopics();
-        _grid.CurrentCellChanged += (_, _) => UpdateCommands();
+        // A temporarily empty current row during binding must not disable a focused
+        // lifecycle command and transfer focus back into an unfinished grid transition.
+        _grid.CurrentCellChanged += (_, _) => { if (!_sort.IsRebinding) UpdateCommands(); };
         Controls.Add(_titleLabel);
 
         ApplyTexts();
@@ -139,6 +147,7 @@ public sealed class HealthTopicsView : UserControl
         _priorityColumn.HeaderText = AppStrings.ColumnPriority;
         _createdColumn.HeaderText = AppStrings.ColumnCreated;
         _shortDescriptionColumn.HeaderText = AppStrings.ColumnShortDescription;
+        BindTopics();
     }
 
     /// <summary>
@@ -152,30 +161,18 @@ public sealed class HealthTopicsView : UserControl
     private void BindTopics()
     {
         var summaries = _topics.Where(item => _showArchived.Checked || item.Status != Sasd.HealthNotebook.Domain.HealthTopicStatus.Archived);
-        Guid? selectedId = (_grid.CurrentRow?.DataBoundItem as HealthTopicGridRow)?.Id;
 
         var rows = summaries
             .Select(HealthTopicGridRow.FromSummary)
             .ToList();
 
-        _grid.DataSource = new BindingList<HealthTopicGridRow>(rows);
+        _sort.SetRows(rows);
         _emptyStateLabel.Visible = rows.Count == 0;
         _grid.Visible = rows.Count != 0;
         _grid.TabStop = rows.Count != 0;
         if (_emptyStateLabel.Visible) { _emptyStateLabel.BringToFront(); }
-        if (_grid.Rows.Count > 0) _grid.CurrentCell = _grid.Rows[0].Cells[0]; else _grid.CurrentCell = null;
-        UpdateCommands();
-        if (selectedId.HasValue)
-        {
-            foreach (DataGridViewRow row in _grid.Rows)
-            {
-                if (row.DataBoundItem is HealthTopicGridRow topic && topic.Id == selectedId.Value)
-                {
-                    _grid.CurrentCell = row.Cells[0];
-                    break;
-                }
-            }
-        }
+        // The shared sorter has already restored the ID and updated commands after
+        // the native binding transition; no second CurrentCell restoration is needed.
     }
 
     private static DataGridViewTextBoxColumn CreateColumn(

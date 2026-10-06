@@ -20,7 +20,7 @@ public sealed class DashboardCardControl : UserControl
     {
         BackColor = UiColors.CardBackground;
         Margin = new Padding(0, 0, UiMetrics.StandardSpacing, 0);
-        Padding = new Padding(compact ? UiMetrics.StandardSpacing : UiMetrics.Padding);
+        Padding = new Padding(compact ? 8 : UiMetrics.Padding);
         Width = 250;
         Height = compact ? UiMetrics.CompactOverviewHeight - UiMetrics.StandardSpacing : UiMetrics.DashboardCardHeight;
         TabStop = false;
@@ -28,7 +28,7 @@ public sealed class DashboardCardControl : UserControl
         _titleLabel = new Label
         {
             Dock = DockStyle.Top,
-            Height = compact ? 22 : 36,
+            Height = 36,
             Font = UiFonts.CardTitle,
             ForeColor = UiColors.SecondaryText,
             AutoEllipsis = false

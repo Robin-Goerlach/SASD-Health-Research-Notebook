@@ -10,6 +10,7 @@ namespace Sasd.HealthNotebook.WinForms.Controls;
 /// </summary>
 public sealed class NavigationControl : UserControl
 {
+    private readonly ToolTip _navigationToolTip = new() { AutoPopDelay = 10000, InitialDelay = 500, ReshowDelay = 100, ShowAlways = true };
     private readonly Label _footerLabel;
     private readonly Label _titleLabel;
     private readonly NavigationButton _dashboardButton;
@@ -105,7 +106,17 @@ public sealed class NavigationControl : UserControl
         _sessionsButton.Text = AppStrings.Sessions;
         _actionsButton.Text = AppStrings.Actions;
         _footerLabel.Text = AppStrings.SidebarFooter;
+        NavigationButton[] buttons = { _dashboardButton, _healthTopicsButton, _timelineButton,
+            _sourcesButton, _measurementsButton, _sessionsButton, _actionsButton };
+        NavigationPage[] pages = { NavigationPage.Dashboard, NavigationPage.HealthTopics, NavigationPage.Timeline,
+            NavigationPage.Sources, NavigationPage.Measurements, NavigationPage.Sessions, NavigationPage.Actions };
+        for (int index = 0; index < buttons.Length; index++)
+            _navigationToolTip.SetToolTip(buttons[index], AppStrings.NavigationHint(pages[index]));
     }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    { if (disposing) _navigationToolTip.Dispose(); base.Dispose(disposing); }
 
     /// <summary>
     /// Updates the selected navigation state.

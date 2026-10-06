@@ -36,10 +36,22 @@ public sealed class HealthActionsView : UserControl
     private readonly Button _editRoutineButton = ActionButton();
     private readonly Button _editProgressButton = ActionButton();
     private readonly Button _deleteProgressButton = ActionButton();
+    private readonly ThreeStateGridSort<Row> _actionSort;
+    private readonly ThreeStateGridSort<Row> _routineSort;
+    private readonly ThreeStateGridSort<Row> _progressSort;
     private bool _binding;
     /// <summary>Creates aligned surfaces with standard spacing and no draggable splitters.</summary>
     public HealthActionsView()
     {
+        _actionSort = new ThreeStateGridSort<Row>(_actionsGrid, row => row.Id)
+            .Text(0, row => row.Title).Column(1, row => row.SortCategory).Column(2, row => (row.SortArchived, row.SortStatus));
+        _routineSort = new ThreeStateGridSort<Row>(_routinesGrid, row => row.Id)
+            .Text(0, row => row.Title).Column(1, row => row.SortStatus);
+        _progressSort = new ThreeStateGridSort<Row>(_progressGrid, row => row.Id)
+            .Column(0, row => row.SortTime).Column(1, row => row.SortStatus).Column(2, row => row.SortCount);
+        _actionSort.Rebound += UpdateDetails;
+        _routineSort.Rebound += UpdateDetails;
+        _progressSort.Rebound += UpdateDetails;
         Dock = DockStyle.Fill; Margin = Padding.Empty; BackColor = UiColors.WindowBackground; Font = UiFonts.Body;
         var root = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 1, RowCount = 2, Margin = Padding.Empty };
         root.RowStyles.Add(new(SizeType.Absolute, UiMetrics.CompactOverviewHeight)); root.RowStyles.Add(new(SizeType.Percent, 100));
@@ -57,9 +69,9 @@ public sealed class HealthActionsView : UserControl
         _workspace.Controls.Add(routinePane, 1, 0); _workspace.Controls.Add(progressPane, 1, 1);
         root.Controls.Add(_workspace, 0, 1); Controls.Add(root);
         // CurrentCellChanged reports the newly selected row; SelectionChanged can report the old one.
-        _actionsGrid.CurrentCellChanged += (_, _) => { if (!_binding) { UpdateDetails(); ActionSelected?.Invoke(this, EventArgs.Empty); } };
-        _routinesGrid.CurrentCellChanged += (_, _) => { if (!_binding) { BindProgress(); UpdateDetails(); } };
-        _progressGrid.CurrentCellChanged += (_, _) => { if (!_binding) UpdateDetails(); };
+        _actionsGrid.CurrentCellChanged += (_, _) => { if (!_binding && !_actionSort.IsRebinding) { UpdateDetails(); ActionSelected?.Invoke(this, EventArgs.Empty); } };
+        _routinesGrid.CurrentCellChanged += (_, _) => { if (!_binding && !_routineSort.IsRebinding) { BindProgress(); UpdateDetails(); } };
+        _progressGrid.CurrentCellChanged += (_, _) => { if (!_binding && !_progressSort.IsRebinding) UpdateDetails(); };
         _historyButton.Click += (_, _) => HistoryRequested?.Invoke(this, EventArgs.Empty);
         _editRoutineButton.Click += (_, _) => EditRoutineRequested?.Invoke(this, EventArgs.Empty);
         _editProgressButton.Click += (_, _) => EditProgressRequested?.Invoke(this, EventArgs.Empty);
@@ -94,7 +106,9 @@ public sealed class HealthActionsView : UserControl
         try
         {
             _actions = actions;
-            _actionsGrid.DataSource = actions.Select(item => new Row(item.Action.Id, item.Action.Title, AppStrings.ActionTypeText(item.Action.ActionType), (item.Action.IsArchived ? AppStrings.Archived : AppStrings.ActionStatusText(item.Action.Status)))).ToList();
+            _actionSort.SetRows(actions.Select(item => new Row(item.Action.Id, item.Action.Title, AppStrings.ActionTypeText(item.Action.ActionType),
+                item.Action.IsArchived ? AppStrings.Archived : AppStrings.ActionStatusText(item.Action.Status),
+                SortCategory: (int)item.Action.ActionType, SortStatus: (int)item.Action.Status, SortArchived: item.Action.IsArchived)).ToList());
             Select(_actionsGrid, selected); ShowEmpty(_actionsGrid, _emptyStateLabel, actions.Count == 0);
         }
         finally { _binding = false; }
@@ -107,7 +121,7 @@ public sealed class HealthActionsView : UserControl
         try
         {
             _routines = routines; _entries = entries;
-            _routinesGrid.DataSource = routines.Select(item => new Row(item.Id, item.Title, Status: AppStrings.RoutineStatusText(item.Status))).ToList();
+            _routineSort.SetRows(routines.Select(item => new Row(item.Id, item.Title, Status: AppStrings.RoutineStatusText(item.Status), SortStatus: (int)item.Status)).ToList());
             Select(_routinesGrid, routineId); ShowEmpty(_routinesGrid, _routinesEmpty, routines.Count == 0);
             BindProgress(progressId);
         }
@@ -129,7 +143,7 @@ public sealed class HealthActionsView : UserControl
         _progressGrid.Columns[0].HeaderText = AppStrings.EntryDate; _progressGrid.Columns[1].HeaderText = AppStrings.ProgressState; _progressGrid.Columns[2].HeaderText = AppStrings.ProgressCountColumn;
         _actionDetails.AccessibleName = AppStrings.ActionDescription; _routineDetails.AccessibleName = AppStrings.RoutineSchedule; _progressDetails.AccessibleName = AppStrings.ProgressNote;
         _actionsGrid.AccessibleName = AppStrings.ActionList; _routinesGrid.AccessibleName = AppStrings.RoutineList; _progressGrid.AccessibleName = AppStrings.ProgressHistory;
-        _overview.ApplyTexts(); UpdateDetails();
+        _overview.ApplyTexts(); SetActions(_actions); SetDetails(_routines, _entries, SelectedRoutine?.Id, SelectedProgress?.Id);
     }
     private void BindProgress(Guid? preferredId = null)
     {
@@ -138,7 +152,7 @@ public sealed class HealthActionsView : UserControl
         {
             Guid? selected = preferredId ?? SelectedProgress?.Id;
             var entries = _entries.Where(item => item.RoutineId == SelectedRoutine?.Id).ToList();
-            _progressGrid.DataSource = entries.Select(item => new Row(item.Id, Status: AppStrings.CompletionText(item.Completion), Time: Time(item.OccurredAt), Count: item.Count?.ToString() ?? string.Empty)).ToList();
+            _progressSort.SetRows(entries.Select(item => new Row(item.Id, Status: AppStrings.CompletionText(item.Completion), Time: Time(item.OccurredAt), Count: item.Count?.ToString() ?? string.Empty, SortTime: item.OccurredAt, SortStatus: (int)item.Completion, SortCount: item.Count)).ToList());
             Select(_progressGrid, selected); ShowEmpty(_progressGrid, _progressEmpty, entries.Count == 0);
         }
         finally { _binding = priorBinding; }
@@ -218,7 +232,10 @@ public sealed class HealthActionsView : UserControl
         foreach (string property in properties) grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = property, MinimumWidth = 60, FillWeight = property switch { "Title" => 180, "Time" => 160, "Status" => 130, "Count" => 65, _ => 100 }, SortMode = DataGridViewColumnSortMode.NotSortable });
         return grid;
     }
-    private sealed record Row(Guid Id, string Title = "", string Category = "", string Status = "", string Time = "", string Count = "");
+    // Presentation keys preserve numbers/instants and enum order across localization;
+    // they never replace the domain entities used by explicit lifecycle commands.
+    private sealed record Row(Guid Id, string Title = "", string Category = "", string Status = "", string Time = "", string Count = "",
+        DateTimeOffset? SortTime = null, int SortStatus = 0, int SortCategory = 0, int? SortCount = null, bool SortArchived = false);
     /// <summary>Includes archived parents in the normal workspace.</summary>
     public bool IncludeArchived => _showArchivedCheckBox.Checked;
     /// <summary>Explicit filter refresh command.</summary>

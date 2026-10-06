@@ -7,6 +7,17 @@ namespace Sasd.HealthNotebook.Application.Services;
 /// <summary>Conversation preparation/follow-up use cases without medical interpretation.</summary>
 public sealed class SessionService
 {
+    /// <summary>
+    /// Reads exactly one coherent session/child snapshot and projects an ephemeral
+    /// agenda. Errors propagate; unreadable data must never masquerade as no entries.
+    /// No repository mutation or second parent read is needed.
+    /// </summary>
+    public async Task<DashboardAgenda> GetDashboardAgendaAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        var notebook = await _sessions.LoadAsync(cancellationToken).ConfigureAwait(false);
+        return DashboardAgendaProjector.Project(notebook, now);
+    }
+
     private readonly ISessionRepository _sessions;
     private readonly IHealthTopicRepository _topics;
     /// <summary>Uses UI-independent persistence contracts.</summary>

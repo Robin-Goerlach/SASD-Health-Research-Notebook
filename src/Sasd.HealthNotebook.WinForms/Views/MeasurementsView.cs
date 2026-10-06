@@ -1,4 +1,5 @@
 using Sasd.HealthNotebook.Domain;
+using Sasd.HealthNotebook.WinForms.Controls;
 using Sasd.HealthNotebook.Application.Contracts;
 using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
@@ -15,6 +16,7 @@ public sealed class MeasurementsView : UserControl
     private MeasurementType? _filterType;
     private bool _updatingFilter;
     private readonly DataGridView _grid;
+    private readonly ThreeStateGridSort<MeasurementRow> _sort;
     private readonly Label _emptyStateLabel;
     private IReadOnlyList<MeasurementSummary> _measurements = Array.Empty<MeasurementSummary>();
     /// <summary>Creates a responsive measurement list with a readable empty state.</summary>
@@ -48,6 +50,13 @@ public sealed class MeasurementsView : UserControl
         for (int index = 0; index < properties.Length; index++)
             _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = properties[index],
                 MinimumWidth = widths[index], FillWeight = index == 2 || index == 4 ? 25 : 16, SortMode = DataGridViewColumnSortMode.NotSortable });
+        // Values of different types/units are not comparable quantities. Group by
+        // measurement type, then compare raw numbers (pressure: systolic/diastolic/pulse).
+        _sort = new ThreeStateGridSort<MeasurementRow>(_grid, row => row.Id)
+            .Column(0, row => row.Data.OccurredAt).Column(1, row => row.Data.MeasurementType)
+            .Column(2, row => (row.Data.MeasurementType, row.Data.Value ?? row.Data.Systolic, row.Data.Diastolic, row.Data.Pulse))
+            .Column(3, row => row.Data.Unit).Text(4, row => row.Topic).Text(5, row => row.Data.Note);
+        _sort.Rebound += UpdateCommands;
         var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
         _typeFilter.TabIndex = 0; _editButton.TabIndex = 1; _deleteButton.TabIndex = 2;
@@ -55,7 +64,15 @@ public sealed class MeasurementsView : UserControl
         Controls.Add(list); Controls.Add(buttons);
         _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
         _deleteButton.Click += (_, _) => DeleteRequested?.Invoke(this, EventArgs.Empty);
-        _grid.CurrentCellChanged += (_, _) => _editButton.Enabled = _deleteButton.Enabled = _grid.CurrentRow is not null;
+        _grid.CurrentCellChanged += (_, _) =>
+        {
+            // Replacing DataSource briefly clears CurrentRow inside WinForms' current-cell
+            // transition. Disabling the focused Edit button here would synchronously move
+            // focus into the grid (OnEnter), reentering SetCurrentCellAddressCore.
+            // The shared guard spans binding AND ID restoration; Rebound updates commands
+            // only after that native transition has returned. No timer/deferred focus needed.
+            if (!_sort.IsRebinding) UpdateCommands();
+        };
         _typeFilter.SelectedIndexChanged += (_, _) =>
         {
             if (_updatingFilter || _typeFilter.SelectedItem is not FilterChoice choice) return;
@@ -99,28 +116,24 @@ public sealed class MeasurementsView : UserControl
     }
     private void BindVisibleMeasurements()
     {
-        Guid? selected = (_grid.CurrentRow?.DataBoundItem as MeasurementRow)?.Id;
         // Filtering is a display projection only. Neither Domain entities nor JSON data
         // are modified, and no filtered subset is passed back as persisted truth.
         var entries = _measurements.Where(entry => !_filterType.HasValue || entry.Measurement.MeasurementType == _filterType.Value).ToList();
-        _grid.DataSource = entries.Select(entry => new MeasurementRow(entry.Measurement.Id,
+        _sort.SetRows(entries.Select(entry => new MeasurementRow(entry.Measurement.Id,
             AppStrings.FormatDateTime(entry.Measurement.OccurredAt), AppStrings.MeasurementTypeText(entry.Measurement.MeasurementType),
             AppStrings.FormatMeasurementValues(entry.Measurement), AppStrings.MeasurementUnitText(entry.Measurement.Unit),
             entry.HealthTopicTitle ?? (entry.Measurement.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic),
-            Preview(entry.Measurement.Note))).ToList();
-        _editButton.Enabled = _deleteButton.Enabled = entries.Count > 0;
+            Preview(entry.Measurement.Note), entry.Measurement)).ToList());
         _grid.Visible = entries.Count > 0;
         _grid.TabStop = _grid.Visible;
         _emptyStateLabel.Visible = !_grid.Visible;
         _emptyStateLabel.Text = _filterType.HasValue ? AppStrings.MeasurementsFilteredEmpty : AppStrings.MeasurementsEmpty;
-        // Retain the selected ID only if it remains visible. Otherwise use the first
-        // visible row, or clear selection and disable lifecycle commands for zero matches.
-        _grid.CurrentCell = _grid.Rows.Count > 0 ? _grid.Rows[0].Cells[0] : null;
-        foreach (DataGridViewRow row in _grid.Rows)
-            if (row.DataBoundItem is MeasurementRow item && item.Id == selected) _grid.CurrentCell = row.Cells[0];
+        // ThreeStateGridSort alone restores the visible ID or keeps WinForms' first
+        // visible row/null fallback. Do not start a competing selection pass here.
     }
+    private void UpdateCommands() => _editButton.Enabled = _deleteButton.Enabled = _grid.CurrentRow is not null;
     private static string Preview(string? text) => text is null ? "" : text.Length <= 160 ? text : text[..160] + "…";
-    private sealed record MeasurementRow(Guid Id, string Time, string Type, string Values, string Unit, string Topic, string Preview);
+    private sealed record MeasurementRow(Guid Id, string Time, string Type, string Values, string Unit, string Topic, string Preview, Measurement Data);
     private sealed record FilterChoice(MeasurementType? Type, string Label);
     /// <summary>Transient display filter; null means all types. Never persisted.</summary>
     public MeasurementType? SelectedMeasurementType => _filterType;

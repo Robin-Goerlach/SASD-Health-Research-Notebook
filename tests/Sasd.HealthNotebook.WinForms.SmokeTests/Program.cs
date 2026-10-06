@@ -52,6 +52,7 @@ internal static partial class Program
                     foreach (UiLanguage language in Enum.GetValues<UiLanguage>())
                     {
                         AppLanguage.SetLanguage(language);
+                        CheckMeasurementEditFocus(testPath, language);
                         CheckParentLifecycle(testPath, language);
                         CheckMeasurementFields(testPath, language);
                         CheckMeasurementTypeFilter(testPath, language);
@@ -65,6 +66,8 @@ internal static partial class Program
                         CheckMeasurements(service, testPath, language);
                         CheckSessions(service, testPath, language);
                         CheckHealthActions(testPath, language);
+                        CheckDashboardAgenda(testPath, language);
+                        CheckGridUx(testPath, language);
                     }
                 }
                 catch (Exception ex) { uiFailure = ex; }

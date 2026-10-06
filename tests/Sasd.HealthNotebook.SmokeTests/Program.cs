@@ -38,6 +38,7 @@ internal static class Program
             await HealthActionTests.RunAsync();
             await LifecycleTests.RunAsync();
             await ParentLifecycleTests.RunAsync();
+            await DashboardAgendaTests.RunAsync();
             await SafeEntryLauncherTests.RunAsync();
             Console.WriteLine("Smoke tests passed.");
             return 0;

@@ -18,6 +18,7 @@ A working .NET desktop application baseline already exists with:
 - a WinForms session workspace for appointments, ordered questions with separate answer notes and user-entered follow-ups with optional due dates in `sessions.json` (Slice 1; manually accepted);
 - a WinForms action/routine workspace with user-reported provenance, paused/active routines and historical execution notes in `health-actions.json` (Slice 1; manually accepted);
 - documentative action/routine/today counts on the dashboard;
+- a read-only dashboard agenda with upcoming planned sessions and open follow-ups, calendar groups, bounded previews and exact session/child navigation (Slice 1; manual acceptance pending; [scope and checks](docs/development/154_Dashboard_Agenda_Slice_1.md));
 - a functional WPF application shell;
 - a first WinForms frontend baseline using the same application services and JSON persistence;
 - a first "new health topic" wizard;

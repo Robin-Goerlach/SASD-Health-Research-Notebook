@@ -1,4 +1,5 @@
 using Sasd.HealthNotebook.Application.Contracts;
+using Sasd.HealthNotebook.WinForms.Controls;
 using Sasd.HealthNotebook.Domain;
 using Sasd.HealthNotebook.WinForms.Localization;
 using Sasd.HealthNotebook.WinForms.Styling;
@@ -33,10 +34,22 @@ public sealed class SessionsView : UserControl
     private readonly Button _deleteQuestionButton = Action();
     private readonly Button _editFollowUpButton = Action();
     private readonly Button _deleteFollowUpButton = Action();
+    private readonly ThreeStateGridSort<Row> _sessionSort;
+    private readonly ThreeStateGridSort<Row> _questionSort;
+    private readonly ThreeStateGridSort<Row> _followUpSort;
     private bool _binding;
     /// <summary>Creates proportional lists/details, keeping both lower detail fields aligned.</summary>
     public SessionsView()
     {
+        _sessionSort = new ThreeStateGridSort<Row>(_sessionsGrid, row => row.Id)
+            .Column(0, row => row.SortTime).Text(1, row => row.Title).Column(2, row => (row.SortArchived, row.SortStatus));
+        _questionSort = new ThreeStateGridSort<Row>(_questionsGrid, row => row.Id)
+            .Text(0, row => row.SortText).Column(1, row => row.SortStatus);
+        _followUpSort = new ThreeStateGridSort<Row>(_followUpsGrid, row => row.Id)
+            .Text(0, row => row.SortText).Column(1, row => row.SortStatus).Column(2, row => row.SortDueDate);
+        _sessionSort.Rebound += UpdateDetails;
+        _questionSort.Rebound += UpdateDetails;
+        _followUpSort.Rebound += UpdateDetails;
         Dock = DockStyle.Fill; BackColor = UiColors.WindowBackground; Margin = Padding.Empty;
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, ColumnCount = 2, RowCount = 2, Margin = Padding.Empty };
         layout.ColumnStyles.Add(new(SizeType.Percent, 45)); layout.ColumnStyles.Add(new(SizeType.Percent, 55));
@@ -53,8 +66,9 @@ public sealed class SessionsView : UserControl
         tabs.SelectedIndexChanged += (_, _) => { _questionDetails.Visible = tabs.SelectedTab == _questionsTab; _followUpDetails.Visible = tabs.SelectedTab == _followUpsTab; };
         layout.Controls.Add(right, 1, 1); Controls.Add(layout);
         // CurrentCellChanged observes the new row, preserving the Sources regression fix.
-        _sessionsGrid.CurrentCellChanged += (_, _) => { if (!_binding) { UpdateDetails(); SessionSelected?.Invoke(this, EventArgs.Empty); } };
-        _questionsGrid.CurrentCellChanged += (_, _) => UpdateDetails(); _followUpsGrid.CurrentCellChanged += (_, _) => UpdateDetails();
+        _sessionsGrid.CurrentCellChanged += (_, _) => { if (!_binding && !_sessionSort.IsRebinding) { UpdateDetails(); SessionSelected?.Invoke(this, EventArgs.Empty); } };
+        _questionsGrid.CurrentCellChanged += (_, _) => { if (!_questionSort.IsRebinding) UpdateDetails(); };
+        _followUpsGrid.CurrentCellChanged += (_, _) => { if (!_followUpSort.IsRebinding) UpdateDetails(); };
         _newQuestionButton.Click += (_, _) => NewQuestionRequested?.Invoke(this, EventArgs.Empty);
         _answerButton.Click += (_, _) => AnswerRequested?.Invoke(this, EventArgs.Empty);
         _newFollowUpButton.Click += (_, _) => NewFollowUpRequested?.Invoke(this, EventArgs.Empty);
@@ -85,6 +99,13 @@ public sealed class SessionsView : UserControl
     public SessionQuestion? SelectedQuestion => _questions.SingleOrDefault(item => item.Id == Id(_questionsGrid));
     /// <summary>Selected shared next step.</summary>
     public SessionFollowUp? SelectedFollowUp => _followUps.SingleOrDefault(item => item.Id == Id(_followUpsGrid));
+
+    /// <summary>Shows and focuses the follow-up grid after an awaited exact child selection.</summary>
+    public void OpenFollowUps()
+    {
+        ((TabControl)_followUpsTab.Parent!).SelectedTab = _followUpsTab;
+        _followUpsGrid.Focus();
+    }
     /// <summary>Refreshes sessions with selection retention.</summary>
     public void SetSessions(IReadOnlyList<SessionSummary> sessions, Guid? preferredId = null)
     {
@@ -92,7 +113,9 @@ public sealed class SessionsView : UserControl
         try
         {
             _sessions = sessions;
-            _sessionsGrid.DataSource = sessions.Select(item => new Row(item.Session.Id, Time(item.Session.ScheduledAt), item.Session.Title, (item.Session.IsArchived ? AppStrings.Archived : AppStrings.SessionStatusText(item.Session.Status)))).ToList();
+            _sessionSort.SetRows(sessions.Select(item => new Row(item.Session.Id, Time(item.Session.ScheduledAt), item.Session.Title,
+                item.Session.IsArchived ? AppStrings.Archived : AppStrings.SessionStatusText(item.Session.Status),
+                SortTime: item.Session.ScheduledAt, SortStatus: (int)item.Session.Status, SortArchived: item.Session.IsArchived)).ToList());
             Select(_sessionsGrid, selected); ShowEmpty(_sessionsGrid, _emptyStateLabel, sessions.Count == 0);
         }
         finally { _binding = false; }
@@ -104,8 +127,8 @@ public sealed class SessionsView : UserControl
     {
         Guid? questionId = preferredQuestionId ?? Id(_questionsGrid), followUpId = preferredFollowUpId ?? Id(_followUpsGrid);
         _questions = questions; _followUps = followUps;
-        _questionsGrid.DataSource = questions.Select(item => new Row(item.Id, Text: Preview(item.Text), Status: item.IsAnswered ? AppStrings.SessionAnswered : AppStrings.SessionOpen)).ToList();
-        _followUpsGrid.DataSource = followUps.Select(item => new Row(item.Id, Text: Preview(item.Text), Status: AppStrings.FollowUpStatusText(item.Status), DueDate: Date(item.DueDate))).ToList();
+        _questionSort.SetRows(questions.Select(item => new Row(item.Id, Text: Preview(item.Text), Status: item.IsAnswered ? AppStrings.SessionAnswered : AppStrings.SessionOpen, SortText: item.Text, SortStatus: item.IsAnswered ? 1 : 0)).ToList());
+        _followUpSort.SetRows(followUps.Select(item => new Row(item.Id, Text: Preview(item.Text), Status: AppStrings.FollowUpStatusText(item.Status), DueDate: Date(item.DueDate), SortText: item.Text, SortStatus: (int)item.Status, SortDueDate: item.DueDate)).ToList());
         Select(_questionsGrid, questionId); Select(_followUpsGrid, followUpId);
         ShowEmpty(_questionsGrid, _questionsEmpty, questions.Count == 0); ShowEmpty(_followUpsGrid, _followUpsEmpty, followUps.Count == 0); UpdateDetails();
     }
@@ -122,7 +145,7 @@ public sealed class SessionsView : UserControl
         _questionsGrid.Columns[0].HeaderText = AppStrings.SessionQuestionText; _questionsGrid.Columns[1].HeaderText = AppStrings.SessionState;
         _followUpsGrid.Columns[0].HeaderText = AppStrings.SessionNextStep; _followUpsGrid.Columns[1].HeaderText = AppStrings.SessionState; _followUpsGrid.Columns[2].HeaderText = AppStrings.SessionDueDate;
         _sessionDetails.AccessibleName = AppStrings.Sessions; _questionDetails.AccessibleName = AppStrings.SessionAnswerNote; _followUpDetails.AccessibleName = AppStrings.SessionFollowUps;
-        UpdateDetails();
+        SetSessions(_sessions); SetDependents(_questions, _followUps);
     }
     private void UpdateDetails()
     {
@@ -179,7 +202,10 @@ public sealed class SessionsView : UserControl
         foreach (string property in properties) grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = property, MinimumWidth = 70, FillWeight = property is "Text" or "Title" ? 160 : 100, SortMode = DataGridViewColumnSortMode.NotSortable });
         return grid;
     }
-    private sealed record Row(Guid Id, string Time = "", string Title = "", string Status = "", string Text = "", string DueDate = "");
+    // Raw keys belong only to the display row. Local ordering must not parse translated
+    // dates/statuses or change the domain status of an archived session.
+    private sealed record Row(Guid Id, string Time = "", string Title = "", string Status = "", string Text = "", string DueDate = "",
+        DateTimeOffset? SortTime = null, int SortStatus = 0, DateOnly? SortDueDate = null, string? SortText = null, bool SortArchived = false);
     /// <summary>Includes archived parents in the normal workspace.</summary>
     public bool IncludeArchived => _showArchivedCheckBox.Checked;
     /// <summary>Explicit filter refresh command.</summary>
