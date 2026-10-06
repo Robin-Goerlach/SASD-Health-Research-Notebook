@@ -228,3 +228,88 @@ in beiden Sprachen wurden visuell geprüft:
 `.codex/synthetic-development-data/ui-tests/54fa780f01a94006875997e8cbb72c04/grid-*.png`.
 Geschützte Hashes weiterhin identisch; keine geschützte Datei wird gestagt.
 Remote-CI wird am gepushten Head geprüft, manuelle Abnahme bleibt offen.
+
+## Manuelle Regression: fokussierter Messwert-Edit (2026-10-06)
+
+Bei der noch offenen Nutzerabnahme wurde ein reproduzierbarer Fehler gefunden:
+Vitalwerte → Messart Blutdruck → vorhandenen Datensatz wählen → Bearbeiten →
+ein vorhandenes Thema statt „Kein Gesundheitsthema“ zuordnen → Speichern.
+Der Save war sichtbar erfolgreich, danach trat InvalidOperationException mit
+„reentrant call to SetCurrentCellAddressCore“ über DataGridView.OnEnter auf.
+PR #19 bleibt Draft, die Abnahme ist nicht abgeschlossen.
+
+### Technische Ursache und Korrektur
+
+Der neue realitätsnahe Test reproduzierte die Ausnahme gegen den unveränderten
+Produktionsstand, einschließlich SetCurrentCellAddressCore →
+SetAndSelectCurrentCellAddress → MakeFirstDisplayedCellCurrentCell → OnEnter →
+ContainerControl.UpdateFocusedControl. Entscheidend war der native Fokus auf
+„Bearbeiten“, wie ihn ein realer Mausklick herstellt und der nach dem Dialog
+zurückkehrt. Die bisherigen PerformClick-only-Tests stellten diesen Fokus nicht her.
+
+Beim Ersatz der DataSource wird CurrentRow vorübergehend null, während WinForms
+noch den aktuellen Zellwechsel verarbeitet. MeasurementsView reagierte ohne
+Binding-Guard auf CurrentCellChanged und deaktivierte den fokussierten Edit-Button.
+Dieser synchrone Fokuswechsel ließ das Grid über OnEnter erneut eine aktuelle Zelle
+setzen, bevor der erste SetCurrentCellAddressCore-Aufruf beendet war. Ein Schutz nur
+gegen Parent-Reloads genügt deshalb nicht; auch Command-Enabled-Zustände gehören
+zur geschützten Binding-Transaktion. Es war keine zweite Persistenzoperation und
+kein Scheduler-/Async-Stale-Problem.
+
+ThreeStateGridSort besaß bereits IsRebinding für DataSource-Ersatz und ID-Restoration.
+MeasurementsView, HealthTopicsView und TimelineView verwenden diesen selben Guard
+nun auch für Command-Updates bei CurrentCellChanged. Rebound aktualisiert Commands
+erst nach Rückkehr aus der nativen Bindung und ID-Selektion. Diese drei Views hatten
+den gleichen ungeschützten Pfad. Ihre zusätzlichen CurrentCell-Restore-Schleifen
+wurden entfernt: Die zentrale Hilfe erhält weiterhin die ID, neue Originalreihenfolge
+und aktive Sortierung. Kein konkurrierender Guard, BeginInvoke, Sleep, Produktions-
+Timer, Exception-Ignorieren oder Deaktivieren der Sortierung.
+
+Sessions/Actions/Sources verwendeten die zentrale Rebinding-Prüfung bereits. Quellen
+besitzen derzeit keinen Edit-Befehl und keine UpdateSource-API; für sie wird deshalb
+der vorhandene Fundstellen-Dialog mit anschließendem fokussiertem Refresh geprüft,
+statt für diese Korrektur ein neues Feature einzuführen.
+
+### Save und Datenintegrität
+
+CreateMeasurementForm wartet auf UpdateMeasurementAsync; erst danach setzt es OK
+und schließt. MainForm führt anschließend den read-only Reload aus. Die Ausnahme
+entstand in dieser späteren UI-Phase, weshalb die abgeschlossene JSON-Transaktion
+erhalten blieb. Im synthetischen Reproduktionsfall wurden die Integritätsprüfungen
+bereits vor der roten Exception-Prüfung bestanden: ein gezählter Repository-Update,
+korrekte HealthTopicId, unveränderte Id/CreatedAt, erhöhtes ModifiedAt, unveränderte
+andere Measurements und Anzahl/IDs ohne Duplikate. Das Backup entspricht bytegenau
+der vorherigen Primärdatei; ein neuer Repository-Leser liest die korrigierte JSON-
+Datei erfolgreich. Andere Storebytes und Dateiinventar bleiben unverändert.
+Es werden keine persönlichen Stores oder echten Gesundheitsdaten als Fixtures genutzt.
+
+### UI-GRID-002: automatisierter Edit-/Refresh-/Fokusnachweis
+
+GridEditFocusTests erstellt ein Thema und mehrere Measurements, darunter zwei
+BloodPressure-Datensätze. Der reale MainForm-/CreateMeasurementForm-Ablauf läuft
+mit BloodPressure-Filter, explizit fokussiertem Edit-/Save-Button und UI-Message-Pump:
+ohne Sortierung, Asc, Desc und nach Rückkehr zu Original, in DE und EN.
+Kontrolliert werden Exceptionfreiheit, keine transienten Command-Deaktivierungen
+innerhalb IsRebinding, einmaliger Save, Datenintegrität, Auswahl-ID, Filter, Reihenfolge,
+Glyph und sinnvoller Fokus. Weitere fokussierte Edits wechseln aus dem Filter;
+der verbleibende Datensatz und anschließend der echte Empty State werden geprüft.
+
+Gezielte Cross-View-Nachweise: echte fokussierte Topic-/Session-/Action-Edit-Dialoge
+mit aktiver Sortierung plus Refresh; Sources-Fundstellen-Dialog und kompletter
+Source-Refresh. ID und SortGlyph bleiben erhalten. Scoped Exception-Beobachter und
+Timer im Testharness erkennen Fehlerdialoge als Testfehler und verhindern CI-Hänger;
+sie unterdrücken keine Ausnahme im Produkt. Eine reine Renderprüfung ist kein Nachweis.
+
+Manuell erneut prüfen: denselben Blutdruck-/Themen-Edit nach sicherem Start in DE/EN,
+jeweils ohne Sortierung, Asc, Desc und Original; Filter, ausgewählte ID, Pfeile und
+Fokus nach Save/Refresh. Zusätzlich Topic-/Session-/Action-Edit und Quellen-Refresh
+mit realem Maus-/Tastaturfokus. Alle bisherigen offenen manuellen Punkte bleiben offen.
+
+Abschließender Korrektur-Nachweis (2026-10-06): vollständiger
+`Invoke-SafeDevelopment.ps1`-Lauf Exit 0, Release WinForms/WPF 0 Warnungen/Fehler,
+alle Backend-Smoke-Tests und DE/EN-WinForms-Regressionen grün, einschließlich
+UI-GRID-002 (vier Sortierzustände, Filteraustritt/Empty, fokussierte Cross-View-Dialoge),
+GridUxTests, MeasurementFilterTests und MeasurementFieldTests. Synthetischer UI-Lauf:
+`.codex/synthetic-development-data/ui-tests/d152cd66e6334379aa825622e2f9dc0e`.
+`git diff --check` erfolgreich; beide geschützten SHA-256 weiterhin unverändert.
+Remote-CI wird am Korrektur-Head abgewartet; erneute manuelle Abnahme bleibt offen.

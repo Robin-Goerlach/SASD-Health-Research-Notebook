@@ -52,6 +52,7 @@ internal static partial class Program
                     foreach (UiLanguage language in Enum.GetValues<UiLanguage>())
                     {
                         AppLanguage.SetLanguage(language);
+                        CheckMeasurementEditFocus(testPath, language);
                         CheckParentLifecycle(testPath, language);
                         CheckMeasurementFields(testPath, language);
                         CheckMeasurementTypeFilter(testPath, language);

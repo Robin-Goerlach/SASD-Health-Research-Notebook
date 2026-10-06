@@ -48,13 +48,16 @@ public sealed class TimelineView : UserControl
         _sort = new ThreeStateGridSort<TimelineRow>(_grid, row => row.Id)
             .Column(0, row => row.Data.OccurredAt).Column(1, row => row.Data.EntryType)
             .Text(2, row => row.Title).Text(3, row => row.Topic).Text(4, row => row.Data.Content);
+        _sort.Rebound += UpdateCommands;
         var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
         _editButton.TabIndex = 0; _deleteButton.TabIndex = 1; buttons.Controls.Add(_editButton); buttons.Controls.Add(_deleteButton);
         Controls.Add(list); Controls.Add(buttons);
         _editButton.Click += (_, _) => EditRequested?.Invoke(this, EventArgs.Empty);
         _deleteButton.Click += (_, _) => DeleteRequested?.Invoke(this, EventArgs.Empty);
-        _grid.CurrentCellChanged += (_, _) => _editButton.Enabled = _deleteButton.Enabled = _grid.CurrentRow is not null;
+        // Keep a focused lifecycle command enabled during transient empty binding rows.
+        // Rebound publishes command state after the shared ID-restoration transaction.
+        _grid.CurrentCellChanged += (_, _) => { if (!_sort.IsRebinding) UpdateCommands(); };
         ApplyTexts();
         SetEntries(Array.Empty<HealthEntrySummary>());
     }
@@ -72,18 +75,15 @@ public sealed class TimelineView : UserControl
     public void SetEntries(IReadOnlyList<HealthEntrySummary> entries)
     {
         _entries = entries;
-        Guid? selected = (_grid.CurrentRow?.DataBoundItem as TimelineRow)?.Id;
         _sort.SetRows(entries.Select(entry => new TimelineRow(entry.Id, AppStrings.FormatDateTime(entry.OccurredAt),
             AppStrings.HealthEntryTypeText(entry.EntryType), entry.Title,
             entry.HealthTopicTitle ?? (entry.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic),
             entry.Content.Length <= 160 ? entry.Content : entry.Content[..160] + "…", entry)).ToList());
-        _editButton.Enabled = _deleteButton.Enabled = entries.Count > 0;
         _grid.Visible = entries.Count > 0;
         _grid.TabStop = _grid.Visible;
         _emptyStateLabel.Visible = !_grid.Visible;
-        foreach (DataGridViewRow row in _grid.Rows)
-            if (row.DataBoundItem is TimelineRow item && item.Id == selected) _grid.CurrentCell = row.Cells[0];
     }
+    private void UpdateCommands() => _editButton.Enabled = _deleteButton.Enabled = _grid.CurrentRow is not null;
     private sealed record TimelineRow(Guid Id, string Time, string Type, string Title, string Topic, string Preview, HealthEntrySummary Data);
     /// <summary>Explicit selected-record edit command.</summary>
     public event EventHandler? EditRequested;

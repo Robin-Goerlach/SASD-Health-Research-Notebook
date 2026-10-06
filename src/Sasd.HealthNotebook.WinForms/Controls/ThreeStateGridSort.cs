@@ -15,7 +15,12 @@ internal sealed class ThreeStateGridSort<TRow>(DataGridView grid, Func<TRow, Gui
     private int? _activeColumn;
     private SortOrder _direction;
 
-    /// <summary>Views suppress transient selection events while rows are rebound.</summary>
+    /// <summary>
+    /// Covers the complete native DataSource/current-cell transition and ID restoration.
+    /// Views must suppress command-state changes as well as selection callbacks here:
+    /// disabling a focused button can transfer focus into DataGridView.OnEnter while
+    /// SetCurrentCellAddressCore is still running. Rebound is the safe publication point.
+    /// </summary>
     public bool IsRebinding { get; private set; }
     /// <summary>Refresh details once, after the stable ID has been restored.</summary>
     public event Action? Rebound;

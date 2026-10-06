@@ -1,7 +1,7 @@
 # 105 - Akzeptanzkriterien, Traceability und Quality Gates
 
 Projekt: SASD Health Research Notebook
-Stand: 2026-10-05
+Stand: 2026-10-06
 Dokumenttyp: Requirements-Traceability / Akzeptanz- und Release-Qualität
 Status: aktiv
 
@@ -16,6 +16,7 @@ Status: aktiv
 | FR-DASH-005, FR-UI-001 | UI-DASH-001: DE/EN Vorschau/Show all/Empty/Error, exakte Navigation, Refresh/Return/Stale, No-write, Minimum/Tastatur/Render. | automatisiert nachgewiesen; manuelle Abnahme offen |
 | FR-UI-002 | UI-NAV-001: alle sieben Tooltips DE/EN, Sprachwechsel, nicht leer/überlang, unveränderte Navigationsziele. | automatisierte Control-Prüfung; manuelle Tooltip-Abnahme offen (Dokument 154) |
 | FR-UI-003 | UI-GRID-001: typgerechte Text-/Datum-/Zahl-/Status-/Nullsortierung, stabile Ties, Zyklus mit viertem Klick, Pfeile, ID-Auswahl, Refresh/Sprachwechsel, alle vorhandenen Grids einschließlich Agenda und vollständiger Dialoge, No-write. | automatisierte Control-/Render-Prüfung; manuelle Grid-Abnahme offen (Dokument 154) |
+| FR-UI-003, FR-MEA-008, FR-LIF-001 | UI-GRID-002: echter fokussierter Blutdruck-Edit/Save mit Themenänderung und UI-Pump in DE/EN für Original/Asc/Desc/Rückkehr zu Original; kein reentrantes OnEnter, einmaliger Save, intakte Stores, ID/Filter/Sortierung/Fokus; Cross-View-Edits/Refresh. | Regression bei manueller Abnahme gefunden; automatisierter Rot-/Grün-Nachweis und vollständiger Safe-Lauf am 2026-10-06; erneute manuelle Abnahme offen (Dokument 154) |
 
 Details: [154](../development/154_Dashboard_Agenda_Slice_1.md).
 Offene manuelle Lifecycle-/Dashboardcount-/Action-Historiennachweise aus 153 bleiben offen.

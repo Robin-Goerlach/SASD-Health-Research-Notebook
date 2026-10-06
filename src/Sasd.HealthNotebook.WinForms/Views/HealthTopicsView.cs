@@ -119,7 +119,9 @@ public sealed class HealthTopicsView : UserControl
         _archiveButton.Click += (_, _) => ArchiveRequested?.Invoke(this, EventArgs.Empty);
         _deleteButton.Click += (_, _) => DeleteRequested?.Invoke(this, EventArgs.Empty);
         _showArchived.CheckedChanged += (_, _) => BindTopics();
-        _grid.CurrentCellChanged += (_, _) => UpdateCommands();
+        // A temporarily empty current row during binding must not disable a focused
+        // lifecycle command and transfer focus back into an unfinished grid transition.
+        _grid.CurrentCellChanged += (_, _) => { if (!_sort.IsRebinding) UpdateCommands(); };
         Controls.Add(_titleLabel);
 
         ApplyTexts();
@@ -159,7 +161,6 @@ public sealed class HealthTopicsView : UserControl
     private void BindTopics()
     {
         var summaries = _topics.Where(item => _showArchived.Checked || item.Status != Sasd.HealthNotebook.Domain.HealthTopicStatus.Archived);
-        Guid? selectedId = (_grid.CurrentRow?.DataBoundItem as HealthTopicGridRow)?.Id;
 
         var rows = summaries
             .Select(HealthTopicGridRow.FromSummary)
@@ -170,19 +171,8 @@ public sealed class HealthTopicsView : UserControl
         _grid.Visible = rows.Count != 0;
         _grid.TabStop = rows.Count != 0;
         if (_emptyStateLabel.Visible) { _emptyStateLabel.BringToFront(); }
-        if (_grid.Rows.Count > 0) _grid.CurrentCell = _grid.Rows[0].Cells[0]; else _grid.CurrentCell = null;
-        UpdateCommands();
-        if (selectedId.HasValue)
-        {
-            foreach (DataGridViewRow row in _grid.Rows)
-            {
-                if (row.DataBoundItem is HealthTopicGridRow topic && topic.Id == selectedId.Value)
-                {
-                    _grid.CurrentCell = row.Cells[0];
-                    break;
-                }
-            }
-        }
+        // The shared sorter has already restored the ID and updated commands after
+        // the native binding transition; no second CurrentCell restoration is needed.
     }
 
     private static DataGridViewTextBoxColumn CreateColumn(
