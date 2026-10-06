@@ -258,4 +258,11 @@ Lifecycle-Prüfungen und FR-ACT-006 ab. Frühere create-only-Abnahmen ersetzen d
 | FR-LIF-001/003, FR-UI-003 | Quellgenaue Commands/Token, Bestätigung, Auswahl/Sortierung | Bestehende Lifecycle-Regressionen |
 | PF-TIM-002 | Nicht umgesetzt | Filter bleiben Folgearbeit |
 
-Manuelle Abnahme und Scope: [Timeline 2](../development/156_Timeline_Slice_2.md).
+Manuelle Nutzerabnahme von Timeline 2 am 2026-10-06 erfolgreich bestätigt:
+gemeinsame Anzeige von HealthEntries/Measurements, Messwertkorrektur und
+Cancel/Confirm-Löschung aus der Chronik, Einheiten, DE/EN, Tastatur,
+Mindestgröße, Sortierung/Auswahl, Refresh und Neustart gemäß Slice-Prüfliste.
+Diese Bestätigung betrifft nur den Timeline-2-Teilumfang von PF-TIM-001/003/005,
+FR-LIF-001/003 und FR-UI-003. Sie bestätigt weder PF-TIM-002 noch allgemeine
+Lifecycle-, Privacy- oder Release-Gates anderer Module.
+Scope und Prüfliste: [Timeline 2](../development/156_Timeline_Slice_2.md).
