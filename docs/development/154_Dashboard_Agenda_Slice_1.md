@@ -1,6 +1,6 @@
 # 154 – Dashboard-Agenda Slice 1
 
-Stand: 2026-10-05. Basis: `5e67c74d828c3f143a140faf699f0e876e00199a`.
+Stand: 2026-10-06. Basis: `5e67c74d828c3f143a140faf699f0e876e00199a`.
 Branch: `feat/winforms-dashboard-agenda-slice-1`.
 
 ## Anforderungen und Akzeptanz vor Implementierung
@@ -21,7 +21,7 @@ Ascending → Descending → Original mit stabilen Gleichständen, ID-Selektion 
 nativen Pfeilen. Refresh ersetzt die Originalreihenfolge und erhält die aktive
 Sortierung; Sprachwechsel erhält Spalte/Richtung und lokalisiert die Anzeige neu.
 Tests prüfen Text, Datum, Zahl, Status, null/leer, Zyklus, Refresh, Sprache und
-bytegenau unveränderte Stores in DE/EN. Manuelle Abnahme bleibt offen.
+bytegenau unveränderte Stores in DE/EN. Bestätigter manueller Umfang siehe Schlussabschnitt.
 Vor UI-Implementierung werden diese Regeln in Application-Tests abgesichert.
 
 ## Architektur und Zeit
@@ -75,7 +75,8 @@ Persistenzbeziehung oder Cascading Deletes.
 Vor Änderung: Safe-Lauf grün, Release WinForms/WPF, Backend und DE/EN UI.
 Erster Sandbox-Lauf: MSBuild-Tempzugriff verweigert; identischer eskalierter Lauf grün.
 Geschützte Benutzerhashes unverändert. Weitere Nachweise folgen tatsächlichen Läufen.
-Manuelle Abnahme offen. Ältere offene Nachweise aus Dokument 153 bleiben offen.
+Zum ersten Checkpoint war die manuelle Abnahme offen. Bestätigter aktueller Umfang
+siehe Schlussabschnitt; ältere offene Nachweise aus Dokument 153 bleiben offen.
 
 Application-Checkpoint: Release-Lösung 0 Warnungen/Fehler; Backend-Smoke einschließlich
 UT-DASH-001/002/003 und IT-DASH-001 erfolgreich. Zu diesem Checkpoint war die
@@ -83,7 +84,7 @@ WinForms-Agenda noch nicht implementiert. Commit `2aac233`, gepusht, Draft PR #1
 Reale Persistenz wird nur gelesen; fehlender Store wird nicht angelegt, korrupter Store
 wirft und bleibt unverändert. Bestehende Primär-/Backup-Dateien und Inventar bleiben gleich.
 
-## Offene manuelle Prüfliste
+## Agenda-Prüfliste und Nachweisgrenzen
 
 Start ausschließlich mit synthetischen Daten:
 
@@ -108,8 +109,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDe
 8. Neustart lädt vorhandene Daten weiter. Kein neuer Store/Cache/Reminder, keine
    Änderung vorhandener Dateien allein durch Lesen. DPI/Fokus bei realem Desktop prüfen.
 
-Diese Liste ist keine Abnahmebestätigung. Automatische Controls und Renderbilder
-ersetzen weder die Nutzerabnahme dieses Slices noch offene ältere Nachweise aus 153.
+Diese vollständige Agenda-Prüfliste ist keine pauschale Abnahmebestätigung aller
+Einzelpunkte. Der unten dokumentierte Nutzerbericht bestätigt den dort genannten
+Umfang. Weitere Agenda-Randfälle sind automatisiert nachgewiesen, ohne daraus eine
+zusätzliche manuelle Einzelprüfung oder ältere Nachweise aus 153 abzuleiten.
 
 ## Abschlussvalidierung vor manueller Abnahme (2026-10-05)
 
@@ -132,7 +135,9 @@ kein vollständiger High-DPI-Nachweis. Keine Bilder mit echten Gesundheitsdaten.
 `.gitignore` SHA-256 `9A84AA3B5E4E9DF41A745F8BF9288C1059948047061503A8634C574DB788A3C6`;
 `CreateHealthTopicWizardForm.resx` SHA-256
 `4363CD7D5B8671C72442CE1A1BFC10D64EBD24B2D718B54BD4FCD025E4967298`.
-`.codex/` bleibt ignoriert. Kein Ready for Review, Merge oder nächster Slice autorisiert.
+`.codex/` bleibt ignoriert. An diesem historischen Checkpoint waren Ready for Review,
+Merge und nächster Slice nicht autorisiert. Der aktuelle Abschlussauftrag erlaubt
+Ready for Review nach erneuter Validierung, weiterhin keinen Merge oder neuen Slice.
 
 ## CI-Korrektur zur Mindestgröße
 
@@ -208,17 +213,20 @@ erhält Sortierzustand, Parent-Sortierung löst keine Zwischenloads aus, vollst�
 Agenda-Dialoge bleiben vollständig, Dateiinventar/Storebytes bleiben unverändert.
 Synthetische Renderbilder für Themen, Messwerte, Sessions und Agenda werden erzeugt.
 
-### Noch offene manuelle UX-Abnahme
+### Manueller UX-Abnahmestand (2026-10-06)
 
-- Alle sieben Navigationstooltips in DE/EN: tatsächliches Hover-Popup, Lesbarkeit,
-  keine abgeschnittenen Texte; Sprachwechsel und Navigation.
-- Themen, Messwerte, Sessions, Timeline, Quellen, Maßnahmen und Dashboard-Agenda:
-  Klick 1 Asc, Klick 2 Desc, Klick 3 Original; passende Pfeile und sinnvolle Auswahl.
-- Unterlisten/Alle-anzeigen-Dialoge, Sprachwechsel und Refresh mit aktiver Sortierung
-  und mit Original; Mindestgröße und reale Maus-/Tastaturbedienung, High-DPI.
-- Die zuvor offenen Agenda- sowie älteren Nachweise aus Dokument 153 bleiben offen.
+- Der Nutzer bestätigt Navigationstooltips, Tabellen-Sortierzyklus, SortGlyph,
+  Refresh, sinnvolle Auswahl und DE/EN sowie die vorhandene DPI-/Fensterdarstellung
+  aus der vorgelegten Wiederholungsprüfung als erfolgreich.
+- Dies bestätigt UI-NAV-001 und den genannten manuellen Umfang von UI-GRID-001.
+  Die vollständige automatisierte Matrix einschließlich Unterlisten/Alle-anzeigen,
+  Datentyp-Randfällen und verschiedener Fenstergrößen bleibt separat ausgewiesen.
+  Keine zusätzliche vollständige DPI-Matrix wird behauptet.
+- Agenda-spezifische Einzelprüfungen der obigen Liste werden nur soweit ausdrücklich
+  berichtet als manuell bestätigt; ältere offene Nachweise aus Dokument 153 bleiben offen.
 
-PR #19 bleibt Draft. Keine Ready-for-Review-Umschaltung oder Merge.
+Der Abschlussauftrag autorisiert Ready for Review nach Dokumentation und vollständiger
+erneuter Validierung; kein Merge und kein neuer Slice.
 
 Abschließender UX-Safe-Lauf: Exit 0, Release-Solution einschließlich WinForms/WPF
 mit 0 Warnungen/Fehlern; Backend sowie sämtliche DE/EN-UI-Regressionen und neue
@@ -227,7 +235,7 @@ Renderbilder mit aktiven Sortierpfeilen für Themen, Messwerte, Sessions und Age
 in beiden Sprachen wurden visuell geprüft:
 `.codex/synthetic-development-data/ui-tests/54fa780f01a94006875997e8cbb72c04/grid-*.png`.
 Geschützte Hashes weiterhin identisch; keine geschützte Datei wird gestagt.
-Remote-CI wird am gepushten Head geprüft, manuelle Abnahme bleibt offen.
+Dies war der automatisierte UX-Checkpoint vor der späteren manuellen Wiederholungsprüfung.
 
 ## Manuelle Regression: fokussierter Messwert-Edit (2026-10-06)
 
@@ -236,7 +244,7 @@ Vitalwerte → Messart Blutdruck → vorhandenen Datensatz wählen → Bearbeite
 ein vorhandenes Thema statt „Kein Gesundheitsthema“ zuordnen → Speichern.
 Der Save war sichtbar erfolgreich, danach trat InvalidOperationException mit
 „reentrant call to SetCurrentCellAddressCore“ über DataGridView.OnEnter auf.
-PR #19 bleibt Draft, die Abnahme ist nicht abgeschlossen.
+Zum Fehlerfund blieb PR #19 Draft; die Wiederholungsprüfung wurde anschließend durchgeführt.
 
 ### Technische Ursache und Korrektur
 
@@ -300,10 +308,10 @@ Source-Refresh. ID und SortGlyph bleiben erhalten. Scoped Exception-Beobachter u
 Timer im Testharness erkennen Fehlerdialoge als Testfehler und verhindern CI-Hänger;
 sie unterdrücken keine Ausnahme im Produkt. Eine reine Renderprüfung ist kein Nachweis.
 
-Manuell erneut prüfen: denselben Blutdruck-/Themen-Edit nach sicherem Start in DE/EN,
-jeweils ohne Sortierung, Asc, Desc und Original; Filter, ausgewählte ID, Pfeile und
-Fokus nach Save/Refresh. Zusätzlich Topic-/Session-/Action-Edit und Quellen-Refresh
-mit realem Maus-/Tastaturfokus. Alle bisherigen offenen manuellen Punkte bleiben offen.
+Die manuelle Wiederholungsprüfung desselben Blutdruck-/Themen-Edits wurde vom Nutzer
+erfolgreich bestätigt; der genaue Umfang folgt unten. Zusätzliche fokussierte
+Topic-/Session-/Action-Edits und Quellen-Refresh sind automatisiert nachgewiesen;
+eine gesonderte manuelle Cross-View-Abnahme wird daraus nicht abgeleitet.
 
 Abschließender Korrektur-Nachweis (2026-10-06): vollständiger
 `Invoke-SafeDevelopment.ps1`-Lauf Exit 0, Release WinForms/WPF 0 Warnungen/Fehler,
@@ -312,4 +320,47 @@ UI-GRID-002 (vier Sortierzustände, Filteraustritt/Empty, fokussierte Cross-View
 GridUxTests, MeasurementFilterTests und MeasurementFieldTests. Synthetischer UI-Lauf:
 `.codex/synthetic-development-data/ui-tests/d152cd66e6334379aa825622e2f9dc0e`.
 `git diff --check` erfolgreich; beide geschützten SHA-256 weiterhin unverändert.
-Remote-CI wird am Korrektur-Head abgewartet; erneute manuelle Abnahme bleibt offen.
+Beide Windows-CI-Läufe am Korrektur-Head `40eaf7d` waren erfolgreich
+(`37418699656`, `37418701774`). Die anschließende manuelle Wiederholungsprüfung
+ist im folgenden Abschnitt dokumentiert.
+
+## Bestätigte manuelle Wiederholungsprüfung und Abschlussauftrag (2026-10-06)
+
+Der Nutzer bestätigt die erfolgreiche Wiederholungsprüfung nach sicherem Start:
+Vitalwerte → Filter Blutdruck → vorhandenen Blutdruck-Datensatz wählen → Bearbeiten
+→ von „Kein Gesundheitsthema“ zu einem bestehenden Thema wechseln → Speichern.
+Kein Exception-Dialog und keine DataGridView-Reentrancy; der Edit-Dialog schließt
+normal, die Themenzuordnung ist korrekt, kein doppelter Datensatz entsteht.
+Filter Blutdruck und sinnvolle Auswahl bleiben erhalten, der Fokus verhält sich normal.
+
+UI-GRID-002 ist damit für diesen Ablauf manuell bestätigt: Original ohne aktive
+Sortierung, Asc, Desc und Rückkehr zu Original nach dem dritten Klick. Bestätigt sind
+außerdem konsistente Sortierung, korrekter SortGlyph, Refresh, Auswahl, DE/EN,
+Tabellen-Sortierzyklus, Navigationstooltips und vorhandene DPI-/Fensterdarstellung.
+FR-UI-002/UI-NAV-001 und FR-UI-003/UI-GRID-001 sind in diesem berichteten Umfang
+manuell akzeptiert. FR-DASH-005 erhält den entsprechenden UI-/Refresh-Nachweis;
+FR-DASH-001–004 sowie die weiteren Agenda-Navigations-, Fehler-, Zeit- und
+Persistenzrandfälle bleiben durch ihre automatisierten Tests belegt, ohne eine
+nicht berichtete manuelle Einzelprüfung zu behaupten.
+
+Ausdrücklich weiterhin offen aus Dokument 153: die vollständige ältere Lifecycle-
+Prüfliste für Measurement/HealthEntry/Session/HealthAction/Routine/ProgressEntry,
+Dashboard-Lifecyclezählungen, FR-ACT-006-Revisionshistorie sowie die einzelne
+Referenzarten-/Concurrency-Matrix von IT-LIF-002. Bereits früher akzeptierte Punkte
+aus 153 werden nicht wieder geöffnet und offene Punkte nicht pauschal geschlossen.
+
+Der Nutzer autorisiert ausschließlich die notwendigen Akzeptanz-/Dokumentations-
+änderungen, Commit/Push und Ready for Review nach erneutem vollständigem Safe-Lauf
+und anschließender vollständiger CI-Prüfung. Kein Merge, kein neuer Slice.
+
+Erneute Abschlussvalidierung am 2026-10-06: vollständiger
+`powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1"`
+erfolgreich (Exit 0). Release-Lösung einschließlich WinForms/WPF: 0 Warnungen,
+0 Fehler. Alle Backend-Smoke-Tests und sämtliche DE/EN-WinForms-Regressionen grün,
+einschließlich Dashboard-Agenda, Navigationstooltips, GridUxTests, GridEditFocusTests,
+MeasurementFilterTests, MeasurementFieldTests, Sessions, Sources und HealthActions.
+Synthetischer UI-Testlauf: `.codex/synthetic-development-data/ui-tests/316a99f0f84d420a8ba543c47d92185d`.
+`git diff --check` erfolgreich. Beide oben dokumentierten geschützten SHA-256
+unverändert; `.codex/` ignoriert. Ausschließlich Dokument 154 und Traceability 105
+werden für diesen Abschluss committed. Remote-CI wird am neuen Dokumentations-Head
+vollständig abgewartet und im PR dokumentiert.
