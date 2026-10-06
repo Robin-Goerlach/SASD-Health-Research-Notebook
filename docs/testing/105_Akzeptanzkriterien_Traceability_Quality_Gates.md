@@ -248,3 +248,14 @@ in den früheren Slice-Zeilen. Keine allgemeine Audit- oder Parent-Löschplattfo
 PR #18: Ready for Review nach autorisiertem Abschlusslauf/Push; kein Merge.
 Dokument 153 grenzt die bestätigte manuelle Abnahme von den weiterhin offenen älteren
 Lifecycle-Prüfungen und FR-ACT-006 ab. Frühere create-only-Abnahmen ersetzen diese nicht.
+
+## Traceability – Timeline Slice 2
+
+| Requirement | Nachweis | Abgrenzung |
+|---|---|---|
+| PF-TIM-001/003 | Gemeinsame HealthEntry-/Measurement-Projektion; IT-TIM-002, UI-TIM-002 | Weitere Ereignisquellen offen |
+| PF-TIM-005, FR-GEN-003/007 | Rein dokumentative Anzeige; keine Interpretation oder Logs | Keine medizinischen Regeln |
+| FR-LIF-001/003, FR-UI-003 | Quellgenaue Commands/Token, Bestätigung, Auswahl/Sortierung | Bestehende Lifecycle-Regressionen |
+| PF-TIM-002 | Nicht umgesetzt | Filter bleiben Folgearbeit |
+
+Manuelle Abnahme und Scope: [Timeline 2](../development/156_Timeline_Slice_2.md).

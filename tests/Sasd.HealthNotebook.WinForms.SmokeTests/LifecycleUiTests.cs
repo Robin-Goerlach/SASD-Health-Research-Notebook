@@ -57,6 +57,23 @@ internal static partial class Program
                 Assert(view.SelectedMeasurement?.Id == measurement.Id && view.SelectedMeasurement.OccurredAt.EqualsExact(time), "Measurement edit lost selection/time precision.");
                 NavigateLifecycle(shell, "_timelineButton");
                 var timeline = Field<TimelineView>(shell, "_timelineView");
+                var timelineGrid = Field<DataGridView>(timeline, "_grid");
+                var measurementRow = timelineGrid.Rows.Cast<DataGridViewRow>().Single(row => Equals(row.Cells[1].Value, AppStrings.Measurements));
+                timelineGrid.CurrentCell = measurementRow.Cells[0];
+                LifecycleDialog<CreateMeasurementForm>(Field<Button>(timeline, "_editButton"), dialog =>
+                {
+                    Assert(Field<TextBox>(dialog, "_valueTextBox").Text == 13.5.ToString("R", AppStrings.MeasurementCulture),
+                        "Mixed timeline opened the wrong measurement.");
+                    Field<TextBox>(dialog, "_noteTextBox").Text = "Synthetic timeline correction";
+                    ((Button)dialog.AcceptButton!).PerformClick();
+                });
+                WaitForReload(shell);
+                Assert(timeline.SelectedItem?.Measurement?.Measurement.Id == measurement.Id
+                    && timeline.SelectedItem.Measurement.Measurement.Note == "Synthetic timeline correction",
+                    "Mixed timeline edit lost source or selection.");
+                var entryRow = timelineGrid.Rows.Cast<DataGridViewRow>().Single(row => !Equals(row.Cells[1].Value, AppStrings.Measurements));
+                timelineGrid.CurrentCell = entryRow.Cells[0];
+
                 LifecycleDialog<CreateHealthEntryForm>(Field<Button>(timeline, "_editButton"), dialog =>
                 {
                     Assert(dialog.Text == AppStrings.EditEntry && Field<TextBox>(dialog, "_contentTextBox").Text == entry.Content, "Entry editor wrong content.");
@@ -121,9 +138,14 @@ internal static partial class Program
             NavigateLifecycle(restarted, "_measurementsButton");
             var mv = Field<MeasurementsView>(restarted, "_measurementsView");
             Assert(mv.SelectedMeasurement?.Id == measurement.Id && mv.SelectedMeasurement.Value == 13.5, "Measurement correction lost on restart.");
-            ConfirmLifecycleDelete(Field<Button>(mv, "_deleteButton"), false);
+            NavigateLifecycle(restarted, "_timelineButton");
+            var mixedView = Field<TimelineView>(restarted, "_timelineView");
+            var mixedGrid = Field<DataGridView>(mixedView, "_grid");
+            mixedGrid.CurrentCell = mixedGrid.Rows.Cast<DataGridViewRow>().Single(row => Equals(row.Cells[1].Value, AppStrings.Measurements)).Cells[0];
+            ConfirmLifecycleDelete(Field<Button>(mixedView, "_deleteButton"), false);
             Assert(mv.SelectedMeasurement?.Id == measurement.Id && Task.Run(() => new JsonMeasurementRepository().GetAllAsync()).GetAwaiter().GetResult().Count == 1, "Cancel deleted measurement.");
-            ConfirmLifecycleDelete(Field<Button>(mv, "_deleteButton"), true);
+            ConfirmLifecycleDelete(Field<Button>(mixedView, "_deleteButton"), true);
+            NavigateLifecycle(restarted, "_measurementsButton");
             PumpUntil(() => mv.SelectedMeasurement is null, "measurement deletion selection");
             Assert(!Field<Button>(mv, "_deleteButton").Enabled, "Delete remains enabled on empty list.");
             NavigateLifecycle(restarted, "_timelineButton");

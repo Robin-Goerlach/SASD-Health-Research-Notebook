@@ -20,6 +20,13 @@ public sealed partial class MainForm
         });
         _timelineView.EditRequested += async (_, _) => await WithLifecycleErrorAsync(async () =>
         {
+            if (_timelineView.SelectedItem?.Measurement is { } selectedMeasurement)
+            {
+                using var measurementDialog = new CreateMeasurementForm(_measurementService,
+                    await _healthTopicService.GetTopicSummariesAsync(), selectedMeasurement.Measurement);
+                if (measurementDialog.ShowDialog(this) == DialogResult.OK) await ReloadSafeAsync();
+                return;
+            }
             var id = _timelineView.SelectedEntryId; if (!id.HasValue) return;
             var item = await _healthEntryService.GetByIdAsync(id.Value);
             using var dialog = new CreateHealthEntryForm(_healthEntryService, await _healthTopicService.GetTopicSummariesAsync(), item);
@@ -27,6 +34,14 @@ public sealed partial class MainForm
         });
         _timelineView.DeleteRequested += async (_, _) => await WithLifecycleErrorAsync(async () =>
         {
+            if (_timelineView.SelectedItem?.Measurement is { } selectedMeasurement)
+            {
+                var measurement = selectedMeasurement.Measurement;
+                if (!ConfirmDeletion(AppStrings.DeleteMeasurementLabel(measurement.OccurredAt))) return;
+                await _measurementService.DeleteMeasurementAsync(measurement.Id, measurement.ModifiedAt);
+                await ReloadSafeAsync();
+                return;
+            }
             var item = _timelineView.SelectedEntry; if (item is null) return;
             if (!ConfirmDeletion(AppStrings.DeleteEntryLabel(item.Title))) return;
             await _healthEntryService.DeleteHealthEntryAsync(item.Id, item.ModifiedAt); await ReloadSafeAsync();

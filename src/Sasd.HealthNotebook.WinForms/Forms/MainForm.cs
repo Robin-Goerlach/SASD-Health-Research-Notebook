@@ -237,7 +237,7 @@ public sealed partial class MainForm : Form
         _agendaPresenter = new DashboardAgendaPresenter(_sessionService, _agendaView);
         _dashboardPage = CreateDashboardPage();
         _timelineView = new TimelineView();
-        _timelinePresenter = new TimelinePresenter(_healthEntryService, _timelineView);
+        _timelinePresenter = new TimelinePresenter(new TimelineService(_healthEntryService, _measurementService), _timelineView);
         _sourcesView = new SourcesView();
         _sourcesPresenter = new SourcesPresenter(_sourceService, _sourcesView);
         _measurementsView = new MeasurementsView();

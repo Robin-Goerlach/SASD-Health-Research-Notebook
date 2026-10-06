@@ -18,7 +18,7 @@ public static partial class AppStrings
     /// <summary>Timeline main action.</summary>
     public static string NewTimelineEntry => Text("New timeline entry", "Neuer Verlaufseintrag");
     /// <summary>Timeline explanatory text.</summary>
-    public static string TimelineDescription => Text("Your notes, observations and research, newest event first.", "Ihre Notizen, Beobachtungen und Recherchen, neueste Ereignisse zuerst.");
+    public static string TimelineDescription => Text("Your notes, observations, research and measurements, newest event first.", "Ihre Notizen, Beobachtungen, Recherchen und Messwerte, neueste Ereignisse zuerst.");
     /// <summary>Empty timeline hint.</summary>
     public static string TimelineEmpty => Text("No entries yet. Choose New timeline entry to add a note.", "Noch keine Einträge. Mit Neuer Verlaufseintrag eine Notiz erfassen.");
     /// <summary>Documented event time label.</summary>
