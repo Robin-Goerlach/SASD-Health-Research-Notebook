@@ -12,7 +12,7 @@ A working .NET desktop application baseline already exists with:
 
 - layered Domain / Application / Infrastructure projects;
 - a local JSON-backed HealthTopic repository;
-- a WinForms timeline for notes, observations and research entries, stored separately in `health-entries.json`;
+- a shared WinForms timeline for notes, observations, research entries and measurements ([Timeline 2](docs/development/156_Timeline_Slice_2.md), manually accepted), using the existing measurement store alongside `health-entries.json`;
 - a WinForms source workspace with exact locations and source notes, separating original excerpts from personal summaries in a versioned `sources.json` store (Slice 1; manually accepted);
 - a WinForms measurement workspace for blood pressure (separate systolic/diastolic values and optional pulse), pulse, body temperature, blood glucose and weight, with explicit fixed units in a separate `measurements.json` store (Slice 1; manually accepted);
 - a WinForms session workspace for appointments, ordered questions with separate answer notes and user-entered follow-ups with optional due dates in `sessions.json` (Slice 1; manually accepted);

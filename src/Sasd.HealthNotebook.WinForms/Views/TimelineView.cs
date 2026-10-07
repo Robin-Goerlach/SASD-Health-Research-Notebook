@@ -13,7 +13,7 @@ public sealed class TimelineView : UserControl
     private readonly DataGridView _grid;
     private readonly ThreeStateGridSort<TimelineRow> _sort;
     private readonly Label _emptyStateLabel;
-    private IReadOnlyList<HealthEntrySummary> _entries = Array.Empty<HealthEntrySummary>();
+    private IReadOnlyList<TimelineItem> _entries = Array.Empty<TimelineItem>();
     /// <summary>Creates a responsive timeline with a readable empty state.</summary>
     public TimelineView()
     {
@@ -45,9 +45,9 @@ public sealed class TimelineView : UserControl
         for (int index = 0; index < properties.Length; index++)
             _grid.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = properties[index],
                 MinimumWidth = widths[index], FillWeight = index == 2 || index == 4 ? 25 : 16, SortMode = DataGridViewColumnSortMode.NotSortable });
-        _sort = new ThreeStateGridSort<TimelineRow>(_grid, row => row.Id)
-            .Column(0, row => row.Data.OccurredAt).Column(1, row => row.Data.EntryType)
-            .Text(2, row => row.Title).Text(3, row => row.Topic).Text(4, row => row.Data.Content);
+        _sort = new ThreeStateGridSort<TimelineRow>(_grid, row => row.SelectionId)
+            .Column(0, row => row.Data.OccurredAt).Text(1, row => row.Type)
+            .Text(2, row => row.Title).Text(3, row => row.Topic).Text(4, row => row.FullContent);
         _sort.Rebound += UpdateCommands;
         var list = new Panel { Dock = DockStyle.Fill, TabIndex = 1 }; list.Controls.Add(_grid); list.Controls.Add(_emptyStateLabel);
         var buttons = new FlowLayoutPanel { Dock = DockStyle.Top, Height = 48, WrapContents = false, TabIndex = 0 };
@@ -69,29 +69,55 @@ public sealed class TimelineView : UserControl
         string[] headers = { AppStrings.EntryTime, AppStrings.EntryType, AppStrings.ColumnTitle,
             AppStrings.HealthTopics, AppStrings.EntryContent };
         for (int index = 0; index < headers.Length; index++) _grid.Columns[index].HeaderText = headers[index];
-        SetEntries(_entries);
+        SetItems(_entries);
     }
     /// <summary>Displays chronologically ordered application summaries; retains selection by ID.</summary>
     public void SetEntries(IReadOnlyList<HealthEntrySummary> entries)
     {
+        SetItems(entries.Select(entry => new TimelineItem(entry, null)).ToList());
+    }
+    private readonly Dictionary<(bool Measurement, Guid Id), Guid> _selectionIds = new();
+    /// <summary>Displays both source kinds; retains selection even when source IDs collide.</summary>
+    public void SetItems(IReadOnlyList<TimelineItem> entries)
+    {
+        ArgumentNullException.ThrowIfNull(entries);
         _entries = entries;
-        _sort.SetRows(entries.Select(entry => new TimelineRow(entry.Id, AppStrings.FormatDateTime(entry.OccurredAt),
-            AppStrings.HealthEntryTypeText(entry.EntryType), entry.Title,
-            entry.HealthTopicTitle ?? (entry.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic),
-            entry.Content.Length <= 160 ? entry.Content : entry.Content[..160] + "…", entry)).ToList());
+        _sort.SetRows(entries.Select(item =>
+        {
+            var key = (item.Entry is null, item.Id);
+            if (!_selectionIds.TryGetValue(key, out var selectionId))
+                _selectionIds[key] = selectionId = Guid.NewGuid();
+            var measurement = item.Measurement?.Measurement;
+            string title = item.Entry?.Title ?? AppStrings.MeasurementTypeText(measurement!.MeasurementType);
+            string preview = item.Entry?.Content ?? MeasurementPreview(measurement!)
+                + (string.IsNullOrEmpty(measurement?.Note) ? "" : " · " + measurement?.Note);
+            return new TimelineRow(item.Id, AppStrings.FormatDateTime(item.OccurredAt),
+                item.Entry is not null ? AppStrings.HealthEntryTypeText(item.Entry.EntryType) : AppStrings.Measurements,
+                title, item.HealthTopicTitle ?? (item.HealthTopicId.HasValue ? AppStrings.MissingEntryTopic : AppStrings.NoEntryTopic),
+                preview.Length <= 160 ? preview : preview[..160] + "…", item, selectionId, preview);
+        }).ToList());
         _grid.Visible = entries.Count > 0;
         _grid.TabStop = _grid.Visible;
         _emptyStateLabel.Visible = !_grid.Visible;
     }
+    private static string MeasurementPreview(Sasd.HealthNotebook.Domain.Measurement measurement)
+    {
+        string values = AppStrings.FormatMeasurementValues(measurement);
+        string unit = " " + AppStrings.MeasurementUnitText(measurement.Unit);
+        int lineBreak = values.IndexOf(Environment.NewLine, StringComparison.Ordinal);
+        return lineBreak < 0 ? values + unit : values.Insert(lineBreak, unit);
+    }
     private void UpdateCommands() => _editButton.Enabled = _deleteButton.Enabled = _grid.CurrentRow is not null;
-    private sealed record TimelineRow(Guid Id, string Time, string Type, string Title, string Topic, string Preview, HealthEntrySummary Data);
+    private sealed record TimelineRow(Guid Id, string Time, string Type, string Title, string Topic, string Preview, TimelineItem Data, Guid SelectionId, string FullContent);
     /// <summary>Explicit selected-record edit command.</summary>
     public event EventHandler? EditRequested;
     /// <summary>Explicit selected-record delete command; shell confirms before the use case.</summary>
     public event EventHandler? DeleteRequested;
+    /// <summary>Exact source snapshot selected in the mixed timeline.</summary>
+    public TimelineItem? SelectedItem => (_grid.CurrentRow?.DataBoundItem as TimelineRow)?.Data;
     /// <summary>Selected timeline identity.</summary>
-    public Guid? SelectedEntryId => (_grid.CurrentRow?.DataBoundItem as TimelineRow)?.Id;
+    public Guid? SelectedEntryId => SelectedItem?.Entry?.Id;
     /// <summary>Exact displayed record and conflict token for deletion.</summary>
-    public HealthEntrySummary? SelectedEntry => _entries.SingleOrDefault(item => item.Id == SelectedEntryId);
+    public HealthEntrySummary? SelectedEntry => SelectedItem?.Entry;
 
 }

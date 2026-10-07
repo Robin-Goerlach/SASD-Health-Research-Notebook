@@ -37,7 +37,7 @@ public sealed class HealthEntryService
             .OrderByDescending(entry => entry.OccurredAt).ThenByDescending(entry => entry.CreatedAt).ThenBy(entry => entry.Id)
             .Select(entry => new HealthEntrySummary(entry.Id, entry.HealthTopicId,
                 entry.HealthTopicId.HasValue && topics.TryGetValue(entry.HealthTopicId.Value, out var topic) ? topic.Title : null,
-                entry.EntryType, entry.OccurredAt, entry.Title, entry.Content) { ModifiedAt = entry.ModifiedAt }).ToList();
+                entry.EntryType, entry.OccurredAt, entry.Title, entry.Content) { ModifiedAt = entry.ModifiedAt, CreatedAt = entry.CreatedAt }).ToList();
     }
 
     /// <summary>Loads an exact selected record for editing, including technical timestamps.</summary>

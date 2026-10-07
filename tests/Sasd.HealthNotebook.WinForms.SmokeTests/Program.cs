@@ -193,7 +193,7 @@ internal static partial class Program
     private static void CheckTimeline(HealthTopicService topics, string testPath, UiLanguage language)
     {
         var entries = CreateEntryService();
-        int beforeCount = entries.GetEntriesAsync().GetAwaiter().GetResult().Count;
+        int beforeCount = new TimelineService(entries, CreateMeasurementService()).GetItemsAsync().GetAwaiter().GetResult().Count;
         using var form = new MainForm(topics, entries, CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
         ShowOffScreen(form);
         form.Size = form.MinimumSize;

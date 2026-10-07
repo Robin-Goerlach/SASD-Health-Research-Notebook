@@ -79,6 +79,24 @@ internal static partial class Program
             view.SetEntries(cultureEntries);
             Cycle(grid, 2, new[] { entries[2].Id, entries[1].Id, entries[0].Id }, new[] { entries[0].Id, entries[1].Id, entries[2].Id });
         }
+        using (var view = new TimelineView())
+        {
+            Attach(view);
+            var entry = new HealthEntrySummary(Guid.NewGuid(), null, null, HealthEntryType.Note,
+                time, "CODEX TEST – Mixed", "Synthetic") { ModifiedAt = time };
+            var measurement = Measurement.Create(MeasurementType.BloodPressure, time.AddHours(1),
+                systolic: 100, diastolic: 60, pulse: 42) with { Id = entry.Id };
+            var mixed = new[] { new TimelineItem(null, new MeasurementSummary(measurement, null)), new TimelineItem(entry, null) };
+            view.SetItems(mixed);
+            var grid = Field<DataGridView>(view, "_grid");
+            Assert(grid.Rows.Count == 2 && view.SelectedItem!.Measurement is not null, "Mixed timeline source lost.");
+            Header(grid, 0);
+            Assert(view.SelectedItem!.Measurement is not null && view.SelectedEntry is null, "Colliding source IDs changed selection.");
+            view.ApplyTexts();
+            Assert(view.SelectedItem!.Measurement!.Measurement.ModifiedAt == measurement.ModifiedAt, "Mixed refresh lost source token.");
+            Assert(grid.Rows.Cast<DataGridViewRow>().Any(row => row.Cells[4].Value.ToString()!.Contains("mmHg")), "Pressure unit missing.");
+            Capture(host, Path.Combine(testPath, $"timeline-mixed-{language}.png"));
+        }
         using (var view = new MeasurementsView())
         {
             Attach(view);
