@@ -5,6 +5,17 @@ Stand: 2026-10-06
 Dokumenttyp: Requirements-Traceability / Akzeptanz- und Release-Qualität
 Status: aktiv
 
+## HealthTopic Wizard Completion
+
+| Anforderungen | Acceptance | Status |
+|---|---|---|
+| PF-WIZ-001/004/007, PF-CON-001 (Create), FR-UI-001 | UI-WIZARD-002: vier echte Schritte, fünf Eingaben, Review DE/EN, keine Diagnose; Title-/Enum-/Längenprüfung, Back/Forward, Cancel ohne Persistenz, Double Finish, Guid/Zeitstempel, JSON-/Shell-Reload mit ID-Auswahl einschließlich Archivfilter und Rebinding-Guard. | Automatisiert nachgewiesen am 2026-10-07; Ergebnisse in [157](../development/157_HealthTopic_Wizard_Completion.md); manuelle Abnahme offen. |
+| PF-WIZ-003 (begrenzter Umfang) | Beschreibung/Notizen optional, leere optionale Schritte blockieren nicht. | UI-WIZARD-002; keine Aussage zu späteren Fachschritten. |
+
+PF-WIZ-002 (persistente Entwürfe) und PF-WIZ-005/006 bleiben außerhalb dieses Slices.
+Der aktuelle Auftrag verlangt Cancel ohne Persistenz; dokumentierte Vorrangentscheidung in 157.
+Die frühere manuelle Baseline-Abnahme gilt nicht automatisch für diesen neuen Ablauf.
+
 ## Dashboard-Agenda Slice 1
 
 | Anforderungen | Acceptance | Status |
