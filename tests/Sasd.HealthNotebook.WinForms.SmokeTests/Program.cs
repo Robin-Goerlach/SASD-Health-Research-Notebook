@@ -147,39 +147,6 @@ internal static partial class Program
         form.Close();
     }
 
-    // UI-WIZARD-001: basic editors, keyboard order and real create/reload through shared JSON.
-    private static void CheckWizard(HealthTopicService service, string testPath, UiLanguage language)
-    {
-        using var wizard = new CreateHealthTopicWizardForm(service);
-        wizard.Size = wizard.MinimumSize;
-        ShowOffScreen(wizard);
-        TextBox title = Field<TextBox>(wizard, "_titleTextBox");
-        foreach (string field in new[] { "_titleTextBox", "_statusComboBox", "_priorityComboBox", "_shortDescriptionTextBox" })
-        {
-            AssertWithinParent(Field<Control>(wizard, field));
-        }
-        Assert(title.TabIndex < Field<ComboBox>(wizard, "_statusComboBox").TabIndex, "Title must precede status in tab order.");
-        AssertWithinParent(Field<Button>(wizard, "_nextButton"));
-        Assert(wizard.AcceptButton == Field<Button>(wizard, "_nextButton") && wizard.CancelButton is not null,
-            "Wizard Enter/Escape commands are missing.");
-        Capture(wizard, Path.Combine(testPath, $"wizard-{language}-minimum.png"));
-        string syntheticTitle = $"Synthetic UI workflow {language}";
-        title.Text = syntheticTitle;
-        var steps = Field<ListBox>(wizard, "_stepsListBox");
-        steps.SelectedIndex = steps.Items.Count - 1;
-        Field<Button>(wizard, "_nextButton").PerformClick();
-        PumpUntil(() => wizard.IsDisposed || wizard.DialogResult == DialogResult.OK, "wizard save");
-        var reloaded = new HealthTopicService(new JsonHealthTopicRepository()).GetTopicSummariesAsync().GetAwaiter().GetResult();
-        Assert(reloaded.Any(topic => topic.Title == syntheticTitle), "Wizard topic did not survive repository recreation.");
-        using var restarted = new MainForm(new HealthTopicService(new JsonHealthTopicRepository()), CreateEntryService(), CreateSourceService(), CreateMeasurementService(), CreateSessionService(), CreateHealthActionService());
-        ShowOffScreen(restarted);
-        WaitForReload(restarted);
-        var reloadedGrid = Field<DataGridView>(Field<HealthTopicsView>(restarted, "_dashboardTopicsView"), "_grid");
-        Assert(reloadedGrid.Rows.Count == reloaded.Count, "Recreated shell did not load persisted wizard topics.");
-        Capture(restarted, Path.Combine(testPath, $"after-create-{language}.png"));
-        restarted.Close();
-    }
-
     private static void WaitForReload(MainForm form)
     {
         Task reload = (Task)form.GetType().GetMethod("ReloadSafeAsync", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(form, null)!;

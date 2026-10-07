@@ -1,9 +1,63 @@
 # 105 - Akzeptanzkriterien, Traceability und Quality Gates
 
 Projekt: SASD Health Research Notebook
-Stand: 2026-10-06
+Stand: 2026-10-07
 Dokumenttyp: Requirements-Traceability / Akzeptanz- und Release-Qualität
 Status: aktiv
+
+## HealthTopic Grunddaten-Wizard / Wizard Completion Baseline (PR #21)
+
+Der akzeptierte Scope umfasst ausschließlich Grunddaten, Einordnung, Notizen,
+Zusammenfassung, Validierung, Zurück/Weiter, Abbruch, einmaliges Speichern, DE/EN,
+Auswahl nach Erstellung und Fokus-/Reentrancy-Sicherheit. Der fachlich vollständige
+Wizard gemäß Pflichtenheft ist nicht abgeschlossen.
+
+| Anforderung | Priorität | Status nach PR #21 / Nachweis |
+|---|---|---|
+| PF-WIZ-001 | MUSS | Abgedeckt: Create-Wizard öffnen und ein HealthTopic anlegen; UI-WIZARD-002. |
+| PF-WIZ-002 | MUSS | Teilweise: Schrittfolge vorhanden; persistente Entwürfe und später fortsetzen offen. |
+| PF-WIZ-003 | MUSS | Teilweise: optionale Eingaben blockieren nicht; direkte Schrittauswahl / explizites Überspringen offen. |
+| PF-WIZ-004 | MUSS | Für den aktuellen Grunddatenumfang abgedeckt: Review aller fünf Felder; UI-WIZARD-002. Keine vollständige Paket-Review behauptet. |
+| PF-WIZ-005 | MUSS | Offen: gemeinsame Erfassung und korrekte Verknüpfung mehrerer Fachobjekte. |
+| PF-WIZ-006 | SOLL | Offen: Vorlagen. |
+| PF-WIZ-007 | MUSS | Abgedeckt: nicht-diagnostischer Starthinweis; UI-WIZARD-002. |
+
+PF-CON-001 (Create-Teilumfang) und FR-UI-001 sind im aktuellen Grunddatenumfang
+über UI-WIZARD-002 automatisiert belegt: Längen-/Enum-/Titelprüfung, Back/Forward,
+Cancel ohne Persistenz, Double Finish, Guid/Zeitstempel, Shell-/JSON-Reload mit
+ID-Auswahl einschließlich Archivfilter und Rebinding-Guard. Weitere Nachweise: [157](../development/157_HealthTopic_Wizard_Completion.md).
+
+### Offene fachliche Wizard-Inhalte
+
+| Fachlicher Wizard-Inhalt | Priorität / Bezug | Status nach PR #21 |
+|---|---|---|
+| Persistente Entwürfe und später fortsetzen | MUSS, PF-WIZ-002 | Offen; nur die Schrittfolge ist umgesetzt. |
+| Direkte Schrittauswahl / explizites Überspringen | MUSS, PF-WIZ-003 | Offen; optionale Eingaben dürfen leer bleiben, daher nur teilweise erfüllt. |
+| Gemeinsame Erfassung und korrekte Verknüpfung mehrerer Fachobjekte | MUSS, PF-WIZ-005; PF-CON-006 | Offen; der Grunddaten-Wizard erzeugt ausschließlich ein HealthTopic. |
+| Symptome / erste Beobachtungen im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.4; PF-SYM-001/002/003 | Offen; das vorhandene Timeline-Modul ersetzt diese Wizard-Integration nicht. |
+| Dokumente / Anhänge im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.5; PF-DOC-001 bis 005 | Offen; Import, Vormerkung und Verknüpfung sind Folgearbeit. |
+| Quellen im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.6; PF-SRC-001/002/003 | Offen; das separate Quellen-Modul erfüllt nicht die Erfassung während der Themenanlage. |
+| Offene Fragen im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.7; PF-APT-002/003 | Offen; Freitextnotizen und sessionbezogene Fragen ersetzen keinen strukturierten Wizard-Fragenbestand. |
+| Erweiterte HealthTopic-Grunddaten, soweit MUSS | PF-CON-002: Startdatum; PF-CON-003: Synonyme; PF-CON-004: Tags; Basisdaten nach 11.4.2/11.4.3 | Offen im jeweiligen erweiterten Umfang; die fünf vorhandenen Felder decken diese Anforderungen nicht vollständig ab. Optionale Benutzereingabe hebt die geforderte Unterstützung nicht auf. |
+| Kontakte im Wizard | SOLL, Pflichtenheft 11.4.2 | Offen; keine ContactReference-Erweiterung in PR #21. |
+| Medikamente / Maßnahmen im Wizard | SOLL, Pflichtenheft 11.4.2; PF-MED-001 bis 005 | Offen; separate HealthActions sind kein Nachweis der vollständigen Wizard-/Medikamentenfunktion. |
+| Messwerte / Laborwerte im Wizard | SOLL, Pflichtenheft 11.4.2; PF-MEA-001 bis 004 | Offen; bestehendes Messwerte-Modul bleibt unabhängig verfügbar. |
+| Vorlagen | SOLL, PF-WIZ-006 | Offen; die KANN-Einstufung im älteren Backlog wird nicht zum Herabstufen der PF-WIZ-Anforderung verwendet. |
+| Weitere Datenschutz-/Sensibilitätsangaben | SOLL für Schritt Risiken/Datenschutz nach 11.4.2; Angaben nach 11.4.3 | Offen; vorhandene Sicherheitsgrenzen bleiben verbindlich. |
+| Kategorien / Organsysteme | SOLL, PF-CON-005 | Offen; keine neuen Domainfelder in diesem Slice. |
+
+Eine Verschiebung in spätere Slices ändert keine MUSS-Anforderung in SOLL oder KANN.
+Der aktuelle Create-Slice speichert ausschließlich bei Finish; persistente Entwürfe
+benötigen einen eigenen Folge-Slice und eine klare Abgrenzung zu Abbrechen/Verwerfen.
+
+### Manuelle Abnahme (2026-10-07)
+
+Vom Nutzer grundsätzlich bestätigt: stimmiger Wizard, vier Schritte für diesen
+Grunddaten-Slice akzeptiert, normaler Durchlauf funktioniert, UX akzeptiert.
+Keine pauschale Bestätigung der vollständigen Testmatrix: 125-%-/150-%-DPI,
+Hardware-Tastaturmatrix und nicht separat bestätigte Spezialfälle bleiben manuell
+offen. Automatisierte DE/EN-/Wizard-/Lifecycle-/Sortier-/Refresh-/Reentrancy-Nachweise
+bleiben davon unberührt; die vertiefende manuelle Prüfliste steht in 157.
 
 ## Dashboard-Agenda Slice 1
 

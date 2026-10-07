@@ -21,7 +21,7 @@ A working .NET desktop application baseline already exists with:
 - a read-only dashboard agenda with upcoming planned sessions and open follow-ups, calendar groups, bounded previews and exact session/child navigation (Slice 1; manual acceptance pending; [scope and checks](docs/development/154_Dashboard_Agenda_Slice_1.md));
 - a functional WPF application shell;
 - a first WinForms frontend baseline using the same application services and JSON persistence;
-- a first "new health topic" wizard;
+- a four-step HealthTopic basic-data wizard with localized review, inline validation and guarded final save ([completion baseline](docs/development/157_HealthTopic_Wizard_Completion.md); normal workflow and UX manually accepted; advanced manual checks and the full domain wizard remain open);
 - smoke tests;
 - concept screenshots that define the intended visual direction.
 

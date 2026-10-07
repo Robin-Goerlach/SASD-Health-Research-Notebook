@@ -63,6 +63,20 @@ internal sealed class ThreeStateGridSort<TRow>(DataGridView grid, Func<TRow, Gui
         Apply();
     }
 
+    /// <summary>Selects a newly created row after binding, suppressing reentrant command updates.</summary>
+    public void Select(Guid id)
+    {
+        IsRebinding = true;
+        try
+        {
+            foreach (DataGridViewRow bound in grid.Rows)
+                if (bound.DataBoundItem is TRow item && identity(item) == id)
+                { grid.CurrentCell = bound.Cells[0]; break; }
+        }
+        finally { IsRebinding = false; }
+        Rebound?.Invoke();
+    }
+
     private void HeaderClick(object? sender, DataGridViewCellMouseEventArgs e)
     {
         if (e.Button != MouseButtons.Left || !_columns.ContainsKey(e.ColumnIndex)

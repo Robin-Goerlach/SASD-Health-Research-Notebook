@@ -353,35 +353,12 @@ public static partial class AppStrings
     /// </summary>
     public static IReadOnlyList<WizardStepText> CreateWizardSteps()
     {
-        if (AppLanguage.Current == UiLanguage.German)
-        {
-            return new[]
-            {
-                new WizardStepText("1. Grunddaten", BasicDataStepDescription),
-                new WizardStepText("2. Diagnose / Status", "Später: externe Diagnoseinformationen oder offenen Status dokumentieren, ohne App-Diagnose."),
-                new WizardStepText("3. Symptome", "Später: Symptome und Beobachtungen dokumentieren."),
-                new WizardStepText("4. Dokumente", "Später: Briefe, PDFs, Laborberichte und Bilder verbinden."),
-                new WizardStepText("5. Quellen & Informationen", "Später: Quellen und persönliche Recherchenotizen sammeln."),
-                new WizardStepText("6. Ärzte / Kontakte", "Später: Ärzte, Praxen, Kliniken und Kontaktpersonen verbinden."),
-                new WizardStepText("7. Medikamente / Maßnahmen", "Später: extern berichtete oder verordnete Informationen dokumentieren, nicht als App-Empfehlung."),
-                new WizardStepText("8. Messwerte / Laborwerte", "Später: Werte und Einheiten dokumentieren."),
-                new WizardStepText("9. Offene Fragen", "Später: Fragen für medizinische Termine sammeln."),
-                new WizardStepText("10. Zusammenfassung", "Eingegebene Informationen vor dem Speichern prüfen.")
-            };
-        }
-
         return new[]
         {
-            new WizardStepText("1. Basic data", BasicDataStepDescription),
-            new WizardStepText("2. Diagnosis / status", "Later: document external diagnosis information or open status without app-generated diagnosis."),
-            new WizardStepText("3. Symptoms", "Later: document symptoms and observations."),
-            new WizardStepText("4. Documents", "Later: connect letters, PDFs, lab reports and images."),
-            new WizardStepText("5. Sources & information", "Later: collect reliable sources and personal research notes."),
-            new WizardStepText("6. Doctors / contacts", "Later: connect doctors, clinics and contact persons."),
-            new WizardStepText("7. Medication / measures", "Later: document what was reported or prescribed elsewhere, not as an app recommendation."),
-            new WizardStepText("8. Measurements / lab values", "Later: document values and units."),
-            new WizardStepText("9. Open questions", "Later: collect questions for medical appointments."),
-            new WizardStepText("10. Summary", "Review the entered information before saving.")
+            new WizardStepText(Text("1. Basic data", "1. Grunddaten"), Text("Give the topic a title and an optional short description. This app documents your entries; it does not diagnose.", "Gib dem Thema einen Titel und optional eine Kurzbeschreibung. Die App dokumentiert deine Angaben; sie stellt keine Diagnose.")),
+            new WizardStepText(Text("2. Classification", "2. Einordnung"), Text("Status describes your documentation. Priority helps you organize it; it is not a medical urgency assessment. Archived topics appear in the archive filter.", "Der Status beschreibt deine Dokumentation. Die Priorität hilft beim Organisieren; sie ist keine medizinische Dringlichkeitsbewertung. Archivierte Themen erscheinen im Archivfilter.")),
+            new WizardStepText(Text("3. Notes", "3. Notizen"), Text("Optional: add context or questions. You can leave this step empty.", "Optional: ergänze Kontext oder Fragen. Du kannst diesen Schritt leer lassen.")),
+            new WizardStepText(WizardReviewTitle, Text("Review your entries. Only Finish saves the topic. Use Back to make corrections.", "Prüfe deine Angaben. Erst Fertigstellen speichert das Thema. Mit Zurück kannst du Angaben korrigieren."))
         };
     }
 
