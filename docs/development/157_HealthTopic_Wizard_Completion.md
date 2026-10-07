@@ -23,6 +23,66 @@ Abbruch und einmaliges Speichern. Kein allgemeines Wizard-Framework, keine Paket
 Fachmodule, medizinischen Regeln, Persistenzversionen oder Domain-/Application-/Infrastructure-Änderungen.
 WinForms bleibt führend; WPF bleibt unverändert und wird mitgebaut.
 
+## Was wurde geändert und warum?
+
+### Gegenüberstellung der bisherigen und heutigen Schritte
+
+Die bisherigen Schritte 2 bis 10 waren im WinForms-Code ausschließlich sichtbare
+Roadmap-Platzhalter: Sie enthielten keine eigenen Eingabefelder und speicherten keine
+zusätzlichen Fachobjekte. Die fünf tatsächlich speicherbaren HealthTopic-Felder lagen
+alle im ersten Schritt. Der Slice entfernt diese Platzhalter aus dem **aktuellen
+Create-Wizard**, nicht die zugehörigen Fachanforderungen oder vorhandenen Module.
+
+| Bisheriger Unterpunkt | Änderung im fertigen Wizard | Begründung und fachlicher Verbleib |
+|---|---|---|
+| 1. Grunddaten | Beibehalten, auf Titel und Kurzbeschreibung konzentriert. | Ein klarer Einstieg; Status/Priorität und Notizen erhalten eigene Schritte. Kein Feld entfällt. |
+| 2. Diagnose / Status | Durch den echten Schritt „Einordnung“ mit Status und Priorität ersetzt. | Der alte Schritt war ein Platzhalter; die Auswahlfelder lagen vorher in Grunddaten. „Einordnung“ beschreibt dokumentarischen Status und organisatorische Priorität ohne den Eindruck einer App-Diagnose. Alle fünf Status- und vier Prioritätswerte bleiben erhalten. |
+| 3. Symptome | Als eigener Wizard-Schritt entfernt. | Kein Symptomeingabefeld und kein Speichern von Beobachtungsobjekten waren dort implementiert. Beobachtungen können im vorhandenen Timeline-Modul dokumentiert werden. Eine zusätzliche Erfassung samt Verknüpfung im Create-Wizard wäre ein weiterer Fach-Slice. |
+| 4. Dokumente | Als eigener Wizard-Schritt entfernt. | Es gab keine Upload-/Dateiverknüpfungsfunktion in diesem Schritt. Dokument-/Medienverwaltung bleibt im Produktplan; deren Umsetzung war ausdrücklich nicht Teil dieses Auftrags. |
+| 5. Quellen & Informationen | Als eigener Wizard-Schritt entfernt. | Der Platzhalter führte keine Quellenanlage aus. Das vorhandene Quellen-Modul bleibt verfügbar. Quellen während der Themenanlage mit zu erzeugen würde zusätzliche Services, Verknüpfungen und Abbruchregeln benötigen. |
+| 6. Ärzte / Kontakte | Als eigener Wizard-Schritt entfernt. | Es gab keine Kontaktanlage oder -auswahl in diesem Schritt. ContactReference und die spätere SASD-Kontaktintegration bleiben geplant; der Auftrag schloss diese Erweiterung ausdrücklich aus. |
+| 7. Medikamente / Maßnahmen | Als eigener Wizard-Schritt entfernt. | Es gab dort keine Medikamenten- oder Maßnahmenanlage. Das vorhandene Aktionen-/Routinen-Modul bleibt erhalten; eine Medikamentenverwaltung wird durch diesen Slice weder eingeführt noch ersetzt. Der Wizard erzeugt keine medizinischen Maßnahmen. |
+| 8. Messwerte / Laborwerte | Als eigener Wizard-Schritt entfernt. | Der Platzhalter erfasste keine Werte. Das vorhandene Messwerte-Modul bleibt verfügbar; die Wizard-Integration und zusätzliche Laborfunktionen sind hier nicht implementiert. |
+| 9. Offene Fragen | Als eigener Wizard-Schritt entfernt. | Es gab keinen eigenen Frageneditor oder Fragen-Datensatz in diesem Schritt. Fragen können als Freitext in Notizen festgehalten werden; strukturierte Terminfragen bleiben im vorhandenen Sitzungen-Modul. Eine automatische Überführung findet nicht statt. |
+| 10. Zusammenfassung | Durch den echten vierten Schritt „Prüfen“ ersetzt. | Die alte Zusammenfassung war ebenfalls nur ein Platzhalter. Die neue Review zeigt Titel, lokalisierte Auswahlwerte, Kurzbeschreibung und vorhandene Notizen vor dem einzigen finalen Save. |
+
+Der neue dritte Schritt „Notizen“ nimmt das bereits vorhandene Notes-Feld aus den
+Grunddaten auf. Damit lautet der vollständige Ablauf: **Grunddaten → Einordnung →
+Notizen → Prüfen**. Es wurden keine HealthTopic-Felder, Enum-Werte, bestehenden
+Datensätze oder funktionierenden Fachmodule entfernt.
+
+### Warum die Platzhalter nicht sichtbar geblieben sind
+
+Der Auftrag verlangte einen vollständig fertiggestellten kleinen Create-Slice mit
+logischer Reihenfolge, geringer kognitiver Belastung und ohne neue Fachmodule.
+Sieben zusätzliche leere Fachschritte hätten weiterhin nicht verfügbare Funktionen
+angekündigt und unnötige Weiter-Klicks erzeugt. Ihre Entfernung macht den tatsächlich
+implementierten Umfang sichtbar. Die historischen Zehn-Schritte-Pläne bleiben als
+langfristiges Zielbild erhalten; daraus folgt keine Zusage, alle Schritte später
+unverändert wieder in denselben Wizard einzubauen.
+
+Eine künftige Integration zusätzlicher Fachobjekte benötigt einen eigenen Auftrag
+und konkrete Regeln für Verknüpfung, Validierung, Transaktionen und Abbruch. Sie wird
+nicht nebenbei durch Platzhalter oder durch Freitextfelder als erfüllt erklärt.
+
+### Weitere bewusst geänderte Bedienfunktionen
+
+| Bisheriges Verhalten | Änderung | Warum? |
+|---|---|---|
+| Beliebiger Sprung über die Schrittliste | Fortschrittsliste informativ; Navigation über Zurück/Weiter. | Verhindert, dass Pflichtfeldprüfung und Review-Ablauf durch direkte Sprünge umgangen werden. Eingaben bleiben bei Rückwärtsnavigation erhalten. |
+| Titelprüfung erst beim finalen Save per Dialog | Inline-Prüfung vor Weiter; erneute Prüfung vor Finish. | Der Benutzer sieht die konkrete Ursache direkt im betreffenden Schritt. Kein später generischer Validierungsdialog. |
+| Fehlende Auswahl konnte auf einen Standardwert zurückfallen | Fehlende/ungültige Status-/Prioritätsauswahl blockiert Weiter. | Keine unbemerkte Abweichung zwischen gewählter Einordnung und gespeichertem Datensatz. Die initialen Standardauswahlen bleiben erhalten. |
+| Ungeschützter asynchroner Create-Aufruf | Save-Guard und deaktivierte Navigation während Save. | Verhindert parallele Saves und einen als Cancel gemeldeten Abschluss während eines laufenden Schreibvorgangs. |
+| Abbrechen schloss auch nach Eingaben unmittelbar | Verwerfbestätigung bei Änderungen; leerer Wizard schließt direkt. | Verhindert versehentlichen Eingabeverlust ohne einen unnötigen Dialog im unveränderten Zustand. |
+| Erfolg führte nur zum Reload | Nach demselben Reload gezielte Auswahl der neuen ID. | Das Ergebnis wird sofort auffindbar, auch mit Archivstatus oder noch nicht gebundener Themenansicht. |
+
+Automatisches Zwischenspeichern und „später fortsetzen“ wurden **nicht aus einer
+funktionierenden WinForms-Implementierung entfernt**: Der untersuchte Wizard besaß
+keine Entwurfspersistenz. Diese älteren Planungsanforderungen wurden für diesen
+Auftrag ausdrücklich nicht umgesetzt, weil Cancel keinen Datensatz hinterlassen
+soll. Die Vorrangentscheidung und offen bleibenden PF-WIZ-Anforderungen sind unten
+dokumentiert.
+
 ## UX-Regeln und Lifecycle
 
 - Fortschrittsliste ist informativ; Zurück/Weiter steuern den Ablauf und verhindern Validierungsumgehung.
