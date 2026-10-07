@@ -1,7 +1,7 @@
-# 157 – HealthTopic Wizard Completion
+# 157 – HealthTopic Grunddaten-Wizard / Wizard Completion Baseline
 
-Stand: 2026-10-07. Anforderungen: PF-CON-001, PF-WIZ-001/003/004/007, FR-UI-001.
-Status: implementiert und automatisiert validiert; manuelle Abnahme offen.
+Stand: 2026-10-07. Anforderungen: PF-CON-001 (Create-Teilumfang), PF-WIZ-001 bis 007 (Status siehe Matrix), FR-UI-001.
+Status: Grunddaten-Baseline implementiert und automatisiert validiert; normale Bedienung und UX vom Nutzer grundsätzlich manuell akzeptiert. Spezielle manuelle Prüfungen bleiben offen.
 
 ## Ausgangslage und Problem
 
@@ -17,11 +17,60 @@ HealthTopicService und JSON-Lifecycle bleiben die Grundlage; Edit bleibt getrenn
 
 ## Ziel, Scope und Nicht-Ziele
 
-Den bestehenden Wizard fertigstellen, nicht ersetzen: Grunddaten → Einordnung → Notizen → Prüfen.
+Den bestehenden Grunddaten-Wizard fertigstellen, nicht ersetzen: Grunddaten → Einordnung → Notizen → Prüfen.
 Alle fünf vorhandenen Felder, bestehende Enum-Werte, lokalisierte Review-Ansicht, sichere Navigation,
 Abbruch und einmaliges Speichern. Kein allgemeines Wizard-Framework, keine Pakete, keine neuen
 Fachmodule, medizinischen Regeln, Persistenzversionen oder Domain-/Application-/Infrastructure-Änderungen.
 WinForms bleibt führend; WPF bleibt unverändert und wird mitgebaut.
+
+## Verbindliche Scope-Entscheidung für PR #21 (2026-10-07)
+
+Der Nutzer akzeptiert die vier echten Schritte für diesen Slice ausdrücklich.
+PR #21 liefert den **HealthTopic Grunddaten-Wizard / Wizard Completion Baseline**.
+Abgeschlossen sind Grunddaten, Einordnung, Notizen, Zusammenfassung, Validierung,
+Zurück/Weiter, Abbruch, einmaliges Speichern, DE/EN, Auswahl nach Erstellung und die
+automatisiert belegte Fokus-/Reentrancy-Sicherheit.
+
+Der fachlich vollständige Wizard gemäß Pflichtenheft bleibt ausdrücklich Folgearbeit.
+Keine MUSS-Anforderung wird gestrichen, herabgestuft oder wegen der Scope-Entscheidung
+als erledigt markiert. Die technische Platzhalter-Eigenschaft der früheren Seiten
+ändert nicht deren fachliche Priorität. Der Pflichtenheft-Plan enthält elf Schritte
+(einschließlich Start/Zweck und Risiken/Datenschutz), UI-Konzept/Backlog/Screenshot zehn;
+keine dieser Fassungen wird durch die Vier-Schritte-Baseline als vollständig erfüllt erklärt.
+
+| Anforderung | Priorität | Status nach PR #21 / Nachweis |
+|---|---|---|
+| PF-WIZ-001 | MUSS | Abgedeckt: Create-Wizard öffnen und ein HealthTopic anlegen; UI-WIZARD-002. |
+| PF-WIZ-002 | MUSS | Teilweise: Schrittfolge vorhanden; persistente Entwürfe und später fortsetzen offen. |
+| PF-WIZ-003 | MUSS | Teilweise: optionale Eingaben blockieren nicht; direkte Schrittauswahl / explizites Überspringen offen. |
+| PF-WIZ-004 | MUSS | Für den aktuellen Grunddatenumfang abgedeckt: Review aller fünf Felder; UI-WIZARD-002. Keine vollständige Paket-Review behauptet. |
+| PF-WIZ-005 | MUSS | Offen: gemeinsame Erfassung und korrekte Verknüpfung mehrerer Fachobjekte. |
+| PF-WIZ-006 | SOLL | Offen: Vorlagen. |
+| PF-WIZ-007 | MUSS | Abgedeckt: nicht-diagnostischer Starthinweis; UI-WIZARD-002. |
+
+### Ausdrücklich erhaltene offene Fachinhalte
+
+| Fachlicher Wizard-Inhalt | Priorität / Bezug | Status nach PR #21 |
+|---|---|---|
+| Persistente Entwürfe und später fortsetzen | MUSS, PF-WIZ-002 | Offen; nur die Schrittfolge ist umgesetzt. |
+| Direkte Schrittauswahl / explizites Überspringen | MUSS, PF-WIZ-003 | Offen; optionale Eingaben dürfen leer bleiben, daher nur teilweise erfüllt. |
+| Gemeinsame Erfassung und korrekte Verknüpfung mehrerer Fachobjekte | MUSS, PF-WIZ-005; PF-CON-006 | Offen; der Grunddaten-Wizard erzeugt ausschließlich ein HealthTopic. |
+| Symptome / erste Beobachtungen im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.4; PF-SYM-001/002/003 | Offen; das vorhandene Timeline-Modul ersetzt diese Wizard-Integration nicht. |
+| Dokumente / Anhänge im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.5; PF-DOC-001 bis 005 | Offen; Import, Vormerkung und Verknüpfung sind Folgearbeit. |
+| Quellen im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.6; PF-SRC-001/002/003 | Offen; das separate Quellen-Modul erfüllt nicht die Erfassung während der Themenanlage. |
+| Offene Fragen im Wizard | MUSS, Pflichtenheft 11.4.2/11.4.7; PF-APT-002/003 | Offen; Freitextnotizen und sessionbezogene Fragen ersetzen keinen strukturierten Wizard-Fragenbestand. |
+| Erweiterte HealthTopic-Grunddaten, soweit MUSS | PF-CON-002: Startdatum; PF-CON-003: Synonyme; PF-CON-004: Tags; Basisdaten nach 11.4.2/11.4.3 | Offen im jeweiligen erweiterten Umfang; die fünf vorhandenen Felder decken diese Anforderungen nicht vollständig ab. Optionale Benutzereingabe hebt die geforderte Unterstützung nicht auf. |
+| Kontakte im Wizard | SOLL, Pflichtenheft 11.4.2 | Offen; keine ContactReference-Erweiterung in PR #21. |
+| Medikamente / Maßnahmen im Wizard | SOLL, Pflichtenheft 11.4.2; PF-MED-001 bis 005 | Offen; separate HealthActions sind kein Nachweis der vollständigen Wizard-/Medikamentenfunktion. |
+| Messwerte / Laborwerte im Wizard | SOLL, Pflichtenheft 11.4.2; PF-MEA-001 bis 004 | Offen; bestehendes Messwerte-Modul bleibt unabhängig verfügbar. |
+| Vorlagen | SOLL, PF-WIZ-006 | Offen; die KANN-Einstufung im älteren Backlog wird nicht zum Herabstufen der PF-WIZ-Anforderung verwendet. |
+| Weitere Datenschutz-/Sensibilitätsangaben | SOLL für Schritt Risiken/Datenschutz nach 11.4.2; Angaben nach 11.4.3 | Offen; vorhandene Sicherheitsgrenzen bleiben verbindlich. |
+| Kategorien / Organsysteme | SOLL, PF-CON-005 | Offen; keine neuen Domainfelder in diesem Slice. |
+
+Eine Verschiebung in spätere Slices ändert keine MUSS-Anforderung in SOLL oder KANN.
+Direkte Schrittnavigation, Entwürfe, zusätzliche Fachobjekte, Vorlagen und neue
+Domainfelder werden in PR #21 ausdrücklich nicht ergänzt. Separate vorhandene Module
+bleiben verfügbar, zählen aber nicht als Umsetzung ihrer Wizard-Integration.
 
 ## Was wurde geändert und warum?
 
@@ -33,7 +82,7 @@ zusätzlichen Fachobjekte. Die fünf tatsächlich speicherbaren HealthTopic-Feld
 alle im ersten Schritt. Der Slice entfernt diese Platzhalter aus dem **aktuellen
 Create-Wizard**, nicht die zugehörigen Fachanforderungen oder vorhandenen Module.
 
-| Bisheriger Unterpunkt | Änderung im fertigen Wizard | Begründung und fachlicher Verbleib |
+| Bisheriger Unterpunkt | Änderung im fertigen Grunddaten-Wizard | Begründung und fachlicher Verbleib |
 |---|---|---|
 | 1. Grunddaten | Beibehalten, auf Titel und Kurzbeschreibung konzentriert. | Ein klarer Einstieg; Status/Priorität und Notizen erhalten eigene Schritte. Kein Feld entfällt. |
 | 2. Diagnose / Status | Durch den echten Schritt „Einordnung“ mit Status und Priorität ersetzt. | Der alte Schritt war ein Platzhalter; die Auswahlfelder lagen vorher in Grunddaten. „Einordnung“ beschreibt dokumentarischen Status und organisatorische Priorität ohne den Eindruck einer App-Diagnose. Alle fünf Status- und vier Prioritätswerte bleiben erhalten. |
@@ -47,7 +96,7 @@ Create-Wizard**, nicht die zugehörigen Fachanforderungen oder vorhandenen Modul
 | 10. Zusammenfassung | Durch den echten vierten Schritt „Prüfen“ ersetzt. | Die alte Zusammenfassung war ebenfalls nur ein Platzhalter. Die neue Review zeigt Titel, lokalisierte Auswahlwerte, Kurzbeschreibung und vorhandene Notizen vor dem einzigen finalen Save. |
 
 Der neue dritte Schritt „Notizen“ nimmt das bereits vorhandene Notes-Feld aus den
-Grunddaten auf. Damit lautet der vollständige Ablauf: **Grunddaten → Einordnung →
+Grunddaten auf. Damit lautet der vollständige Grunddaten-Ablauf: **Grunddaten → Einordnung →
 Notizen → Prüfen**. Es wurden keine HealthTopic-Felder, Enum-Werte, bestehenden
 Datensätze oder funktionierenden Fachmodule entfernt.
 
@@ -122,7 +171,7 @@ BindTopics; ein eigener Control-Test belegt diesen Fall. Sortierzustand und Refr
 Die älteren UI-Pläne und PF-WIZ-002 verlangen automatisch gespeicherte/fortsetzbare Entwürfe und mehr
 Fachschritte. Der explizite Auftrag für diesen Slice hat Vorrang: keine Persistenz vor Finish, Cancel ohne
 Datensatz, nur die fünf vorhandenen Felder. PF-WIZ-002 und PF-WIZ-005/006 werden hier nicht als erfüllt erklärt.
-Die alten Planungsdokumente bleiben unverändert. PF-WIZ-007 wird durch den nicht-diagnostischen Starthinweis belegt.
+Die alten Planungsdokumente und ihre fachlichen Prioritäten bleiben unverändert; die Scope-Entscheidung hebt keine MUSS-Anforderung auf. PF-WIZ-007 wird durch den nicht-diagnostischen Starthinweis belegt.
 
 ## Tests und Nachweise
 
@@ -138,7 +187,21 @@ UI-WIZARD-002 läuft im bestehenden echten STA-WinForms-Smoke-Runner in DE/EN mi
 - Normal-/Mindestgrößen und PNG-Renderartefakte in .codex; vorhandene Lifecycle-, Dashboard-,
   Grid-Sortier-, Edit-/Focus-/Reentrancy- und Backend-Tests laufen unverändert weiter.
 
-## Manuelle Abnahmeliste (offen)
+## Manuelle Grundabnahme und verbleibende Prüfliste
+
+Am 2026-10-07 ausdrücklich vom Nutzer grundsätzlich bestätigt:
+
+- Wizard wirkt grundsätzlich stimmig.
+- Vier Schritte sind für den Grunddaten-Slice akzeptiert.
+- Normaler Durchlauf funktioniert.
+- UX ist akzeptiert.
+
+Diese Bestätigung ist kein pauschaler Nachweis aller Einzel-/Spezialfälle der folgenden
+Prüfliste. Insbesondere 125-%-/150-%-DPI, die vollständige Hardware-Tastaturmatrix,
+DE/EN-Einzelmatrix, Tooltip-Anzeige, Grenzlängen, Save-Fehler/Retry, Double Finish,
+Archiv-/Refresh-/Lifecycle-Spezialfälle und exakte Fokus-/Reentrancy-Matrix bleiben
+manuell unbestätigt, soweit nicht separat bestätigt. Automatisierte Nachweise bleiben
+unverändert bestehen. Die Liste dient weiter als vertiefende manuelle Prüfgrundlage:
 
 1. Über sicheren Launcher starten, Neues Gesundheitsthema öffnen: Titel fokussiert, vier Schritte.
 2. Leerer/Whitespace-Titel blockiert Weiter; gültigen synthetischen Titel und Beschreibung eingeben.
@@ -152,7 +215,7 @@ UI-WIZARD-002 läuft im bestehenden echten STA-WinForms-Smoke-Runner in DE/EN mi
 
 ## Bekannte Grenzen
 
-Echte Hardware-Tastatur, Tooltip-Anzeige, OS-DPI 125/150 % und subjektive UX bleiben manuell offen.
+Echte Hardware-Tastatur, Tooltip-Anzeige, OS-DPI 125/150 % und spezielle Bedien-/Layoutfälle bleiben manuell offen; die grundsätzliche UX ist akzeptiert.
 Keine Entwurfswiederaufnahme; keine zusätzlichen Objekte. Während des begonnenen finalen Schreibens ist
 Abbruch gesperrt. Crash-/Commit-Ambiguität und transaktionale Idempotenz über Prozessgrenzen sind kein neuer
 Vertrag dieses UI-Slices; bestehende Repository-Fehlersemantik bleibt unverändert.
@@ -179,7 +242,7 @@ Nicht gelesen als Änderungsgrundlage, nicht verändert, rekonstruiert, gelösch
 - `tests/Sasd.HealthNotebook.WinForms.SmokeTests/WizardUiTests.cs`: vollständige Control-/Lifecycle-/Integrationsregression.
 - `docs/development/157_HealthTopic_Wizard_Completion.md`: Scope, Entscheidungen und Nachweise.
 - `docs/testing/105_Akzeptanzkriterien_Traceability_Quality_Gates.md`: tatsächlich implementierte Wizard-Anforderungen.
-- `README.md`: aktuellen Wizard-Umfang und offene manuelle Abnahme verlinken.
+- `README.md`: aktuellen Grunddaten-Wizard-Umfang, erfolgreiche Grundabnahme und offene Spezialprüfungen verlinken.
 
 ## Abschließende automatisierte Validierung
 
@@ -195,10 +258,28 @@ Am 2026-10-07 vollständig erfolgreich:
 - Beide geschützten Hashes erneut exakt bestätigt; Index vor Staging leer; .codex weiterhin ignoriert.
 - Finale UI-Renderartefakte: `.codex/synthetic-development-data/ui-tests/b02f93cfd93b40878b1d781d7088d4a4/`.
   Grunddaten, Einordnung, Notizen und Review wurden mit dem vorhandenen Rendermechanismus erzeugt;
-  DE/EN-Normal-/Mindestgrößenansichten visuell geprüft. Keine manuelle Desktop-Abnahme behauptet.
+  DE/EN-Normal-/Mindestgrößenansichten visuell geprüft. Diese Renderprüfung wird nicht als manuelle Desktop-Abnahme gewertet; die separat berichtete Grundabnahme ist oben abgegrenzt.
 
 Anfängliche Korrekturläufe: beim Verschieben des alten Tests vorübergehend fehlender Testname,
 anschließend korrigierte Reflection-Typbeschränkung; ein neuer Integrationstest fand die fehlende
 Auswahl in einer noch nicht eingeblendeten Liste. Diese Lücke wurde durch vorgemerkte ID-Auswahl
 behoben. Zwei neue Nullable-Warnungen in Enum-Assertions wurden beseitigt. Ein Sandbox-Temp-Zugriffsfehler
 wurde mit dem autorisierten Safe-Lauf außerhalb der Sandbox behoben; der Datenpfad blieb repository-lokal.
+
+## Abschluss der Grunddaten-Baseline nach Scope-Entscheidung
+
+Am 2026-10-07 nach Präzisierung von Scope, Traceability und manueller Grundabnahme
+erneut vollständig erfolgreich validiert:
+
+- `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\scripts\Invoke-SafeDevelopment.ps1"`: Exit 0.
+- Release-Build WinForms/WPF: 0 Fehler und 0 Warnungen.
+- Backend-Smoke-Tests und alle DE/EN-WinForms-Regressionen einschließlich WizardUiTests,
+  HealthTopic-Lifecycle, Sortierung, Refresh und Fokus-/Reentrancy-Prüfungen erfolgreich.
+- UI-Artefakte dieses Laufs: `.codex/synthetic-development-data/ui-tests/0fc36ca7d3554afa996c824e1ce1cccf/`.
+- `git diff --check` und Staging-Whitespace-Prüfung erfolgreich; geschützte Hashes unverändert.
+- Abschlussänderung ausschließlich Dokument 157, Traceability und README-Statuszeile;
+  keine weiteren Produktfunktionen oder Domainfelder ergänzt.
+
+Der Nutzer autorisiert nach grüner Validierung Ready for Review und das vollständige
+Abwarten der CI am finalen Head. Ein Merge ist ausdrücklich nicht autorisiert.
+Die Grundabnahme ist erfolgreich; oben abgegrenzte Spezialprüfungen bleiben manuell offen.
