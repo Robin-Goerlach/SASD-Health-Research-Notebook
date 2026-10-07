@@ -12,9 +12,8 @@ namespace Sasd.HealthNotebook.WinForms.Forms;
 /// Windows Forms wizard for creating a health topic.
 /// </summary>
 /// <remarks>
-/// The first WinForms milestone mirrors the currently functional WPF wizard:
-/// only basic topic data are stored now, while later steps are visible as a
-/// roadmap. The app does not diagnose, recommend therapy, or derive actions.
+/// Inputs remain in memory until the final review is confirmed. The shared service
+/// owns identity, timestamps and persistence. No medical decisions are derived.
 /// </remarks>
 public sealed class CreateHealthTopicWizardForm : Form
 {
@@ -25,7 +24,15 @@ public sealed class CreateHealthTopicWizardForm : Form
     private readonly Label _stepTitleLabel;
     private readonly Label _stepDescriptionLabel;
     private readonly Panel _basicDataPanel;
-    private readonly Panel _placeholderPanel;
+    private readonly Panel _classificationPanel;
+    private readonly Panel _notesPanel;
+    private readonly Panel _summaryPanel;
+    private readonly TextBox _summaryTextBox;
+    private readonly Label _validationLabel;
+    private readonly Button _cancelButton;
+    private bool _saving;
+    private bool _saved;
+
     private readonly TextBox _titleTextBox;
     private readonly ComboBox _statusComboBox;
     private readonly ComboBox _priorityComboBox;
@@ -34,6 +41,9 @@ public sealed class CreateHealthTopicWizardForm : Form
     private readonly Button _backButton;
     private readonly Button _nextButton;
     private int _currentStepIndex;
+
+    /// <summary>Identity returned by the shared service after a successful final save.</summary>
+    public Guid? CreatedTopicId { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateHealthTopicWizardForm" /> class.
@@ -80,11 +90,17 @@ public sealed class CreateHealthTopicWizardForm : Form
             Font = UiFonts.Body,
             DrawMode = DrawMode.OwnerDrawFixed,
             ItemHeight = UiMetrics.NavigationButtonHeight,
-            TabIndex = 0
+            TabIndex = 0,
+            TabStop = false
         };
         _stepsListBox.DrawItem += DrawStep;
         _stepsListBox.Items.AddRange(_steps.Select(step => step.Title).Cast<object>().ToArray());
-        _stepsListBox.SelectedIndexChanged += StepsListBox_SelectedIndexChanged;
+        // Progress is informational; Back/Next are the only navigation commands.
+        _stepsListBox.SelectedIndexChanged += (_, _) =>
+        {
+            if (_stepsListBox.SelectedIndex != _currentStepIndex)
+                _stepsListBox.SelectedIndex = _currentStepIndex;
+        };
 
         var rightPanel = new TableLayoutPanel
         {
@@ -129,10 +145,19 @@ public sealed class CreateHealthTopicWizardForm : Form
             out _shortDescriptionTextBox,
             out _notesTextBox);
 
-        _placeholderPanel = CreatePlaceholderPanel();
-
-        contentPanel.Controls.Add(_placeholderPanel);
-        contentPanel.Controls.Add(_basicDataPanel);
+        _classificationPanel = CreateFieldPanel(
+            (AppStrings.FieldStatus, _statusComboBox, AppStrings.ToolTipStatus),
+            (AppStrings.FieldPriority, _priorityComboBox, AppStrings.ToolTipPriority));
+        _notesPanel = CreateFieldPanel((AppStrings.FieldNotes, _notesTextBox, AppStrings.ToolTipNotes));
+        _summaryTextBox = new TextBox { Dock = DockStyle.Fill, Multiline = true, ReadOnly = true,
+            ScrollBars = ScrollBars.Vertical, BackColor = UiColors.CardBackground,
+            BorderStyle = BorderStyle.None, AccessibleName = AppStrings.WizardReviewTitle };
+        _summaryPanel = new Panel { Dock = DockStyle.Fill };
+        _summaryPanel.Controls.Add(_summaryTextBox);
+        _validationLabel = new Label { Dock = DockStyle.Bottom, Height = 52,
+            ForeColor = UiColors.SecondaryText, AccessibleName = AppStrings.WizardValidationLabel };
+        contentPanel.Controls.AddRange(new Control[] { _basicDataPanel, _classificationPanel, _notesPanel, _summaryPanel });
+        contentPanel.Controls.Add(_validationLabel);
 
         rightPanel.Controls.Add(_stepTitleLabel, 0, 0);
         rightPanel.Controls.Add(_stepDescriptionLabel, 0, 1);
@@ -148,15 +173,15 @@ public sealed class CreateHealthTopicWizardForm : Form
             TabIndex = 2
         };
 
-        var cancelButton = new Button
+        _cancelButton = new Button
         {
             Text = AppStrings.Cancel,
             Width = 110,
             Height = UiMetrics.ActionHeight,
-            DialogResult = DialogResult.Cancel,
+            DialogResult = DialogResult.None,
             TabIndex = 2
         };
-        cancelButton.Click += (_, _) =>
+        _cancelButton.Click += (_, _) =>
         {
             DialogResult = DialogResult.Cancel;
             Close();
@@ -164,7 +189,7 @@ public sealed class CreateHealthTopicWizardForm : Form
 
         _nextButton = new Button
         {
-            Width = 120,
+            Width = 150,
             Height = UiMetrics.ActionHeight,
             BackColor = UiColors.PrimaryAccent,
             ForeColor = UiColors.CardBackground,
@@ -184,10 +209,10 @@ public sealed class CreateHealthTopicWizardForm : Form
 
         buttonPanel.Controls.Add(_nextButton);
         buttonPanel.Controls.Add(_backButton);
-        buttonPanel.Controls.Add(cancelButton);
+        buttonPanel.Controls.Add(_cancelButton);
         _nextButton.FlatAppearance.BorderSize = 0;
         AcceptButton = _nextButton;
-        CancelButton = cancelButton;
+        CancelButton = _cancelButton;
 
         root.Controls.Add(_stepsListBox, 0, 0);
         root.SetRowSpan(_stepsListBox, 2);
@@ -199,6 +224,21 @@ public sealed class CreateHealthTopicWizardForm : Form
         FillStatusComboBox();
         FillPriorityComboBox();
 
+        _titleTextBox.TextChanged += (_, _) => UpdateValidation();
+        _shortDescriptionTextBox.TextChanged += (_, _) => UpdateValidation();
+        _notesTextBox.TextChanged += (_, _) => UpdateValidation();
+        _statusComboBox.SelectedIndexChanged += (_, _) => UpdateValidation();
+        _priorityComboBox.SelectedIndexChanged += (_, _) => UpdateValidation();
+        FormClosing += (_, args) =>
+        {
+            // A pending write cannot be cancelled: closing must never report cancellation
+            // while the repository is committing a topic.
+            if (_saving) { args.Cancel = true; return; }
+            if (!_saved && HasChanges() && MessageBox.Show(this, AppStrings.WizardDiscardMessage,
+                AppStrings.NewHealthTopic, MessageBoxButtons.YesNo, MessageBoxIcon.Question,
+                MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+            { args.Cancel = true; DialogResult = DialogResult.None; }
+        };
         ShowStep(0);
         Shown += (_, _) => _titleTextBox.Focus();
     }
@@ -232,7 +272,7 @@ public sealed class CreateHealthTopicWizardForm : Form
         {
             Dock = DockStyle.Top,
             ColumnCount = 2,
-            RowCount = 5,
+            RowCount = 2,
             AutoSize = true,
             BackColor = UiColors.CardBackground
         };
@@ -255,33 +295,20 @@ public sealed class CreateHealthTopicWizardForm : Form
         };
 
         AddRow(layout, 0, AppStrings.FieldTitle, titleTextBox, AppStrings.ToolTipHealthTopicTitle);
-        AddRow(layout, 1, AppStrings.FieldStatus, statusComboBox, AppStrings.ToolTipStatus);
-        AddRow(layout, 2, AppStrings.FieldPriority, priorityComboBox, AppStrings.ToolTipPriority);
-        AddRow(layout, 3, AppStrings.FieldShortDescription, shortDescriptionTextBox, AppStrings.ToolTipShortDescription);
-        AddRow(layout, 4, AppStrings.FieldNotes, notesTextBox, AppStrings.ToolTipNotes);
-
+        AddRow(layout, 1, AppStrings.FieldShortDescription, shortDescriptionTextBox, AppStrings.ToolTipShortDescription);
         panel.Controls.Add(layout);
         return panel;
     }
 
-    private static Panel CreatePlaceholderPanel()
+    private Panel CreateFieldPanel(params (string Label, Control Editor, string Help)[] fields)
     {
-        var panel = new Panel
-        {
-            Dock = DockStyle.Fill,
-            BackColor = UiColors.CardBackground
-        };
-
-        var label = new Label
-        {
-            Dock = DockStyle.Fill,
-            Font = UiFonts.Body,
-            ForeColor = UiColors.SecondaryText,
-            Text = AppStrings.WizardPlaceholder,
-            TextAlign = ContentAlignment.MiddleCenter
-        };
-
-        panel.Controls.Add(label);
+        var panel = new Panel { Dock = DockStyle.Fill, AutoScroll = true, BackColor = UiColors.CardBackground };
+        var layout = new TableLayoutPanel { Dock = DockStyle.Top, AutoSize = true, ColumnCount = 2, RowCount = fields.Length };
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 36));
+        layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 64));
+        for (int index = 0; index < fields.Length; index++)
+            AddRow(layout, index, fields[index].Label, fields[index].Editor, fields[index].Help);
+        panel.Controls.Add(layout);
         return panel;
     }
 
@@ -348,100 +375,100 @@ public sealed class CreateHealthTopicWizardForm : Form
         _priorityComboBox.SelectedIndex = 0;
     }
 
-    private void StepsListBox_SelectedIndexChanged(object? sender, EventArgs e)
-    {
-        if (_stepsListBox.SelectedIndex >= 0 && _stepsListBox.SelectedIndex != _currentStepIndex)
-        {
-            ShowStep(_stepsListBox.SelectedIndex);
-        }
-    }
-
     private void ShowStep(int stepIndex)
     {
+        if (_saving || _saved) return;
+        // Move focus before hiding a panel so it never remains in an invisible editor.
+        _cancelButton.Focus();
         _currentStepIndex = Math.Clamp(stepIndex, 0, _steps.Count - 1);
-
         WizardStepText step = _steps[_currentStepIndex];
         _stepTitleLabel.Text = step.Title;
         _stepDescriptionLabel.Text = step.Description;
-
-        if (_stepsListBox.SelectedIndex != _currentStepIndex)
-        {
-            _stepsListBox.SelectedIndex = _currentStepIndex;
-        }
-
+        _stepsListBox.SelectedIndex = _currentStepIndex;
         _basicDataPanel.Visible = _currentStepIndex == 0;
-        _placeholderPanel.Visible = _currentStepIndex != 0;
-
+        _classificationPanel.Visible = _currentStepIndex == 1;
+        _notesPanel.Visible = _currentStepIndex == 2;
+        _summaryPanel.Visible = _currentStepIndex == 3;
         _backButton.Enabled = _currentStepIndex > 0;
-        _nextButton.Text = _currentStepIndex == _steps.Count - 1 ? AppStrings.Create : AppStrings.Next;
+        _nextButton.Text = _currentStepIndex == 3 ? AppStrings.WizardFinish : AppStrings.Next;
+        if (_currentStepIndex == 3)
+        {
+            _summaryTextBox.Text = string.Join(Environment.NewLine + Environment.NewLine,
+                $"{AppStrings.FieldTitle}: {_titleTextBox.Text.Trim()}",
+                $"{AppStrings.FieldStatus}: {_statusComboBox.SelectedItem}",
+                $"{AppStrings.FieldPriority}: {_priorityComboBox.SelectedItem}",
+                $"{AppStrings.FieldShortDescription}: {_shortDescriptionTextBox.Text.Trim()}",
+                string.IsNullOrWhiteSpace(_notesTextBox.Text) ? string.Empty : $"{AppStrings.FieldNotes}: {_notesTextBox.Text.Trim()}").Trim();
+            _summaryTextBox.SelectionStart = 0;
+        }
+        UpdateValidation();
+        Control focus = _currentStepIndex switch { 0 => _titleTextBox, 1 => _statusComboBox, 2 => _notesTextBox, _ => _summaryTextBox };
+        focus.Focus();
     }
+
+    private string ValidationForStep(int step) => step switch
+    {
+        0 when string.IsNullOrWhiteSpace(_titleTextBox.Text) => AppStrings.MissingTitleMessage,
+        0 when _titleTextBox.Text.Trim().Length > 160 || _shortDescriptionTextBox.Text.Length > 500 => AppStrings.WizardTextLimits,
+        1 when _statusComboBox.SelectedItem is not EnumDisplayItem<HealthTopicStatus> status || !Enum.IsDefined(status.Value)
+            || _priorityComboBox.SelectedItem is not EnumDisplayItem<HealthTopicPriority> priority || !Enum.IsDefined(priority.Value) => AppStrings.WizardChooseClassification,
+        2 when _notesTextBox.Text.Length > 4000 => AppStrings.WizardTextLimits,
+        _ => string.Empty
+    };
+
+    private void UpdateValidation()
+    {
+        string message = _currentStepIndex == 3
+            ? Enumerable.Range(0, 3).Select(ValidationForStep).FirstOrDefault(text => text.Length > 0) ?? string.Empty
+            : ValidationForStep(_currentStepIndex);
+        _validationLabel.Text = message;
+        _nextButton.Enabled = !_saving && !_saved && message.Length == 0;
+    }
+
+    private bool HasChanges() => _titleTextBox.Text.Length > 0 || _shortDescriptionTextBox.Text.Length > 0
+        || _notesTextBox.Text.Length > 0 || _statusComboBox.SelectedIndex != 0 || _priorityComboBox.SelectedIndex != 0;
 
     private async void NextButton_Click(object? sender, EventArgs e)
     {
-        if (_currentStepIndex < _steps.Count - 1)
-        {
-            ShowStep(_currentStepIndex + 1);
-            return;
-        }
-
+        if (_saving || _saved) return;
+        UpdateValidation();
+        if (!_nextButton.Enabled) return;
+        if (_currentStepIndex < 3) { ShowStep(_currentStepIndex + 1); return; }
         await CreateTopicSafeAsync();
     }
 
     private async Task CreateTopicSafeAsync()
     {
-        if (string.IsNullOrWhiteSpace(_titleTextBox.Text))
-        {
-            MessageBox.Show(
-                this,
-                AppStrings.MissingTitleMessage,
-                AppStrings.AppTitle,
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+        if (_saving || _saved || _currentStepIndex != 3) return;
+        for (int step = 0; step < 3; step++)
+            if (ValidationForStep(step).Length > 0) { ShowStep(step); return; }
 
-            ShowStep(0);
-            _titleTextBox.Focus();
-            return;
-        }
-
+        _saving = true;
+        _nextButton.Enabled = _backButton.Enabled = _cancelButton.Enabled = false;
         try
         {
             var request = new CreateHealthTopicRequest
             {
                 Title = _titleTextBox.Text,
-                Status = GetSelectedValue(_statusComboBox, HealthTopicStatus.Observation),
-                Priority = GetSelectedValue(_priorityComboBox, HealthTopicPriority.Normal),
+                Status = ((EnumDisplayItem<HealthTopicStatus>)_statusComboBox.SelectedItem!).Value,
+                Priority = ((EnumDisplayItem<HealthTopicPriority>)_priorityComboBox.SelectedItem!).Value,
                 ShortDescription = _shortDescriptionTextBox.Text,
                 Notes = _notesTextBox.Text
             };
-
-            await _healthTopicService.CreateTopicAsync(request).ConfigureAwait(true);
-
-            DialogResult = DialogResult.OK;
-            Close();
+            var created = await _healthTopicService.CreateTopicAsync(request).ConfigureAwait(true);
+            CreatedTopicId = created.Id;
+            _saved = true;
         }
-        catch (ArgumentException ex)
+        catch (ArgumentException) { _validationLabel.Text = AppStrings.TopicEditValidation; }
+        catch { _validationLabel.Text = AppStrings.FormatSafeError(AppStrings.OperationCreateHealthTopic); }
+        finally { _saving = false; }
+        if (_saved) { DialogResult = DialogResult.OK; Close(); }
+        else
         {
-            // Domain validation messages are deliberately generic and do not include
-            // the user's medical content. They are safe to show as direct feedback.
-            MessageBox.Show(
-                this,
-                ex.Message,
-                AppStrings.AppTitle,
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
+            _backButton.Enabled = _cancelButton.Enabled = true;
+            _nextButton.Enabled = true;
+            _nextButton.Focus();
         }
-        catch
-        {
-            UiErrorHandler.ShowSafeError(this, AppStrings.OperationCreateHealthTopic);
-        }
-    }
-
-    private static TEnum GetSelectedValue<TEnum>(ComboBox comboBox, TEnum fallback)
-        where TEnum : struct, Enum
-    {
-        return comboBox.SelectedItem is EnumDisplayItem<TEnum> selected
-            ? selected.Value
-            : fallback;
     }
 
     private sealed class EnumDisplayItem<TEnum>

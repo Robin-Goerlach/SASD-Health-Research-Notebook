@@ -26,6 +26,7 @@ public sealed class HealthTopicsView : UserControl
     private readonly Button _archiveButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
     private readonly Button _deleteButton = new() { AutoSize = true, MinimumSize = new(100, UiMetrics.ActionHeight) };
     private readonly CheckBox _showArchived = new() { AutoSize = true, Margin = new(8, 10, 3, 3) };
+    private Guid? _pendingCreatedTopicId;
     private IReadOnlyList<HealthTopicSummary> _topics = Array.Empty<HealthTopicSummary>();
 
     /// <summary>
@@ -125,6 +126,13 @@ public sealed class HealthTopicsView : UserControl
         Controls.Add(_titleLabel);
 
         ApplyTexts();
+        VisibleChanged += (_, _) =>
+        {
+            // Hidden pages may not have a BindingContext/rows yet. Publish selection
+            // after WinForms finishes activating and binding the page, never inside OnEnter.
+            if (Visible && IsHandleCreated && _pendingCreatedTopicId.HasValue)
+                BeginInvoke((Action)(() => { if (!IsDisposed && Visible) SelectPendingCreatedTopic(); }));
+        };
     }
 
     /// <summary>
@@ -157,7 +165,26 @@ public sealed class HealthTopicsView : UserControl
     {
         ArgumentNullException.ThrowIfNull(summaries);
         _topics = summaries; BindTopics();
+        // A newer overlapping refresh may publish after the create flow returns.
+        // Retain its requested ID until real rows are available, then select after binding.
+        if (Visible && _pendingCreatedTopicId.HasValue) SelectPendingCreatedTopic();
     }
+    /// <summary>Reveals a just-created topic, including an explicitly archived one, after refresh.</summary>
+    public void SelectCreatedTopic(Guid id)
+    {
+        _pendingCreatedTopicId = id;
+        if (_topics.Any(topic => topic.Id == id && topic.Status == Sasd.HealthNotebook.Domain.HealthTopicStatus.Archived))
+            _showArchived.Checked = true;
+        if (Visible) SelectPendingCreatedTopic();
+    }
+
+    private void SelectPendingCreatedTopic()
+    {
+        if (_pendingCreatedTopicId is not Guid id) return;
+        _sort.Select(id);
+        if (SelectedTopic?.Id == id) _pendingCreatedTopicId = null;
+    }
+
     private void BindTopics()
     {
         var summaries = _topics.Where(item => _showArchived.Checked || item.Status != Sasd.HealthNotebook.Domain.HealthTopicStatus.Archived);

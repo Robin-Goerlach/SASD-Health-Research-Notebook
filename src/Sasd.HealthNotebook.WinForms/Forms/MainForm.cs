@@ -529,6 +529,11 @@ public sealed partial class MainForm : Form
         if (wizard.ShowDialog(this) == DialogResult.OK)
         {
             await ReloadSafeAsync();
+            if (!IsDisposed && wizard.CreatedTopicId is Guid id)
+            {
+                _dashboardTopicsView.SelectCreatedTopic(id);
+                _topicsView.SelectCreatedTopic(id);
+            }
         }
     }
 
